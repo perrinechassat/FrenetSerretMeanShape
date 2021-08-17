@@ -1,5 +1,4 @@
 # FrenetSerretMeanShape
-=====================
 
 A python package for estimating the mean geometry and mean shape from a set of multi-dimensional curves. The mean curvature, the mean torsion, as well as the mean shape are defined by the notion of mean vector field, based on a geometric representation of the curves by the ordinary Frenet-Serret differential equations. This formulation of the mean for multidimensional curves allows the parameters of the shape characteristics to be integrated into the unified framework of functional data modelling. The functional parameter estimation problem is formulated in a penalised regression.  
 
