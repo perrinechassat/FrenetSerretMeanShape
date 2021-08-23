@@ -46,6 +46,70 @@ def compute_A(theta):
     return np.array([[0, -theta[0], 0], [theta[0], 0, -theta[1]], [0, theta[1], 0]])
 
 
+""" Smoothing with Tracking method """
+
+
+def tracking_smoother_q(SingleFrenetPath, Model, lbda, p, q):
+    h = SingleFrenetPath.grid_eval[q+1] - SingleFrenetPath.grid_eval[q]
+    kappa_q = Model.curv.function(SingleFrenetPath.grid_eval[q])
+    tau_q = Model.tors.function(SingleFrenetPath.grid_eval[q])
+    A_q = compute_A([kappa_q, tau_q])
+    # A_q_troch = torch.from_numpy(A_q)
+    # expA_q = torch.matrix_exp(A_q_troch)
+    # expA_q = expA_q.cpu().detach().numpy()
+    expA_q = exp_matrix(h*A_q)
+    extend_A = np.concatenate((np.concatenate((h*A_q, np.eye(3)), axis=1), np.zeros((3,6))), axis=0)
+    phi_A = expm(extend_A)[:p,p:]
+    # B = h * np.array([[0,-1,0],[1,0,-1],[0,1,0]]) @ phi_A
+    B = h * phi_A
+    M_tilde_q = np.concatenate((np.concatenate((expA_q,np.zeros((p,p))),axis=1), np.concatenate((np.zeros((p,p)), np.eye(p)),axis=1)),axis=0)
+    B_tilde_q = np.concatenate((B, np.zeros((p,p))), axis=0)
+    R_q = lbda*h*np.eye(p)
+
+    return M_tilde_q, B_tilde_q, R_q
+
+
+def tracking_smoother_i(SingleFrenetPath, Model, lbda, p):
+
+    Q = np.zeros((2*p,2*p,SingleFrenetPath.nb_grid_eval))
+    M_tilde = np.zeros((2*p,2*p,SingleFrenetPath.nb_grid_eval))
+    B_tilde = np.zeros((2*p,p,SingleFrenetPath.nb_grid_eval))
+    R = np.zeros((p,p,SingleFrenetPath.nb_grid_eval))
+
+    for q in range(SingleFrenetPath.nb_grid_eval):
+        Y_q = SingleFrenetPath.data[:,:,q]
+        Q[:,:,q] = np.concatenate((np.concatenate((np.eye(p),-Y_q),axis=1), np.concatenate((-Y_q.T, Y_q.T @ Y_q),axis=1)),axis=0)
+
+    for q in range(SingleFrenetPath.nb_grid_eval-1):
+        M_tilde[:,:,q], B_tilde[:,:,q], R[:,:,q] = tracking_smoother_q(SingleFrenetPath, Model, lbda, p, q)
+
+    Q0 = SingleFrenetPath.data[:,:,0]
+    U, Z, K, P = tracking(Q0, Q, R, M_tilde, B_tilde, SingleFrenetPath.nb_grid_eval-1, p)
+    Q_hat = np.moveaxis(Z[:,:p,:],0, -1)
+    SmoothFrenetPath = FrenetPath(grid_obs=SingleFrenetPath.grid_eval, grid_eval=SingleFrenetPath.grid_eval, data=Q_hat)
+
+
+def tracking_smoother(PopFrenetPath, Model, lbda):
+
+    if isinstance(PopFrenetPath, FrenetPath):
+        N_samples = 1
+    else:
+        N_samples = PopFrenetPath.nb_samples
+
+    p = PopFrenetPath.dim
+
+    if N_samples==1:
+        return tracking_smoother_i(PopFrenetPath, Model, lbda, p)
+    else:
+        data_smoothfrenetpath = []
+        for i in range(N_samples):
+            data_smoothfrenetpath.append(tracking_smoother_i(PopFrenetPath.frenet_paths[i], Model, p))
+
+        return PopulationFrenetPath(data_smoothfrenetpath)
+
+
+""" Smoothing with Karcher Mean method """
+
 def lie_smoother_q(q, SingleFrenetPath, Model, p):
     """
     Step of function Lie smoother.
@@ -386,7 +450,10 @@ def global_estimation(PopFrenetPath, SmoothPopulationFrenetPath_init, Model, x, 
     # Resmooth data with model information
     while np.linalg.norm(Dtheta)>=epsilon*np.linalg.norm(theta) and k<31:
 
-        SmoothPopulationFrenet = lie_smoother(PopFrenetPath,Model)
+        if opt_tracking==True:
+            SmoothPopulationFrenet = tracking_smoother(PopFrenetPath,Model,x[3])
+        else:
+            SmoothPopulationFrenet = lie_smoother(PopFrenetPath,Model)
 
         if opt_alignment==True:
             mKappa, mTau, mS, mOmega, gam, kappa_align, tau_align = compute_raw_curvatures_alignement_boucle(PopFrenetPath, x[0], SmoothPopulationFrenet, gam)
@@ -439,7 +506,10 @@ def adaptative_estimation(TrueFrenetPath, domain_range, nb_basis, tracking=False
 
     Model_theta = Model(curv_smoother, tors_smoother)
     TrueFrenetPath.compute_neighbors(x[0])
-    SmoothFrenetPath0 = lie_smoother(TrueFrenetPath,Model_theta)
+    if tracking==True:
+        SmoothFrenetPath0 = tracking_smoother(TrueFrenetPath,Model_theta)
+    else:
+        SmoothFrenetPath0 = lie_smoother(TrueFrenetPath,Model_theta)
     SmoothFrenetPath_fin, ind_conv = global_estimation(TrueFrenetPath, SmoothFrenetPath0, Model_theta, x, opt_tracking=tracking, opt_alignment=alignment, lam=lam)
 
     return SmoothFrenetPath_fin, [x,ind_conv]
@@ -513,8 +583,35 @@ def step_cross_val_on_Q(curv_smoother, tors_smoother, test_index, train_index, S
         return 100
 
 
+def step_cross_val_on_Q_tracking(curv_smoother, tors_smoother, test_index, train_index, SingleFrenetPath, hyperparam):
+    """
+    Step of cross validation in the case of estimation of curvature and torsion on a single curve. The error is computed here on Q.
+    ...
+    """
+    t_train = SingleFrenetPath.grid_obs[train_index]
+    t_test = SingleFrenetPath.grid_obs[test_index]
+    data_train = SingleFrenetPath.data[:,:,train_index]
+    train_FrenetPath = FrenetPath(t_train, t_train, data=data_train)
 
-def objective_single_curve(n_splits, SingleFrenetPath, curv_smoother, tors_smoother, hyperparam):
+    curv_smoother.reinitialize()
+    tors_smoother.reinitialize()
+
+    Model_test = Model(curv_smoother, tors_smoother)
+    train_FrenetPath.compute_neighbors(hyperparam[0])
+    pred_FrenetPath0 = tracking_smoother(train_FrenetPath,Model_test,hyperparam[3])
+    pred_FrenetPath, ind_conv = global_estimation(train_FrenetPath, pred_FrenetPath0, Model_test, hyperparam, opt_tracking=True)
+
+    if ind_conv==True:
+        temp_FrenetPath_Q0 = FrenetPath(SingleFrenetPath.grid_obs, SingleFrenetPath.grid_eval, init=pred_FrenetPath.data[:,:,0], curv=pred_FrenetPath.curv, tors=pred_FrenetPath.tors)
+        temp_FrenetPath_Q0.frenet_serret_solve()
+        dist = geodesic_dist(np.rollaxis(SingleFrenetPath.data[:,:,test_index], 2), np.rollaxis(temp_FrenetPath_Q0.data[:,:,test_index], 2))
+        return dist
+    else:
+        return 100
+
+
+
+def objective_single_curve(n_splits, SingleFrenetPath, curv_smoother, tors_smoother, hyperparam, opt_tracking):
     """
     Objective function in case of estimation for a single curve that do the cross validation.
     ...
@@ -527,9 +624,15 @@ def objective_single_curve(n_splits, SingleFrenetPath, curv_smoother, tors_smoot
     curv_smoother.reinitialize()
     tors_smoother.reinitialize()
 
-    for train_index, test_index in kf.split(SingleFrenetPath.grid_obs):
+    for train_index, test_index in kf.split(SingleFrenetPath.grid_obs[1:-1]):
+        train_index = train_index+1
+        test_index = test_index+1
+        train_index = np.concatenate((np.array([0]), train_index, np.array([len(SingleFrenetPath.grid_obs)-1])))
 
-        dist = step_cross_val_on_Q(curv_smoother, tors_smoother, test_index, train_index, SingleFrenetPath,  hyperparam)
+        if opt_tracking==True:
+            dist = step_cross_val_on_Q_tracking(curv_smoother, tors_smoother, test_index, train_index, SingleFrenetPath, hyperparam)
+        else:
+            dist = step_cross_val_on_Q(curv_smoother, tors_smoother, test_index, train_index, SingleFrenetPath, hyperparam)
 
         if np.isnan(dist):
             print('nan value', k)

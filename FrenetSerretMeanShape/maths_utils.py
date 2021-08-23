@@ -22,6 +22,13 @@ import torch
 
 """ Set of mathematical functions useful """
 
+def exp_matrix(A):
+    alpha = np.linalg.norm(A,'fro')/np.sqrt(2)
+    if alpha>0:
+        return expm(A)
+    else:
+        return np.eye(len(A))
+
 @njit
 def my_log_M3(R):
     """
