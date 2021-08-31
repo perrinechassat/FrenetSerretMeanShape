@@ -91,7 +91,7 @@ setup(
         "pyparsing",
         "torch",
         "timeit",
-        "skopt",
+        # "skopt",
         "sklearn",
         "plotly",
     ],
