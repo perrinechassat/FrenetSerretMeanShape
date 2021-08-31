@@ -873,8 +873,6 @@ def step_cross_val_on_Q_multiple_curves_single_estim(domain_range, nb_basis, tes
 
     pred_PopFP, ind_conv = single_estimation(train_PopFP, domain_range, nb_basis, hyperparam, tracking=False, alignment=alignment, lam=lam, gam=gam)
 
-    print('k : ', pred_PopFP.k)
-
     if ind_conv==True:
         Q0 = mean_Q0(pred_PopFP)
 
