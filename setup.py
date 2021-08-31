@@ -90,7 +90,7 @@ setup(
         "cffi>=1.0.0",
         "pyparsing",
         "torch",
-        "timeit",
+        # "timeit",
         # "skopt",
         "sklearn",
         "plotly",
