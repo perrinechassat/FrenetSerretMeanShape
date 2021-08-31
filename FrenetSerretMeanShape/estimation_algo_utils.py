@@ -5,6 +5,7 @@ from model_curvatures import *
 from maths_utils import *
 from optimization_utils import *
 from alignment_utils import *
+from tracking_utils import *
 
 import numpy as np
 from scipy.linalg import expm, polar, logm
@@ -415,6 +416,7 @@ def compute_raw_curvatures_alignement_boucle(PopulationFrenetPath, h, Population
 
 
 
+
 def global_estimation_init(PopFrenetPath, SmoothPopulationFrenetPath_init, Model, x, opt_alignment=False, lam=0.0, gam={"flag" : False, "value" : None}):
 
     if opt_alignment==False:
@@ -473,10 +475,13 @@ def global_estimation(PopFrenetPath, SmoothPopulationFrenetPath_init, Model, x, 
         k += 1
 
     if k==31:
+        SmoothPopulationFrenet_final.k = k
         return SmoothPopulationFrenet_final, False
     elif k==0:
+        SmoothPopulationFrenetPath_init.k = k
         return SmoothPopulationFrenetPath_init, True
     else:
+        SmoothPopulationFrenet_final.k = k
         return SmoothPopulationFrenet_final, True
 
 
@@ -492,8 +497,11 @@ def adaptative_estimation(TrueFrenetPath, domain_range, nb_basis, tracking=False
             x = bayesian_optimisation(Opt_fun, param_bayopt["n_calls"], [param_bayopt["bounds_h"], param_bayopt["bounds_lcurv"], param_bayopt["bounds_ltors"]])
         else:
             start = timer()
-            Opt_fun = lambda x: objective_single_curve(param_bayopt["n_splits"], TrueFrenetPath, curv_smoother, tors_smoother, x)
-            x = bayesian_optimisation(Opt_fun, param_bayopt["n_calls"], [param_bayopt["bounds_h"], param_bayopt["bounds_lcurv"], param_bayopt["bounds_ltors"]])
+            Opt_fun = lambda x: objective_single_curve(param_bayopt["n_splits"], TrueFrenetPath, curv_smoother, tors_smoother, x, opt_tracking=tracking)
+            if tracking==True:
+                x = bayesian_optimisation(Opt_fun, param_bayopt["n_calls"], [param_bayopt["bounds_h"], param_bayopt["bounds_lcurv"], param_bayopt["bounds_ltors"], param_bayopt["bounds_ltrack"]])
+            else:
+                x = bayesian_optimisation(Opt_fun, param_bayopt["n_calls"], [param_bayopt["bounds_h"], param_bayopt["bounds_lcurv"], param_bayopt["bounds_ltors"]])
             duration = timer() - start
             print('Time for bayesian optimisation: ', duration)
 
@@ -507,7 +515,7 @@ def adaptative_estimation(TrueFrenetPath, domain_range, nb_basis, tracking=False
     Model_theta = Model(curv_smoother, tors_smoother)
     TrueFrenetPath.compute_neighbors(x[0])
     if tracking==True:
-        SmoothFrenetPath0 = tracking_smoother(TrueFrenetPath,Model_theta)
+        SmoothFrenetPath0 = tracking_smoother(TrueFrenetPath,Model_theta,x[3])
     else:
         SmoothFrenetPath0 = lie_smoother(TrueFrenetPath,Model_theta)
     SmoothFrenetPath_fin, ind_conv = global_estimation(TrueFrenetPath, SmoothFrenetPath0, Model_theta, x, opt_tracking=tracking, opt_alignment=alignment, lam=lam)
@@ -515,6 +523,61 @@ def adaptative_estimation(TrueFrenetPath, domain_range, nb_basis, tracking=False
     return SmoothFrenetPath_fin, [x,ind_conv]
 
 
+def single_estimation(TrueFrenetPath, domain_range, nb_basis, x, tracking=False, alignment=False, lam=0.0, gam={"flag" : False, "value" : None}):
+
+    N_samples = TrueFrenetPath.nb_samples
+    curv_smoother = BasisSmoother(domain_range=domain_range, nb_basis=nb_basis)
+    tors_smoother = BasisSmoother(domain_range=domain_range, nb_basis=nb_basis)
+
+    Model_theta = Model(curv_smoother, tors_smoother)
+    TrueFrenetPath.compute_neighbors(x[0])
+    if tracking==True:
+        SmoothFrenetPath0 = tracking_smoother(TrueFrenetPath,Model_theta,x[3])
+    else:
+        SmoothFrenetPath0 = lie_smoother(TrueFrenetPath,Model_theta)
+    # SmoothFrenetPath_fin, ind_conv = global_estimation(TrueFrenetPath, SmoothFrenetPath0, Model_theta, x, opt_tracking=tracking, opt_alignment=alignment, lam=lam)
+    if alignment==False:
+        mKappa, mTau, mS, mOmega = compute_raw_curvatures_without_alignement(TrueFrenetPath, x[0], SmoothFrenetPath0)
+        align_results = collections.namedtuple('align_fPCA', ['convergence'])
+        res = align_results(True)
+    elif alignment==True and gam["flag"]==False:
+        mKappa, mTau, mS, mOmega, gam, res = compute_raw_curvatures_alignement_init(TrueFrenetPath, x[0], SmoothFrenetPath0, lam)
+    else:
+        mKappa, mTau, mS, mOmega, gam, kappa_align, tau_align = compute_raw_curvatures_alignement_boucle(TrueFrenetPath, x[0], SmoothFrenetPath0, gam["value"])
+        align_results = collections.namedtuple('align_fPCA', ['convergence'])
+        res = align_results(True)
+
+    theta_curv = Model_theta.curv.smoothing(mS, mKappa, mOmega, x[1])
+    theta_torsion = Model_theta.tors.smoothing(mS, mTau, mOmega, x[2])
+
+    SmoothPopulationFrenet_final = SmoothFrenetPath0
+    SmoothPopulationFrenet_final.set_estimate_theta(Model_theta.curv.function, Model_theta.tors.function)
+    if N_samples!=1 and opt_alignment==True:
+        SmoothPopulationFrenet_final.set_gam_functions(gam)
+
+    return SmoothPopulationFrenet_final, res.convergence
+
+def single_estim_optimizatinon(TrueFrenetPath, domain_range, nb_basis, tracking=False, hyperparam=None, opt=False, param_bayopt=None, multicurves=False, alignment=False, lam=0.0):
+
+    if opt==True:
+        if multicurves==True:
+            Opt_fun = lambda x: objective_multiple_curve_single_estim(param_bayopt["n_splits"], TrueFrenetPath, domain_range, nb_basis, x, alignment, lam)
+            x = bayesian_optimisation(Opt_fun, param_bayopt["n_calls"], [param_bayopt["bounds_h"], param_bayopt["bounds_lcurv"], param_bayopt["bounds_ltors"]])
+        else:
+            start = timer()
+            Opt_fun = lambda x: objective_single_curve_single_estim(param_bayopt["n_splits"], TrueFrenetPath, domain_range, nb_basis, x, opt_tracking=tracking)
+            x = bayesian_optimisation(Opt_fun, param_bayopt["n_calls"], [param_bayopt["bounds_h"], param_bayopt["bounds_lcurv"], param_bayopt["bounds_ltors"]])
+            duration = timer() - start
+            print('Time for bayesian optimisation: ', duration)
+
+        res_opt = x
+    else:
+        x = hyperparam
+        res_opt = x
+
+    SmoothFrenetPath_fin, ind_conv = single_estimation(TrueFrenetPath, domain_range, nb_basis, res_opt, tracking=tracking, alignment=alignment, lam=lam)
+
+    return SmoothFrenetPath_fin, [res_opt,ind_conv]
 
 
 """ Functions for the optimization of hyperparameters """
@@ -537,7 +600,6 @@ def step_cross_val(curv_smoother, tors_smoother, test_index, train_index, Single
     train_FrenetPath.compute_neighbors(hyperparam[0])
     pred_FrenetPath0 = lie_smoother(train_FrenetPath,Model_test)
     pred_FrenetPath = global_estimation(train_FrenetPath,pred_FrenetPath0, Model_test, hyperparam, opt_tracking=False)
-
 
     temp_FrenetPath_Q0 = FrenetPath(SingleFrenetPath.grid_obs, SingleFrenetPath.grid_eval, init=pred_FrenetPath.data[:,:,0], curv=pred_FrenetPath.curv, tors=pred_FrenetPath.tors)
     temp_FrenetPath_Q0.frenet_serret_solve()
@@ -572,6 +634,27 @@ def step_cross_val_on_Q(curv_smoother, tors_smoother, test_index, train_index, S
     train_FrenetPath.compute_neighbors(hyperparam[0])
     pred_FrenetPath0 = lie_smoother(train_FrenetPath,Model_test)
     pred_FrenetPath, ind_conv = global_estimation(train_FrenetPath, pred_FrenetPath0, Model_test, hyperparam, opt_tracking=False)
+
+    if ind_conv==True:
+        temp_FrenetPath_Q0 = FrenetPath(SingleFrenetPath.grid_obs, SingleFrenetPath.grid_eval, init=pred_FrenetPath.data[:,:,0], curv=pred_FrenetPath.curv, tors=pred_FrenetPath.tors)
+        temp_FrenetPath_Q0.frenet_serret_solve()
+
+        dist = geodesic_dist(np.rollaxis(SingleFrenetPath.data[:,:,test_index], 2), np.rollaxis(temp_FrenetPath_Q0.data[:,:,test_index], 2))
+        return dist
+    else:
+        return 100
+
+def step_cross_val_on_Q_single_estim(domain_range, nb_basis, test_index, train_index, SingleFrenetPath, hyperparam):
+    """
+    Step of cross validation in the case of estimation of curvature and torsion on a single curve. The error is computed here on Q.
+    ...
+    """
+    t_train = SingleFrenetPath.grid_obs[train_index]
+    t_test = SingleFrenetPath.grid_obs[test_index]
+    data_train = SingleFrenetPath.data[:,:,train_index]
+    train_FrenetPath = FrenetPath(t_train, SingleFrenetPath.grid_obs, data=data_train)
+
+    pred_FrenetPath, ind_conv = single_estimation(train_FrenetPath, domain_range, nb_basis, hyperparam, tracking=False, alignment=False, lam=0.0)
 
     if ind_conv==True:
         temp_FrenetPath_Q0 = FrenetPath(SingleFrenetPath.grid_obs, SingleFrenetPath.grid_eval, init=pred_FrenetPath.data[:,:,0], curv=pred_FrenetPath.curv, tors=pred_FrenetPath.tors)
@@ -640,13 +723,52 @@ def objective_single_curve(n_splits, SingleFrenetPath, curv_smoother, tors_smoot
             err.append(dist)
 
         k += 1
+    #
+    # if opt_tracking==True:
+    #     err = Parallel(n_jobs=10)(delayed(step_cross_val_on_Q_tracking)(curv_smoother, tors_smoother, test_index+1,  np.concatenate((np.array([0]), train_index+1, np.array([len(SingleFrenetPath.grid_obs)-1]))), SingleFrenetPath, hyperparam)
+    #         for train_index, test_index in kf.split(SingleFrenetPath.grid_obs[1:-1]))
+    # else:
+    #     err = Parallel(n_jobs=10)(delayed(step_cross_val_on_Q)(curv_smoother, tors_smoother, test_index, np.concatenate((np.array([0]), train_index+1, np.array([len(SingleFrenetPath.grid_obs)-1]))), SingleFrenetPath, hyperparam)
+    #         for train_index, test_index in kf.split(SingleFrenetPath.grid_obs[1:-1]))
 
-    # err = Parallel(n_jobs=10)(delayed(step_cross_val_on_Q)(curv_smoother, tors_smoother, test_index, train_index, SingleFrenetPath,  hyperparam)
-    #     for train_index, test_index in kf.split(SingleFrenetPath.grid_obs))
 
     return np.mean(np.array(err))
 
 
+def objective_single_curve_single_estim(n_splits, SingleFrenetPath, domain_range, nb_basis, hyperparam, opt_tracking):
+    """
+    Objective function in case of estimation for a single curve that do the cross validation.
+    ...
+    """
+    print(hyperparam)
+    err = []
+    # err2 =[]
+    kf = KFold(n_splits=n_splits, shuffle=True, random_state=1)
+    k = 0
+
+    for train_index, test_index in kf.split(SingleFrenetPath.grid_obs[1:-1]):
+        train_index = train_index+1
+        test_index = test_index+1
+        train_index = np.concatenate((np.array([0]), train_index, np.array([len(SingleFrenetPath.grid_obs)-1])))
+
+        dist = step_cross_val_on_Q_single_estim(domain_range, nb_basis, test_index, train_index, SingleFrenetPath, hyperparam)
+
+        if np.isnan(dist):
+            print('nan value', k)
+        else:
+            err.append(dist)
+
+        k += 1
+
+    # if opt_tracking==True:
+    #     err = Parallel(n_jobs=10)(delayed(step_cross_val_on_Q_tracking)(curv_smoother, tors_smoother, test_index+1,  np.concatenate((np.array([0]), train_index+1, np.array([len(SingleFrenetPath.grid_obs)-1]))), SingleFrenetPath, hyperparam)
+    #         for train_index, test_index in kf.split(SingleFrenetPath.grid_obs[1:-1]))
+    # else:
+    #     err = Parallel(n_jobs=10)(delayed(step_cross_val_on_Q)(curv_smoother, tors_smoother, test_index, np.concatenate((np.array([0]), train_index+1, np.array([len(SingleFrenetPath.grid_obs)-1]))), SingleFrenetPath, hyperparam)
+    #         for train_index, test_index in kf.split(SingleFrenetPath.grid_obs[1:-1]))
+
+
+    return np.mean(np.array(err))
 
 
 def step_cross_val_on_Q_multiple_curves(curv_smoother, tors_smoother, test_index, train_index, PopFrenetPath,  hyperparam, alignment, lam, gam={"flag" : False, "value" : None}):
@@ -669,6 +791,7 @@ def step_cross_val_on_Q_multiple_curves(curv_smoother, tors_smoother, test_index
     train_PopFP.compute_neighbors(hyperparam[0])
     pred_PopFP0 = lie_smoother(train_PopFP,Model_test)
     pred_PopFP, ind_conv = global_estimation(train_PopFP, pred_PopFP0, Model_test, hyperparam, opt_tracking=False, opt_alignment=alignment, lam=lam, gam=gam)
+    print('k : ', pred_PopFP.k)
 
     if ind_conv==True:
         Q0 = mean_Q0(pred_PopFP)
@@ -714,6 +837,89 @@ def objective_multiple_curve(n_splits, PopFrenetPath, curv_smoother, tors_smooth
             dist = step_cross_val_on_Q_multiple_curves(curv_smoother, tors_smoother, test_index, train_index, PopFrenetPath,  hyperparam, alignment, lam, gam)
         else:
             dist = step_cross_val_on_Q_multiple_curves(curv_smoother, tors_smoother, test_index, train_index, PopFrenetPath,  hyperparam, alignment, lam)
+
+        if np.isnan(dist):
+            print('nan value', k)
+        else:
+            err.append(dist)
+        k += 1
+
+    # if alignment==True:
+    #     err = Parallel(n_jobs=10)(delayed(step_cross_val_on_Q_multiple_curves)(curv_smoother, tors_smoother, test_index, train_index, PopFrenetPath,  hyperparam, alignment, lam, gam)
+    #         for train_index, test_index in kf.split(PopFrenetPath.frenet_paths[0].grid_obs))
+    # else:
+    #     err = Parallel(n_jobs=10)(delayed(step_cross_val_on_Q_multiple_curves)(curv_smoother, tors_smoother, test_index, train_index, PopFrenetPath,  hyperparam, alignment, lam)
+    #         for train_index, test_index in kf.split(PopFrenetPath.frenet_paths[0].grid_obs))
+
+    duration = timer() - start
+    print('cross val', duration)
+    return np.mean(np.array(err))
+
+
+
+
+def step_cross_val_on_Q_multiple_curves_single_estim(domain_range, nb_basis, test_index, train_index, PopFrenetPath,  hyperparam, alignment, lam, gam={"flag" : False, "value" : None}):
+    """
+    Step of cross validation in the case of estimation on multiple curves. The error is computed here on Q.
+    ...
+    """
+    n_curves = PopFrenetPath.nb_samples
+
+    train_PopFP_data = []
+    for i in range(n_curves):
+        train_PopFP_data.append(FrenetPath(PopFrenetPath.grids_obs[i][train_index], PopFrenetPath.grids_obs[i], data=np.copy(PopFrenetPath.data[i][:,:,train_index])))
+
+    train_PopFP = PopulationFrenetPath(train_PopFP_data)
+
+    pred_PopFP, ind_conv = single_estimation(train_PopFP, domain_range, nb_basis, hyperparam, tracking=False, alignment=alignment, lam=lam, gam=gam)
+
+    print('k : ', pred_PopFP.k)
+
+    if ind_conv==True:
+        Q0 = mean_Q0(pred_PopFP)
+
+        temp_FrenetPath_Q0 = FrenetPath(PopFrenetPath.grids_obs[0], PopFrenetPath.grids_obs[0], init=Q0, curv=pred_PopFP.mean_curv, tors=pred_PopFP.mean_tors)
+        temp_FrenetPath_Q0.frenet_serret_solve()
+
+        dist = np.zeros(n_curves)
+        for i in range(n_curves):
+            dist[i] = geodesic_dist(np.rollaxis(PopFrenetPath.data[i][:,:,test_index], 2), np.rollaxis(temp_FrenetPath_Q0.data[:,:,test_index], 2))
+
+        return dist.mean()
+    else:
+        return 100
+
+
+def objective_multiple_curve_single_estim(n_splits, PopFrenetPath, domain_range, nb_basis, hyperparam, alignment, lam):
+    """
+    Objective function in case of estimation for multiple curves that do the cross validation.
+    ...
+    """
+    print(hyperparam)
+    err = []
+    kf = KFold(n_splits=n_splits, shuffle=True, random_state=1)
+    k = 0
+    curv_smoother = BasisSmoother(domain_range=domain_range, nb_basis=nb_basis)
+    tors_smoother = BasisSmoother(domain_range=domain_range, nb_basis=nb_basis)
+
+    print('begin parallel cross val')
+    start = timer()
+
+    if alignment==True:
+        Model_theta = Model(curv_smoother, tors_smoother)
+        PopFrenetPath.compute_neighbors(hyperparam[0])
+        SmoothPopFrenetPath0 = lie_smoother(PopFrenetPath,Model_theta)
+        mKappa, mTau, mS, mOmega, gam_val, res0 = compute_raw_curvatures_alignement_init(PopFrenetPath, hyperparam[0], SmoothPopFrenetPath0, lam)
+        gam = {"flag" : True, "value" : gam_val}
+        if res0.nb_itr==20:
+            return 100
+
+    for train_index, test_index in kf.split(PopFrenetPath.frenet_paths[0].grid_obs):
+        # print('------- step ', k, ' cross validation --------')
+        if alignment==True:
+            dist = step_cross_val_on_Q_multiple_curves_single_estim(domain_range, nb_basis, test_index, train_index, PopFrenetPath,  hyperparam, alignment, lam, gam)
+        else:
+            dist = step_cross_val_on_Q_multiple_curves_single_estim(domain_range, nb_basis, test_index, train_index, PopFrenetPath,  hyperparam, alignment, lam)
 
         if np.isnan(dist):
             print('nan value', k)
