@@ -552,7 +552,7 @@ def single_estimation(TrueFrenetPath, domain_range, nb_basis, x, tracking=False,
 
     SmoothPopulationFrenet_final = SmoothFrenetPath0
     SmoothPopulationFrenet_final.set_estimate_theta(Model_theta.curv.function, Model_theta.tors.function)
-    if N_samples!=1 and opt_alignment==True:
+    if N_samples!=1 and alignment==True:
         SmoothPopulationFrenet_final.set_gam_functions(gam)
 
     return SmoothPopulationFrenet_final, res.convergence
