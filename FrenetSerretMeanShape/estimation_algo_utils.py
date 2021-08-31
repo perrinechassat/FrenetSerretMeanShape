@@ -791,7 +791,7 @@ def step_cross_val_on_Q_multiple_curves(curv_smoother, tors_smoother, test_index
     train_PopFP.compute_neighbors(hyperparam[0])
     pred_PopFP0 = lie_smoother(train_PopFP,Model_test)
     pred_PopFP, ind_conv = global_estimation(train_PopFP, pred_PopFP0, Model_test, hyperparam, opt_tracking=False, opt_alignment=alignment, lam=lam, gam=gam)
-    print('k : ', pred_PopFP.k)
+    # print('k : ', pred_PopFP.k)
 
     if ind_conv==True:
         Q0 = mean_Q0(pred_PopFP)
