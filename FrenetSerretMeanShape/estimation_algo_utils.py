@@ -535,7 +535,9 @@ def single_estimation(TrueFrenetPath, domain_range, nb_basis, x, tracking=False,
     if tracking==True:
         SmoothFrenetPath0 = tracking_smoother(TrueFrenetPath,Model_theta,x[3])
     else:
-        # SmoothFrenetPath0 = lie_smoother(TrueFrenetPath,Model_theta)
+        SmoothFrenetPath0 = lie_smoother(TrueFrenetPath,Model_theta)
+        print('SmoothFP', SmoothFrenetPath0.data.shape)
+        print('TrueFP', TrueFrenetPath.data.shape)
         SmoothFrenetPath0 = TrueFrenetPath #test
     # SmoothFrenetPath_fin, ind_conv = global_estimation(TrueFrenetPath, SmoothFrenetPath0, Model_theta, x, opt_tracking=tracking, opt_alignment=alignment, lam=lam)
     if alignment==False:
@@ -654,7 +656,8 @@ def step_cross_val_on_Q_single_estim(domain_range, nb_basis, test_index, train_i
     t_train = SingleFrenetPath.grid_obs[train_index]
     t_test = SingleFrenetPath.grid_obs[test_index]
     data_train = SingleFrenetPath.data[:,:,train_index]
-    train_FrenetPath = FrenetPath(t_train, SingleFrenetPath.grid_obs, data=data_train)
+    # train_FrenetPath = FrenetPath(t_train, SingleFrenetPath.grid_obs, data=data_train)
+    train_FrenetPath = FrenetPath(t_train, t_train, data=data_train)
 
     pred_FrenetPath, ind_conv = single_estimation(train_FrenetPath, domain_range, nb_basis, hyperparam, tracking=False, alignment=False, lam=0.0)
 
@@ -782,7 +785,8 @@ def step_cross_val_on_Q_multiple_curves(curv_smoother, tors_smoother, test_index
 
     train_PopFP_data = []
     for i in range(n_curves):
-        train_PopFP_data.append(FrenetPath(PopFrenetPath.grids_obs[i][train_index], PopFrenetPath.grids_obs[i], data=np.copy(PopFrenetPath.data[i][:,:,train_index])))
+        # train_PopFP_data.append(FrenetPath(PopFrenetPath.grids_obs[i][train_index], PopFrenetPath.grids_obs[i], data=np.copy(PopFrenetPath.data[i][:,:,train_index])))
+        train_PopFP_data.append(FrenetPath(PopFrenetPath.grids_obs[i][train_index], PopFrenetPath.grids_obs[i][train_index], data=np.copy(PopFrenetPath.data[i][:,:,train_index])))
 
     train_PopFP = PopulationFrenetPath(train_PopFP_data)
 

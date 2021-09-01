@@ -185,6 +185,7 @@ res = Parallel(n_jobs=-1)(delayed(simul_populationTNB_additiveVar)(n_curves, L0,
 for k in range(n_MC):
     array_TruePopFP[k] = res[k][0]
     array_TruePopFP_Noisy[k] = res[k][1]
+    # print(array_TruePopFP[k].data.shape, array_TruePopFP_Noisy[k].data.shape)
 
 """ ESTIMATION """
 
