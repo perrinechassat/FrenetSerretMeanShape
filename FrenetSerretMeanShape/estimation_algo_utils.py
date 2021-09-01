@@ -785,8 +785,7 @@ def step_cross_val_on_Q_multiple_curves(curv_smoother, tors_smoother, test_index
 
     train_PopFP_data = []
     for i in range(n_curves):
-        # train_PopFP_data.append(FrenetPath(PopFrenetPath.grids_obs[i][train_index], PopFrenetPath.grids_obs[i], data=np.copy(PopFrenetPath.data[i][:,:,train_index])))
-        train_PopFP_data.append(FrenetPath(PopFrenetPath.grids_obs[i][train_index], PopFrenetPath.grids_obs[i][train_index], data=np.copy(PopFrenetPath.data[i][:,:,train_index])))
+        train_PopFP_data.append(FrenetPath(PopFrenetPath.grids_obs[i][train_index], PopFrenetPath.grids_obs[i], data=np.copy(PopFrenetPath.data[i][:,:,train_index])))
 
     train_PopFP = PopulationFrenetPath(train_PopFP_data)
 
@@ -873,7 +872,8 @@ def step_cross_val_on_Q_multiple_curves_single_estim(domain_range, nb_basis, tes
 
     train_PopFP_data = []
     for i in range(n_curves):
-        train_PopFP_data.append(FrenetPath(PopFrenetPath.grids_obs[i][train_index], PopFrenetPath.grids_obs[i], data=np.copy(PopFrenetPath.data[i][:,:,train_index])))
+        # train_PopFP_data.append(FrenetPath(PopFrenetPath.grids_obs[i][train_index], PopFrenetPath.grids_obs[i], data=np.copy(PopFrenetPath.data[i][:,:,train_index])))
+        train_PopFP_data.append(FrenetPath(PopFrenetPath.grids_obs[i][train_index], PopFrenetPath.grids_obs[i][train_index], data=np.copy(PopFrenetPath.data[i][:,:,train_index])))
 
     train_PopFP = PopulationFrenetPath(train_PopFP_data)
 

@@ -191,29 +191,29 @@ for k in range(n_MC):
 
 """ Monte carlo """
 
-print("Individual estimations...")
-
-param_bayopt = {"n_splits":  10, "n_calls" : 30, "bounds_h" : (0.2, 0.6), "bounds_lcurv" : (10e-3, 10), "bounds_ltors" : (10e-3, 10)}
-
-array_SmoothFPIndiv = np.empty((n_MC, n_curves), dtype=object)
-array_resOptIndiv = np.empty((n_MC, n_curves), dtype=object)
-array_SmoothThetaFPIndiv = np.empty((n_MC, n_curves), dtype=object)
-array_k_indiv = []
-
-for n in range(n_curves):
-
-    # out = Parallel(n_jobs=-1)(delayed(adaptative_estimation)(array_TruePopFP_Noisy[i].frenet_paths[n], domain_range, nb_knots, tracking=False, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, multicurves=False, alignment=False)
-    #                             for i in range(n_MC))
-    out = Parallel(n_jobs=-1)(delayed(single_estim_optimizatinon)(array_TruePopFP_Noisy[i].frenet_paths[n], domain_range, nb_knots, tracking=False, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, multicurves=False, alignment=False)
-                                for i in range(n_MC))
-
-    for i in range(n_MC):
-        array_SmoothFPIndiv[i,n] = out[i][0]
-        # array_k_indiv.append(array_SmoothFPIndiv[i,n].k)
-        array_resOptIndiv[i,n] = out[i][1]
-        if array_resOptIndiv[i,n][1]==True:
-            array_SmoothThetaFPIndiv[i,n] = FrenetPath(array_SmoothFPIndiv[i,n].grid_obs, array_SmoothFPIndiv[i,n].grid_obs, init=array_SmoothFPIndiv[i,n].data[:,:,0], curv=array_SmoothFPIndiv[i,n].curv, tors=array_SmoothFPIndiv[i,n].tors, dim=3)
-            array_SmoothThetaFPIndiv[i,n].frenet_serret_solve()
+# print("Individual estimations...")
+#
+# param_bayopt = {"n_splits":  10, "n_calls" : 30, "bounds_h" : (0.2, 0.6), "bounds_lcurv" : (10e-3, 10), "bounds_ltors" : (10e-3, 10)}
+#
+# array_SmoothFPIndiv = np.empty((n_MC, n_curves), dtype=object)
+# array_resOptIndiv = np.empty((n_MC, n_curves), dtype=object)
+# array_SmoothThetaFPIndiv = np.empty((n_MC, n_curves), dtype=object)
+# array_k_indiv = []
+#
+# for n in range(n_curves):
+#
+#     # out = Parallel(n_jobs=-1)(delayed(adaptative_estimation)(array_TruePopFP_Noisy[i].frenet_paths[n], domain_range, nb_knots, tracking=False, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, multicurves=False, alignment=False)
+#     #                             for i in range(n_MC))
+#     out = Parallel(n_jobs=-1)(delayed(single_estim_optimizatinon)(array_TruePopFP_Noisy[i].frenet_paths[n], domain_range, nb_knots, tracking=False, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, multicurves=False, alignment=False)
+#                                 for i in range(n_MC))
+#
+#     for i in range(n_MC):
+#         array_SmoothFPIndiv[i,n] = out[i][0]
+#         # array_k_indiv.append(array_SmoothFPIndiv[i,n].k)
+#         array_resOptIndiv[i,n] = out[i][1]
+#         if array_resOptIndiv[i,n][1]==True:
+#             array_SmoothThetaFPIndiv[i,n] = FrenetPath(array_SmoothFPIndiv[i,n].grid_obs, array_SmoothFPIndiv[i,n].grid_obs, init=array_SmoothFPIndiv[i,n].data[:,:,0], curv=array_SmoothFPIndiv[i,n].curv, tors=array_SmoothFPIndiv[i,n].tors, dim=3)
+#             array_SmoothThetaFPIndiv[i,n].frenet_serret_solve()
 
 
 print("Mean estimations...")
