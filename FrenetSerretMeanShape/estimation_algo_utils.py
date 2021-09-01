@@ -124,6 +124,7 @@ def lie_smoother_q(q, SingleFrenetPath, Model, p):
     kappa_q = np.apply_along_axis(Model.curv.function, 0, SingleFrenetPath.grid_double[q])
     tau_q = np.apply_along_axis(Model.tors.function, 0, SingleFrenetPath.grid_double[q])
     theta_q = np.stack((SingleFrenetPath.delta[q]*kappa_q, SingleFrenetPath.delta[q]*tau_q), axis=1)
+    # print(theta_q.shape)
 
     A_q = np.apply_along_axis(compute_A, 1, theta_q)
     A_q = torch.from_numpy(A_q)
@@ -534,7 +535,8 @@ def single_estimation(TrueFrenetPath, domain_range, nb_basis, x, tracking=False,
     if tracking==True:
         SmoothFrenetPath0 = tracking_smoother(TrueFrenetPath,Model_theta,x[3])
     else:
-        SmoothFrenetPath0 = lie_smoother(TrueFrenetPath,Model_theta)
+        # SmoothFrenetPath0 = lie_smoother(TrueFrenetPath,Model_theta)
+        SmoothFrenetPath0 = TrueFrenetPath #test
     # SmoothFrenetPath_fin, ind_conv = global_estimation(TrueFrenetPath, SmoothFrenetPath0, Model_theta, x, opt_tracking=tracking, opt_alignment=alignment, lam=lam)
     if alignment==False:
         mKappa, mTau, mS, mOmega = compute_raw_curvatures_without_alignement(TrueFrenetPath, x[0], SmoothFrenetPath0)

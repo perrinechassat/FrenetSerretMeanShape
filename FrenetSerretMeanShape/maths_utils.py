@@ -19,6 +19,10 @@ import geomstats.backend as gs
 from numba.experimental import jitclass
 from numba import int32, float64, cuda, float32, objmode, njit
 import torch
+from skfda.representation.grid import FDataGrid
+from skfda.preprocessing.registration import ElasticRegistration, ShiftRegistration, landmark_registration_warping
+from skfda.preprocessing.registration.elastic import elastic_mean
+from skfda.misc import metrics
 
 """ Set of mathematical functions useful """
 
