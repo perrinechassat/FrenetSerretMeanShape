@@ -532,13 +532,13 @@ def single_estimation(TrueFrenetPath, domain_range, nb_basis, x, tracking=False,
 
     Model_theta = Model(curv_smoother, tors_smoother)
     TrueFrenetPath.compute_neighbors(x[0])
-    if tracking==True:
-        SmoothFrenetPath0 = tracking_smoother(TrueFrenetPath,Model_theta,x[3])
-    else:
+    # if tracking==True:
+    #     SmoothFrenetPath0 = tracking_smoother(TrueFrenetPath,Model_theta,x[3])
+    # else:
         # SmoothFrenetPath0 = lie_smoother(TrueFrenetPath,Model_theta)
         # print('SmoothFP', SmoothFrenetPath0.data.shape)
         # print('TrueFP', TrueFrenetPath.data.shape)
-        SmoothFrenetPath0 = TrueFrenetPath #test
+    SmoothFrenetPath0 = TrueFrenetPath #test
     # SmoothFrenetPath_fin, ind_conv = global_estimation(TrueFrenetPath, SmoothFrenetPath0, Model_theta, x, opt_tracking=tracking, opt_alignment=alignment, lam=lam)
     if alignment==False:
         mKappa, mTau, mS, mOmega = compute_raw_curvatures_without_alignement(TrueFrenetPath, x[0], SmoothFrenetPath0)
