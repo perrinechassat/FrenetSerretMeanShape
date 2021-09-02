@@ -2,8 +2,26 @@ import numpy as np
 from scipy.integrate import solve_ivp
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+import time
+import multiprocessing
+import functools
 
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
+
+
+def with_timeout(timeout):
+    def decorator(decorated):
+        @functools.wraps(decorated)
+        def inner(*args, **kwargs):
+            pool = multiprocessing.pool.ThreadPool(1)
+            async_result = pool.apply_async(decorated, args, kwargs)
+            try:
+                return async_result.get(timeout)
+            except multiprocessing.TimeoutError:
+                return
+        return inner
+    return decorator
+
 
 class FrenetPath:
 
@@ -106,6 +124,7 @@ class FrenetPath:
         self.delta = np.squeeze(np.asarray(delta))
 
 
+    @with_timeout(60)
     def frenet_serret_solve(self, Q0=None, t_span=None, t_eval=None):
         """
         FrenetSerretSolve

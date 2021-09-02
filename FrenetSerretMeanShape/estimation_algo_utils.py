@@ -571,11 +571,19 @@ def single_estimation(TrueFrenetPath, domain_range, nb_basis, x, tracking=False,
 
     theta_curv = Model_theta.curv.smoothing(mS, mKappa, mOmega, x[1])
     theta_torsion = Model_theta.tors.smoothing(mS, mTau, mOmega, x[2])
+    # plt.figure()
+    # plt.plot(mS, Model_theta.curv.function(mS))
+    # plt.show()
+    # plt.figure()
+    # plt.plot(mS, Model_theta.tors.function(mS))
+    # plt.show()
 
     SmoothPopulationFrenet_final = SmoothFrenetPath0
     SmoothPopulationFrenet_final.set_estimate_theta(Model_theta.curv.function, Model_theta.tors.function)
     if N_samples!=1 and alignment==True:
         SmoothPopulationFrenet_final.set_gam_functions(gam)
+
+    # print('fin single estim')
 
     return SmoothPopulationFrenet_final, res.convergence
 
@@ -591,7 +599,6 @@ def single_estim_optimizatinon(TrueFrenetPath, domain_range, nb_basis, tracking=
             x = bayesian_optimisation(Opt_fun, param_bayopt["n_calls"], [param_bayopt["bounds_h"], param_bayopt["bounds_lcurv"], param_bayopt["bounds_ltors"]])
             duration = timer() - start
             print('Time for bayesian optimisation: ', duration)
-
         res_opt = x
     else:
         x = hyperparam
@@ -901,6 +908,7 @@ def step_cross_val_on_Q_multiple_curves_single_estim(domain_range, nb_basis, tes
         Q0 = mean_Q0(pred_PopFP)
 
         temp_FrenetPath_Q0 = FrenetPath(PopFrenetPath.grids_obs[0], PopFrenetPath.grids_obs[0], init=Q0, curv=pred_PopFP.mean_curv, tors=pred_PopFP.mean_tors)
+        # print('ind conv True : begin frenet_serret_solve')
         temp_FrenetPath_Q0.frenet_serret_solve()
 
         dist = np.zeros(n_curves)
@@ -940,11 +948,13 @@ def objective_multiple_curve_single_estim(n_splits, PopFrenetPath, domain_range,
         # print('------- step ', k, ' cross validation --------')
         if alignment==True:
             dist = step_cross_val_on_Q_multiple_curves_single_estim(domain_range, nb_basis, test_index, train_index, PopFrenetPath,  hyperparam, alignment, lam, gam)
+            # print('end step cross val')
         else:
             dist = step_cross_val_on_Q_multiple_curves_single_estim(domain_range, nb_basis, test_index, train_index, PopFrenetPath,  hyperparam, alignment, lam)
 
         if np.isnan(dist):
             print('nan value', k)
+            err.append(100)
         else:
             err.append(dist)
         k += 1
@@ -959,3 +969,101 @@ def objective_multiple_curve_single_estim(n_splits, PopFrenetPath, domain_range,
     duration = timer() - start
     print('cross val', duration)
     return np.mean(np.array(err))
+
+
+""" Case data on Sphere """
+
+def compute_j(kappa):
+    x = np.power(kappa,2)-1
+    x[x<0] = 0
+    j = np.sqrt(x)
+    return j
+
+def compute_j_prime(kappa, tau):
+    j_prime = np.power(kappa,2)*tau
+    return j_prime
+
+def compute_theta_from_j(Model_J):
+    j_prime = Model_J.j.fd_basis.derivative()
+    def curv(t): return np.sqrt(1+np.power(Model_J.j.function(t), 2))
+    def tors(t): return np.squeeze(np.squeeze(j_prime.evaluate(t))/(1+np.power(Model_J.j.function(t), 2)))
+    return curv, tors
+
+
+def single_estimation_sphere(TrueFrenetPath, domain_range, nb_basis, x, tracking=False, alignment=False, lam=0.0, gam={"flag" : False, "value" : None}):
+
+    N_samples = TrueFrenetPath.nb_samples
+    j_smoother = BasisSmoother(domain_range=domain_range, nb_basis=nb_basis)
+
+    Model = Model_J(j_smoother)
+    TrueFrenetPath.compute_neighbors(x[0])
+
+    SmoothFrenetPath0 = TrueFrenetPath #test
+
+    if alignment==False:
+        mKappa, mTau, mS, mOmega = compute_raw_curvatures_without_alignement(TrueFrenetPath, x[0], SmoothFrenetPath0)
+        align_results = collections.namedtuple('align_fPCA', ['convergence'])
+        res = align_results(True)
+    elif alignment==True and gam["flag"]==False:
+        mKappa, mTau, mS, mOmega, gam, res = compute_raw_curvatures_alignement_init(TrueFrenetPath, x[0], SmoothFrenetPath0, lam)
+    else:
+        mKappa, mTau, mS, mOmega, gam, kappa_align, tau_align = compute_raw_curvatures_alignement_boucle(TrueFrenetPath, x[0], SmoothFrenetPath0, gam["value"])
+        align_results = collections.namedtuple('align_fPCA', ['convergence'])
+        res = align_results(True)
+
+    plt.figure()
+    plt.plot(mS, mKappa)
+    plt.show()
+    plt.figure()
+    plt.plot(mS, mTau)
+    plt.show()
+
+    mJ = compute_j(mKappa)
+
+    plt.figure()
+    plt.plot(mS, mJ)
+    plt.show()
+
+    print('mJ ok')
+    # mJ_prime = compute_j_prime(mTau)
+
+    smooth_mJ = Model.j.smoothing(mS, mJ, mOmega, x[1])
+    plt.figure()
+    plt.plot(mS, Model.j.function(mS))
+    plt.show()
+    plt.figure()
+    plt.plot(mS, np.squeeze(Model.j.fd_basis.derivative().evaluate(mS)))
+    plt.show()
+
+    print('smooth_mJ ok')
+    curv_fct, tors_fct = compute_theta_from_j(Model)
+    print('curv fct and tors fct ok')
+
+    SmoothPopulationFrenet_final = SmoothFrenetPath0
+    SmoothPopulationFrenet_final.set_estimate_theta(curv_fct, tors_fct)
+    if N_samples!=1 and alignment==True:
+        SmoothPopulationFrenet_final.set_gam_functions(gam)
+
+    return SmoothPopulationFrenet_final, res.convergence
+
+def single_estim_optimizatinon_sphere(TrueFrenetPath, domain_range, nb_basis, tracking=False, hyperparam=None, opt=False, param_bayopt=None, multicurves=False, alignment=False, lam=0.0):
+
+    if opt==True:
+        if multicurves==True:
+            Opt_fun = lambda x: objective_multiple_curve_single_estim(param_bayopt["n_splits"], TrueFrenetPath, domain_range, nb_basis, x, alignment, lam)
+            x = bayesian_optimisation(Opt_fun, param_bayopt["n_calls"], [param_bayopt["bounds_h"], param_bayopt["bounds_lcurv"], param_bayopt["bounds_ltors"]])
+        else:
+            start = timer()
+            Opt_fun = lambda x: objective_single_curve_single_estim(param_bayopt["n_splits"], TrueFrenetPath, domain_range, nb_basis, x, opt_tracking=tracking)
+            x = bayesian_optimisation(Opt_fun, param_bayopt["n_calls"], [param_bayopt["bounds_h"], param_bayopt["bounds_lcurv"], param_bayopt["bounds_ltors"]])
+            duration = timer() - start
+            print('Time for bayesian optimisation: ', duration)
+
+        res_opt = x
+    else:
+        x = hyperparam
+        res_opt = x
+
+    SmoothFrenetPath_fin, ind_conv = single_estimation_sphere(TrueFrenetPath, domain_range, nb_basis, res_opt, tracking=tracking, alignment=alignment, lam=lam)
+
+    return SmoothFrenetPath_fin, [res_opt,ind_conv]

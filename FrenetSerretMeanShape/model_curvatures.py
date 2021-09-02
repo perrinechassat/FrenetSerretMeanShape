@@ -129,3 +129,18 @@ class Model:
     def __init__(self, curv_basis_smoother, tors_basis_smoother):
         self.curv = curv_basis_smoother
         self.tors = tors_basis_smoother
+
+
+class Model_J:
+    """
+    A class used to represent a Model for curvature and torsion
+    ...
+
+    Attributes
+    ----------
+    j : instance of BasisSmoother or GaussianProcessSmoother
+
+    """
+
+    def __init__(self, j_basis_smoother):
+        self.j = j_basis_smoother
