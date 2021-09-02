@@ -514,96 +514,96 @@ np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 #
 
 
-""" --------------------------------------------------------------------------- WARP VAR From TNB EXACT -------------------------------------------------------------------------------------- """
-print('------------------ WARP VAR From TNB EXACT --------------------')
-
-
-
-"""From TNB"""
-
-""" DEFINE DATA Exact and l=1"""
-
-""" Parameters of the simulation """
-n_curves = 25
-nb_S = 100
-concentration = 10
-K = concentration*np.eye(3)
-n_MC = 90
-hyperparam = [0.006, 1e-12, 1e-12, 1e-12]
-nb_knots = 15
-param_bayopt = {"n_splits":  10, "n_calls" : 80, "bounds_h" : (0.03, 0.09), "bounds_lcurv" : (1e-6, 0.1), "bounds_ltors" : (1e-6, 0.1)}
-Noisy_flag = False
-str_Noise = '_Exact_'
-
-""" Definition of reference TNB """
-
-L0 = 1
-init0 = np.eye(3)
-s0 = np.linspace(0,L0,nb_S)
-domain_range = (0.0,L0)
-true_curv0 = lambda s: 10*np.abs(np.sin(3*s))+10
-true_tors0 = lambda s: -10*np.sin(2*np.pi*s)
-Q0 = FrenetPath(s0, s0, init=init0, curv=true_curv0, tors=true_tors0, dim=3)
-Q0.frenet_serret_solve()
-X0 = Q0.data_trajectory
-
-""" Definition of population TNB """
-
-start1 = timer()
-
-t = np.linspace(0,1,nb_S)
-s0_fun = lambda s: s
-l=1
-param_shape_warp = np.linspace(-l, l, n_curves)
-
-array_TruePopFP, array_TruePopFP_Noisy = np.empty((n_MC), dtype=object), np.empty((n_MC), dtype=object)
-
-res = Parallel(n_jobs=-1)(delayed(simul_populationTNB_ShapeWarping_TNB)(n_curves, s0, K, param_shape_warp, true_curv0, true_tors0, Noisy_flag) for i in range(n_MC))
-
-for k in range(n_MC):
-    array_TruePopFP[k] = res[k][0]
-    array_TruePopFP_Noisy[k] = res[k][1]
-
-""" ESTIMATION """
-
-array_SmoothPopFP = np.empty((n_MC), dtype=object)
-array_SmoothThetaFP = np.empty((n_MC), dtype=object)
-array_resOpt = np.empty((n_MC), dtype=object)
-
-""" Monte carlo """
-
-print("Mean estimations...")
-
-# out = Parallel(n_jobs=-1)(delayed(adaptative_estimation)(array_TruePopFP_Noisy[i], domain_range, nb_knots, tracking=False, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, multicurves=True, alignment=True, lam=100)
+# """ --------------------------------------------------------------------------- WARP VAR From TNB EXACT -------------------------------------------------------------------------------------- """
+# print('------------------ WARP VAR From TNB EXACT --------------------')
+#
+#
+#
+# """From TNB"""
+#
+# """ DEFINE DATA Exact and l=1"""
+#
+# """ Parameters of the simulation """
+# n_curves = 25
+# nb_S = 100
+# concentration = 10
+# K = concentration*np.eye(3)
+# n_MC = 90
+# hyperparam = [0.006, 1e-12, 1e-12, 1e-12]
+# nb_knots = 15
+# param_bayopt = {"n_splits":  10, "n_calls" : 80, "bounds_h" : (0.03, 0.09), "bounds_lcurv" : (1e-6, 0.1), "bounds_ltors" : (1e-6, 0.1)}
+# Noisy_flag = False
+# str_Noise = '_Exact_'
+#
+# """ Definition of reference TNB """
+#
+# L0 = 1
+# init0 = np.eye(3)
+# s0 = np.linspace(0,L0,nb_S)
+# domain_range = (0.0,L0)
+# true_curv0 = lambda s: 10*np.abs(np.sin(3*s))+10
+# true_tors0 = lambda s: -10*np.sin(2*np.pi*s)
+# Q0 = FrenetPath(s0, s0, init=init0, curv=true_curv0, tors=true_tors0, dim=3)
+# Q0.frenet_serret_solve()
+# X0 = Q0.data_trajectory
+#
+# """ Definition of population TNB """
+#
+# start1 = timer()
+#
+# t = np.linspace(0,1,nb_S)
+# s0_fun = lambda s: s
+# l=1
+# param_shape_warp = np.linspace(-l, l, n_curves)
+#
+# array_TruePopFP, array_TruePopFP_Noisy = np.empty((n_MC), dtype=object), np.empty((n_MC), dtype=object)
+#
+# res = Parallel(n_jobs=-1)(delayed(simul_populationTNB_ShapeWarping_TNB)(n_curves, s0, K, param_shape_warp, true_curv0, true_tors0, Noisy_flag) for i in range(n_MC))
+#
+# for k in range(n_MC):
+#     array_TruePopFP[k] = res[k][0]
+#     array_TruePopFP_Noisy[k] = res[k][1]
+#
+# """ ESTIMATION """
+#
+# array_SmoothPopFP = np.empty((n_MC), dtype=object)
+# array_SmoothThetaFP = np.empty((n_MC), dtype=object)
+# array_resOpt = np.empty((n_MC), dtype=object)
+#
+# """ Monte carlo """
+#
+# print("Mean estimations...")
+#
+# # out = Parallel(n_jobs=-1)(delayed(adaptative_estimation)(array_TruePopFP_Noisy[i], domain_range, nb_knots, tracking=False, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, multicurves=True, alignment=True, lam=100)
+# #                             for i in range(n_MC))
+# out = Parallel(n_jobs=-1)(delayed(single_estim_optimizatinon)(array_TruePopFP_Noisy[i], domain_range, nb_knots, tracking=False, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, multicurves=True, alignment=True, lam=100)
 #                             for i in range(n_MC))
-out = Parallel(n_jobs=-1)(delayed(single_estim_optimizatinon)(array_TruePopFP_Noisy[i], domain_range, nb_knots, tracking=False, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, multicurves=True, alignment=True, lam=100)
-                            for i in range(n_MC))
-
-for k in range(n_MC):
-    array_SmoothPopFP[k] = out[k][0]
-    array_resOpt[k] = out[k][1]
-    array_SmoothThetaFP[k] = FrenetPath(s0, s0, init=mean_Q0(array_SmoothPopFP[k]), curv=array_SmoothPopFP[k].mean_curv, tors=array_SmoothPopFP[k].mean_tors, dim=3)
-    array_SmoothThetaFP[k].frenet_serret_solve()
-
-duration = timer() - start1
-print('total time', duration)
-
-
-""" SAVING DATA """
-
-print('Saving the data...')
-
-filename = "MultipleEstimationShapeWarpFromTNB_SingleEstim_nbS_"+str(nb_S)+"N_curves"+str(n_curves)+str_Noise+"K_"+str(concentration)+'_l_'+str(l)+'_nMC_'+str(n_MC)+'_nCalls_'+str(param_bayopt["n_calls"])+'_2'
-dic = {"N_curves": n_curves, "X0" : X0, "Q0" : Q0, "true_curv0" : true_curv0, "true_tors0" : true_tors0, "L" : L0, "param_bayopt" : param_bayopt, "K" : concentration, "nb_S" : nb_S, "nb_knots" : nb_knots, "n_MC" : n_MC,
-"resOpt" : array_resOpt, "TruePopFP" : array_TruePopFP, "TruePopFP_Noisy" : array_TruePopFP_Noisy, "SmoothPopFP" : array_SmoothPopFP, "SmoothThetaFP" : array_SmoothThetaFP, "param_shape_warp" : param_shape_warp}
-
-if os.path.isfile(filename):
-    print("Le fichier ", filename, " existe déjà.")
-fil = open(filename,"xb")
-pickle.dump(dic,fil)
-fil.close()
-
-print('END !')
+#
+# for k in range(n_MC):
+#     array_SmoothPopFP[k] = out[k][0]
+#     array_resOpt[k] = out[k][1]
+#     array_SmoothThetaFP[k] = FrenetPath(s0, s0, init=mean_Q0(array_SmoothPopFP[k]), curv=array_SmoothPopFP[k].mean_curv, tors=array_SmoothPopFP[k].mean_tors, dim=3)
+#     array_SmoothThetaFP[k].frenet_serret_solve()
+#
+# duration = timer() - start1
+# print('total time', duration)
+#
+#
+# """ SAVING DATA """
+#
+# print('Saving the data...')
+#
+# filename = "MultipleEstimationShapeWarpFromTNB_SingleEstim_nbS_"+str(nb_S)+"N_curves"+str(n_curves)+str_Noise+"K_"+str(concentration)+'_l_'+str(l)+'_nMC_'+str(n_MC)+'_nCalls_'+str(param_bayopt["n_calls"])+'_2'
+# dic = {"N_curves": n_curves, "X0" : X0, "Q0" : Q0, "true_curv0" : true_curv0, "true_tors0" : true_tors0, "L" : L0, "param_bayopt" : param_bayopt, "K" : concentration, "nb_S" : nb_S, "nb_knots" : nb_knots, "n_MC" : n_MC,
+# "resOpt" : array_resOpt, "TruePopFP" : array_TruePopFP, "TruePopFP_Noisy" : array_TruePopFP_Noisy, "SmoothPopFP" : array_SmoothPopFP, "SmoothThetaFP" : array_SmoothThetaFP, "param_shape_warp" : param_shape_warp}
+#
+# if os.path.isfile(filename):
+#     print("Le fichier ", filename, " existe déjà.")
+# fil = open(filename,"xb")
+# pickle.dump(dic,fil)
+# fil.close()
+#
+# print('END !')
 
 
 
@@ -672,8 +672,9 @@ out = Parallel(n_jobs=-1)(delayed(single_estim_optimizatinon)(array_TruePopFP_No
 for k in range(n_MC):
     array_SmoothPopFP[k] = out[k][0]
     array_resOpt[k] = out[k][1]
-    array_SmoothThetaFP[k] = FrenetPath(s0, s0, init=mean_Q0(array_SmoothPopFP[k]), curv=array_SmoothPopFP[k].mean_curv, tors=array_SmoothPopFP[k].mean_tors, dim=3)
-    array_SmoothThetaFP[k].frenet_serret_solve()
+    if array_resOpt[k][1]==True:
+        array_SmoothThetaFP[k] = FrenetPath(s0, s0, init=mean_Q0(array_SmoothPopFP[k]), curv=array_SmoothPopFP[k].mean_curv, tors=array_SmoothPopFP[k].mean_tors, dim=3)
+        array_SmoothThetaFP[k].frenet_serret_solve()
 
 duration = timer() - start1
 print('total time', duration)

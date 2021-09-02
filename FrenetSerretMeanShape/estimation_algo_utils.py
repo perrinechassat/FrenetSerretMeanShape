@@ -353,6 +353,15 @@ def compute_raw_curvatures_alignement_init(PopulationFrenetPath, h, PopulationSm
         Tau = np.squeeze(np.asarray(Tau)[:,ind_nozero])
         S = S[0][ind_nozero]
 
+        # plot initial functions before alignment
+        # plt.figure()
+        # for i in range(len(Omega)):
+        #     plt.plot(S, np.squeeze(Kappa[i,:]))
+        # plt.show()
+        # plt.figure()
+        # for i in range(len(Omega)):
+        #     plt.plot(S, np.squeeze(Tau[i,:]))
+        # plt.show()
 
         theta = np.stack((np.transpose(Kappa), np.abs(np.transpose(Tau))))
         theta[np.isnan(theta)] = 0.0
@@ -406,6 +415,15 @@ def compute_raw_curvatures_alignement_boucle(PopulationFrenetPath, h, Population
         Kappa = np.squeeze(np.asarray(Kappa)[:,ind_nozero])
         Tau = np.squeeze(np.asarray(Tau)[:,ind_nozero])
         S = S[0][ind_nozero]
+
+        # plt.figure()
+        # for i in range(len(Omega)):
+        #     plt.plot(S, np.squeeze(Kappa[i,:]))
+        # plt.show()
+        # plt.figure()
+        # for i in range(len(Omega)):
+        #     plt.plot(S, np.squeeze(Tau[i,:]))
+        # plt.show()
 
         # WARP KAPPA BY THE PREVIOUS GAM Functions
         kappa_align, weighted_mean_kappa = warp_curvatures(np.transpose(Kappa), prev_gam, np.squeeze(S), np.transpose(Omega))
