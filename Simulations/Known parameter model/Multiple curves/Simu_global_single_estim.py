@@ -276,7 +276,7 @@ K = concentration*np.eye(3)
 n_MC = 90
 hyperparam = [0.006, 1e-12, 1e-12, 1e-12]
 nb_knots = 15
-param_bayopt = {"n_splits":  10, "n_calls" : 80, "bounds_h" : (0.03, 0.14), "bounds_lcurv" : (1e-6, 0.1), "bounds_ltors" : (1e-6, 0.1)}
+param_bayopt = {"n_splits":  10, "n_calls" : 50, "bounds_h" : (0.03, 0.14), "bounds_lcurv" : (1e-6, 0.1), "bounds_ltors" : (1e-6, 0.1)}
 Noisy_flag = False
 
 """ Definition of reference TNB and X"""
@@ -301,7 +301,7 @@ sigma_kappa = 0.2
 sigma_tau = 0.08
 param_noise = {"param_kappa" : param_kappa, "param_tau" : param_tau, "sigma_kappa" : sigma_kappa, "sigma_tau" : sigma_tau}
 sigma_e = 0
-param_loc_poly_deriv = { "h_min" : 0.1, "h_max" : 0.2, "nb_h" : 50}
+param_loc_poly_deriv = { "h_min" : 0.01, "h_max" : 0.2, "nb_h" : 50}
 param_loc_poly_TNB = {"h" : 0.05, "p" : 3, "iflag": [1,1], "ibound" : 0}
 n_resamples = nb_S
 t = np.linspace(0, 1, nb_S)
@@ -373,7 +373,7 @@ array_Arithmetic_mean = Parallel(n_jobs=-1)(delayed(compute_mean_Arithmetic)(arr
 
 print('Saving the data...')
 
-filename = "MultipleEstimationAddVarFromX_SingleEstim__nbS_"+str(nb_S)+"N_curves"+str(n_curves)+"_sigma_"+str(sigma_e)+"_K_"+str(concentration)+'_nMC_'+str(n_MC)+'_nCalls_'+str(param_bayopt["n_calls"])
+filename = "MultipleEstimationAddVarFromX_SingleEstim__nbS_"+str(nb_S)+"N_curves"+str(n_curves)+"_sigma_"+str(sigma_e)+"_K_"+str(concentration)+'_nMC_'+str(n_MC)+'_nCalls_'+str(param_bayopt["n_calls"])+'_3'
 dic = {"N_curves": n_curves, "X0" : X0, "Q0" : Q0, "true_curv0" : true_curv0, "true_tors0" : true_tors0, "L" : L0, "param_bayopt" : param_bayopt, "K" : concentration, "nb_S" : nb_S, "nb_knots" : nb_knots, "n_MC" : n_MC,
 "resOpt" : array_resOpt, "TruePopFP" : array_TruePopFP, "SmoothPopFP" : array_SmoothPopFP, "SmoothThetaFP" : array_SmoothThetaFP, "param_noise" : param_noise, "param_loc_poly_deriv" : param_loc_poly_deriv,
 "param_loc_poly_TNB" : param_loc_poly_TNB, "sigma" : sigma_e, "PopFP_LP" : array_PopFP_LP, "PopFP_GS" : array_PopFP_GS, "PopTraj" : array_PopTraj, "ThetaExtrins" : array_ThetaExtrins, "SRVF_mean" :array_SRVF_mean, "SRVF_gam" : array_SRVF_gam,
@@ -401,7 +401,7 @@ K = concentration*np.eye(3)
 n_MC = 90
 hyperparam = [0.006, 1e-12, 1e-12, 1e-12]
 nb_knots = 15
-param_bayopt = {"n_splits":  10, "n_calls" : 80, "bounds_h" : (0.03, 0.14), "bounds_lcurv" : (1e-6, 0.1), "bounds_ltors" : (1e-6, 0.1)}
+param_bayopt = {"n_splits":  10, "n_calls" : 50, "bounds_h" : (0.03, 0.14), "bounds_lcurv" : (1e-6, 0.1), "bounds_ltors" : (1e-6, 0.1)}
 Noisy_flag = False
 
 """ Definition of reference TNB and X"""
@@ -427,7 +427,7 @@ sigma_tau = 0.08
 param_noise = {"param_kappa" : param_kappa, "param_tau" : param_tau, "sigma_kappa" : sigma_kappa, "sigma_tau" : sigma_tau}
 sigma_e = 0.05
 param_loc_poly_deriv = { "h_min" : 0.1, "h_max" : 0.2, "nb_h" : 50}
-param_loc_poly_TNB = {"h" : 0.2, "p" : 3, "iflag": [1,1], "ibound" : 1}
+param_loc_poly_TNB = {"h" : 0.2, "p" : 3, "iflag": [1,1], "ibound" : 0}
 n_resamples = nb_S
 t = np.linspace(0, 1, nb_S)
 
@@ -498,7 +498,7 @@ array_Arithmetic_mean = Parallel(n_jobs=-1)(delayed(compute_mean_Arithmetic)(arr
 
 print('Saving the data...')
 
-filename = "MultipleEstimationAddVarFromX_SingleEstim__nbS_"+str(nb_S)+"N_curves"+str(n_curves)+"_sigma_"+str(sigma_e)+"_K_"+str(concentration)+'_nMC_'+str(n_MC)+'_nCalls_'+str(param_bayopt["n_calls"])
+filename = "MultipleEstimationAddVarFromX_SingleEstim__nbS_"+str(nb_S)+"N_curves"+str(n_curves)+"_sigma_"+str(sigma_e)+"_K_"+str(concentration)+'_nMC_'+str(n_MC)+'_nCalls_'+str(param_bayopt["n_calls"])+'_3'
 dic = {"N_curves": n_curves, "X0" : X0, "Q0" : Q0, "true_curv0" : true_curv0, "true_tors0" : true_tors0, "L" : L0, "param_bayopt" : param_bayopt, "K" : concentration, "nb_S" : nb_S, "nb_knots" : nb_knots, "n_MC" : n_MC,
 "resOpt" : array_resOpt, "TruePopFP" : array_TruePopFP, "SmoothPopFP" : array_SmoothPopFP, "SmoothThetaFP" : array_SmoothThetaFP, "param_noise" : param_noise, "param_loc_poly_deriv" : param_loc_poly_deriv,
 "param_loc_poly_TNB" : param_loc_poly_TNB, "sigma" : sigma_e, "PopFP_LP" : array_PopFP_LP, "PopFP_GS" : array_PopFP_GS, "PopTraj" : array_PopTraj, "ThetaExtrins" : array_ThetaExtrins, "SRVF_mean" :array_SRVF_mean, "SRVF_gam" : array_SRVF_gam,
