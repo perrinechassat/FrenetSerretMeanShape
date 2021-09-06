@@ -85,11 +85,11 @@ d_LP = np.zeros(n_MC)
 for k in range(n_MC):
 
     """ delta GS """
-    out = Parallel(n_jobs=-1)(delayed(geodesic_dist)(PopFP_GS[k].frenet_paths[i].data, array_TruePopFP[k].frenet_paths[i].data) for i in range(n_curves))
+    out = Parallel(n_jobs=-1)(delayed(geodesic_dist)(array_PopFP_GS[k].frenet_paths[i].data, array_TruePopFP[k].frenet_paths[i].data) for i in range(n_curves))
     d_GS[k] = np.mean(out)
 
     """ delta LP """
-    out = Parallel(n_jobs=-1)(delayed(geodesic_dist)(PopFP_LP[k].frenet_paths[i].data, array_TruePopFP[k].frenet_paths[i].data) for i in range(n_curves))
+    out = Parallel(n_jobs=-1)(delayed(geodesic_dist)(array_PopFP_LP[k].frenet_paths[i].data, array_TruePopFP[k].frenet_paths[i].data) for i in range(n_curves))
     d_LP[k] = np.mean(out)
 
 print('Results of simulation on multiple curves from X with sigma='+str(sigma_e)+' and '+str(nb_S)+' points, repeted '+str(n_MC)+' times:')
