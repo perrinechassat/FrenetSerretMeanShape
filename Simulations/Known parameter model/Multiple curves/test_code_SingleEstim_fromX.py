@@ -56,9 +56,9 @@ param_tau = [1, 2.5]
 sigma_kappa = 0.2
 sigma_tau = 0.08
 param_noise = {"param_kappa" : param_kappa, "param_tau" : param_tau, "sigma_kappa" : sigma_kappa, "sigma_tau" : sigma_tau}
-sigma_e = 0
+sigma_e = 0.05
 param_loc_poly_deriv = { "h_min" : 0.01, "h_max" : 0.2, "nb_h" : 50}
-param_loc_poly_TNB = {"h" : 0.05, "p" : 3, "iflag": [1,1], "ibound" : 0}
+param_loc_poly_TNB = {"h" : 0.2, "p" : 3, "iflag": [1,1], "ibound" : 1}
 n_resamples = nb_S
 t = np.linspace(0, 1, nb_S)
 
