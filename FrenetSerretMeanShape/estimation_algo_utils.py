@@ -983,14 +983,14 @@ def compute_j_prime(kappa, tau):
     j_prime = np.power(kappa,2)*tau
     return j_prime
 
-def compute_theta_from_j(Model_J):
+def compute_theta_from_j(Model_J, mean_L):
     j_prime = Model_J.j.fd_basis.derivative()
     def curv(t): return np.sqrt(1+np.power(Model_J.j.function(t), 2))
-    def tors(t): return np.squeeze(np.squeeze(j_prime.evaluate(t))/(1+np.power(Model_J.j.function(t), 2)))
+    def tors(t): return np.squeeze(np.squeeze(j_prime.evaluate(t)*mean_L)/(1+np.power(Model_J.j.function(t), 2)))
     return curv, tors
 
 
-def single_estimation_sphere(TrueFrenetPath, domain_range, nb_basis, x, tracking=False, alignment=False, lam=0.0, gam={"flag" : False, "value" : None}):
+def single_estimation_sphere(TrueFrenetPath, domain_range, nb_basis, mean_L, x, tracking=False, alignment=False, lam=0.0, gam={"flag" : False, "value" : None}):
 
     N_samples = TrueFrenetPath.nb_samples
     j_smoother = BasisSmoother(domain_range=domain_range, nb_basis=nb_basis)
@@ -1024,7 +1024,6 @@ def single_estimation_sphere(TrueFrenetPath, domain_range, nb_basis, x, tracking
     plt.plot(mS, mJ)
     plt.show()
 
-    print('mJ ok')
     # mJ_prime = compute_j_prime(mTau)
 
     smooth_mJ = Model.j.smoothing(mS, mJ, mOmega, x[1])
@@ -1032,12 +1031,10 @@ def single_estimation_sphere(TrueFrenetPath, domain_range, nb_basis, x, tracking
     plt.plot(mS, Model.j.function(mS))
     plt.show()
     plt.figure()
-    plt.plot(mS, np.squeeze(Model.j.fd_basis.derivative().evaluate(mS)))
+    plt.plot(mS, np.squeeze(Model.j.fd_basis.derivative().evaluate(mS))/mean_L)
     plt.show()
 
-    print('smooth_mJ ok')
-    curv_fct, tors_fct = compute_theta_from_j(Model)
-    print('curv fct and tors fct ok')
+    curv_fct, tors_fct = compute_theta_from_j(Model, mean_L)
 
     SmoothPopulationFrenet_final = SmoothFrenetPath0
     SmoothPopulationFrenet_final.set_estimate_theta(curv_fct, tors_fct)
@@ -1046,7 +1043,7 @@ def single_estimation_sphere(TrueFrenetPath, domain_range, nb_basis, x, tracking
 
     return SmoothPopulationFrenet_final, res.convergence
 
-def single_estim_optimizatinon_sphere(TrueFrenetPath, domain_range, nb_basis, tracking=False, hyperparam=None, opt=False, param_bayopt=None, multicurves=False, alignment=False, lam=0.0):
+def single_estim_optimizatinon_sphere(TrueFrenetPath, domain_range, nb_basis, mean_L, tracking=False, hyperparam=None, opt=False, param_bayopt=None, multicurves=False, alignment=False, lam=0.0):
 
     if opt==True:
         if multicurves==True:
@@ -1064,6 +1061,6 @@ def single_estim_optimizatinon_sphere(TrueFrenetPath, domain_range, nb_basis, tr
         x = hyperparam
         res_opt = x
 
-    SmoothFrenetPath_fin, ind_conv = single_estimation_sphere(TrueFrenetPath, domain_range, nb_basis, res_opt, tracking=tracking, alignment=alignment, lam=lam)
+    SmoothFrenetPath_fin, ind_conv = single_estimation_sphere(TrueFrenetPath, domain_range, nb_basis, mean_L, res_opt, tracking=tracking, alignment=alignment, lam=lam)
 
     return SmoothFrenetPath_fin, [res_opt,ind_conv]
