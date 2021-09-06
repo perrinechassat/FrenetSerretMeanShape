@@ -587,12 +587,14 @@ def single_estimation(TrueFrenetPath, domain_range, nb_basis, x, tracking=False,
 
     return SmoothPopulationFrenet_final, res.convergence
 
+
 def single_estim_optimizatinon(TrueFrenetPath, domain_range, nb_basis, tracking=False, hyperparam=None, opt=False, param_bayopt=None, multicurves=False, alignment=False, lam=0.0):
 
     if opt==True:
         if multicurves==True:
             Opt_fun = lambda x: objective_multiple_curve_single_estim(param_bayopt["n_splits"], TrueFrenetPath, domain_range, nb_basis, x, alignment, lam)
             x = bayesian_optimisation(Opt_fun, param_bayopt["n_calls"], [param_bayopt["bounds_h"], param_bayopt["bounds_lcurv"], param_bayopt["bounds_ltors"]])
+            print('End bayesian optimisation')
         else:
             start = timer()
             Opt_fun = lambda x: objective_single_curve_single_estim(param_bayopt["n_splits"], TrueFrenetPath, domain_range, nb_basis, x, opt_tracking=tracking)
@@ -605,6 +607,7 @@ def single_estim_optimizatinon(TrueFrenetPath, domain_range, nb_basis, tracking=
         res_opt = x
 
     SmoothFrenetPath_fin, ind_conv = single_estimation(TrueFrenetPath, domain_range, nb_basis, res_opt, tracking=tracking, alignment=alignment, lam=lam)
+    print("fin single_estimation")
 
     return SmoothFrenetPath_fin, [res_opt,ind_conv]
 

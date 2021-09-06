@@ -276,7 +276,7 @@ K = concentration*np.eye(3)
 n_MC = 90
 hyperparam = [0.006, 1e-12, 1e-12, 1e-12]
 nb_knots = 15
-param_bayopt = {"n_splits":  10, "n_calls" : 50, "bounds_h" : (0.03, 0.14), "bounds_lcurv" : (1e-6, 0.1), "bounds_ltors" : (1e-6, 0.1)}
+param_bayopt = {"n_splits":  10, "n_calls" : 30, "bounds_h" : (0.03, 0.14), "bounds_lcurv" : (1e-6, 0.1), "bounds_ltors" : (1e-6, 0.1)}
 Noisy_flag = False
 
 """ Definition of reference TNB and X"""
@@ -341,6 +341,8 @@ print("Mean estimations Frenet Serret...")
                             # for i in range(n_MC))
 out = Parallel(n_jobs=-1)(delayed(single_estim_optimizatinon)(array_PopFP_LP[i], domain_range, nb_knots, tracking=False, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, multicurves=True, alignment=False)
                             for i in range(n_MC))
+
+print('------------------------------------------------------optimization finish----------------------------------------------------------------')
 
 for k in range(n_MC):
     array_SmoothPopFP[k] = out[k][0]
