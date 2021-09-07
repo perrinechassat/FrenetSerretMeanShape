@@ -428,8 +428,8 @@ sigma_kappa = 0.2
 sigma_tau = 0.08
 param_noise = {"param_kappa" : param_kappa, "param_tau" : param_tau, "sigma_kappa" : sigma_kappa, "sigma_tau" : sigma_tau}
 sigma_e = 0.05
-param_loc_poly_deriv = { "h_min" : 0.1, "h_max" : 0.2, "nb_h" : 50}
-param_loc_poly_TNB = {"h" : 0.2, "p" : 3, "iflag": [1,1], "ibound" : 1}
+param_loc_poly_deriv = { "h_min" : 0.01, "h_max" : 0.2, "nb_h" : 50}
+param_loc_poly_TNB = {"h" : 0.1, "p" : 3, "iflag": [1,1], "ibound" : 0}
 n_resamples = nb_S
 t = np.linspace(0, 1, nb_S)
 
@@ -441,7 +441,7 @@ for k in range(n_MC):
     array_TruePopFP[k] = res[k][0]
     array_TruePopFP_Noisy[k] = res[k][1]
 
-res = Parallel(n_jobs=-1)(delayed(add_noise_X_and_preprocess_MultipleCurves)(array_TruePopFP[i], sigma_e, t, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind={"ind":False,"val":L0}, locpolyTNB_local=False) for i in range(n_MC))
+res = Parallel(n_jobs=-1)(delayed(add_noise_X_and_preprocess_MultipleCurves)(array_TruePopFP[i], sigma_e, t, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind={"ind":True,"val":1}, locpolyTNB_local=False) for i in range(n_MC))
 
 array_PopFP_LP = np.empty((n_MC), dtype=object)
 array_PopFP_GS = np.empty((n_MC), dtype=object)
