@@ -262,132 +262,132 @@ np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 #
 # print('END !')
 
-
-""" ---------------------------------------------------------------------------ADD VAR From X EXACT -------------------------------------------------------------------------------------- """
-print('------------------ ADD VAR From X EXACT --------------------')
-
-""" DEFINE DATA """
-
-""" Parameters of the simulation """
-n_curves = 25
-nb_S = 100
-concentration = 10
-K = concentration*np.eye(3)
-n_MC = 90
-hyperparam = [0.006, 1e-12, 1e-12, 1e-12]
-nb_knots = 40
-param_bayopt = {"n_splits":  10, "n_calls" : 80, "bounds_h" : (0.03, 0.14), "bounds_lcurv" : (1e-10, 0.01), "bounds_ltors" : (1e-5, 10)}
-Noisy_flag = False
-
-""" Definition of reference TNB and X"""
-L0 = 5
-init0 = np.eye(3)
-s0 = np.linspace(0,L0,nb_S)
-domain_range = (0.0,5.0)
-true_curv0 = lambda s: np.exp(np.sin(s))
-true_tors0 = lambda s: 0.2*s - 0.5
-Q0 = FrenetPath(s0, s0, init=init0, curv=true_curv0, tors=true_tors0, dim=3)
-Q0.frenet_serret_solve()
-X0 = Q0.data_trajectory
-
-
-""" Definition of population TNB """
-
-start1 = timer()
-
-param_kappa = [1, 2.5]
-param_tau = [1, 2.5]
-sigma_kappa = 0.2
-sigma_tau = 0.08
-param_noise = {"param_kappa" : param_kappa, "param_tau" : param_tau, "sigma_kappa" : sigma_kappa, "sigma_tau" : sigma_tau}
-sigma_e = 0
-param_loc_poly_deriv = { "h_min" : 0.01, "h_max" : 0.2, "nb_h" : 50}
-param_loc_poly_TNB = {"h" : 0.05, "p" : 3, "iflag": [1,1], "ibound" : 0}
-n_resamples = nb_S
-t = np.linspace(0, 1, nb_S)
-
-array_TruePopFP, array_TruePopFP_Noisy = np.empty((n_MC), dtype=object), np.empty((n_MC), dtype=object)
-
-res = Parallel(n_jobs=-1)(delayed(simul_populationTNB_additiveVar)(n_curves, L0, s0, K, param_kappa, param_tau, sigma_kappa, sigma_tau, true_curv0, true_tors0, Noisy_flag) for i in range(n_MC))
-
-for k in range(n_MC):
-    array_TruePopFP[k] = res[k][0]
-    array_TruePopFP_Noisy[k] = res[k][1]
-
-res = Parallel(n_jobs=-1)(delayed(add_noise_X_and_preprocess_MultipleCurves)(array_TruePopFP[i], sigma_e, t, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind={"ind":True,"val":1}, locpolyTNB_local=False) for i in range(n_MC))
-
-array_PopFP_LP = np.empty((n_MC), dtype=object)
-array_PopFP_GS = np.empty((n_MC), dtype=object)
-array_PopTraj = np.empty((n_MC), dtype=object)
-array_ThetaExtrins = np.empty((n_MC), dtype=object)
-
-for k in range(n_MC):
-    array_PopFP_LP[k] = res[k][1]
-    array_PopFP_GS[k] = res[k][2]
-    array_PopTraj[k] = res[k][0]
-    array_ThetaExtrins[k] = res[k][3]
-
-""" ESTIMATION """
-
-array_SmoothPopFP = np.empty((n_MC), dtype=object)
-array_SmoothThetaFP = np.empty((n_MC), dtype=object)
-array_resOpt = np.empty((n_MC), dtype=object)
-
-""" Monte carlo """
-
-print("Mean estimations Frenet Serret...")
-
-# out = Parallel(n_jobs=-1)(delayed(adaptative_estimation)(array_PopFP_LP[i], domain_range, nb_knots, tracking=False, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, multicurves=True, alignment=False)
-                            # for i in range(n_MC))
-out = Parallel(n_jobs=-1)(delayed(single_estim_optimizatinon)(array_PopFP_LP[i], domain_range, nb_knots, tracking=False, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, multicurves=True, alignment=False)
-                            for i in range(n_MC))
-
-print('------------------------------------------------------optimization finish----------------------------------------------------------------')
-
-for k in range(n_MC):
-    array_SmoothPopFP[k] = out[k][0]
-    array_resOpt[k] = out[k][1]
-    if array_resOpt[k][1]==True:
-        array_SmoothThetaFP[k] = FrenetPath(s0, s0, init=mean_Q0(array_SmoothPopFP[k]), curv=array_SmoothPopFP[k].mean_curv, tors=array_SmoothPopFP[k].mean_tors, dim=3)
-        array_SmoothThetaFP[k].frenet_serret_solve()
-
-duration = timer() - start1
-print('total time', duration)
-
-
-print("Mean estimations SRVF...")
-
-array_SRVF_mean = np.empty((n_MC), dtype=object)
-array_SRVF_gam = np.empty((n_MC), dtype=object)
-
-array_SRVF = Parallel(n_jobs=-1)(delayed(compute_mean_SRVF)(array_PopTraj[i], t) for i in range(n_MC))
-
-for i in range(n_MC):
-    array_SRVF_mean[i] = array_SRVF[i][0]
-    array_SRVF_gam[i] = array_SRVF[i][1]
-
-print("Mean estimations Arithmetic...")
-
-array_Arithmetic_mean = Parallel(n_jobs=-1)(delayed(compute_mean_Arithmetic)(array_PopTraj[i]) for i in range(n_MC))
-
-
-""" SAVING DATA """
-
-print('Saving the data...')
-
-filename = "MultipleEstimationAddVarFromX_SingleEstim__nbS_"+str(nb_S)+"N_curves"+str(n_curves)+"_sigma_"+str(sigma_e)+"_K_"+str(concentration)+'_nMC_'+str(n_MC)+'_nCalls_'+str(param_bayopt["n_calls"])+'_3'
-dic = {"N_curves": n_curves, "X0" : X0, "Q0" : Q0, "true_curv0" : true_curv0, "true_tors0" : true_tors0, "L" : L0, "param_bayopt" : param_bayopt, "K" : concentration, "nb_S" : nb_S, "nb_knots" : nb_knots, "n_MC" : n_MC,
-"resOpt" : array_resOpt, "TruePopFP" : array_TruePopFP, "SmoothPopFP" : array_SmoothPopFP, "SmoothThetaFP" : array_SmoothThetaFP, "param_noise" : param_noise, "param_loc_poly_deriv" : param_loc_poly_deriv,
-"param_loc_poly_TNB" : param_loc_poly_TNB, "sigma" : sigma_e, "PopFP_LP" : array_PopFP_LP, "PopFP_GS" : array_PopFP_GS, "PopTraj" : array_PopTraj, "ThetaExtrins" : array_ThetaExtrins, "SRVF_mean" :array_SRVF_mean, "SRVF_gam" : array_SRVF_gam,
-"Arithmetic_mean" : array_Arithmetic_mean}
-
-if os.path.isfile(filename):
-    print("Le fichier ", filename, " existe déjà.")
-fil = open(filename,"xb")
-pickle.dump(dic,fil)
-fil.close()
-
-print('END !')
+#
+# """ ---------------------------------------------------------------------------ADD VAR From X EXACT -------------------------------------------------------------------------------------- """
+# print('------------------ ADD VAR From X EXACT --------------------')
+#
+# """ DEFINE DATA """
+#
+# """ Parameters of the simulation """
+# n_curves = 25
+# nb_S = 100
+# concentration = 10
+# K = concentration*np.eye(3)
+# n_MC = 90
+# hyperparam = [0.006, 1e-12, 1e-12, 1e-12]
+# nb_knots = 40
+# param_bayopt = {"n_splits":  10, "n_calls" : 80, "bounds_h" : (0.03, 0.14), "bounds_lcurv" : (1e-10, 0.01), "bounds_ltors" : (1e-5, 10)}
+# Noisy_flag = False
+#
+# """ Definition of reference TNB and X"""
+# L0 = 5
+# init0 = np.eye(3)
+# s0 = np.linspace(0,L0,nb_S)
+# domain_range = (0.0,5.0)
+# true_curv0 = lambda s: np.exp(np.sin(s))
+# true_tors0 = lambda s: 0.2*s - 0.5
+# Q0 = FrenetPath(s0, s0, init=init0, curv=true_curv0, tors=true_tors0, dim=3)
+# Q0.frenet_serret_solve()
+# X0 = Q0.data_trajectory
+#
+#
+# """ Definition of population TNB """
+#
+# start1 = timer()
+#
+# param_kappa = [1, 2.5]
+# param_tau = [1, 2.5]
+# sigma_kappa = 0.2
+# sigma_tau = 0.08
+# param_noise = {"param_kappa" : param_kappa, "param_tau" : param_tau, "sigma_kappa" : sigma_kappa, "sigma_tau" : sigma_tau}
+# sigma_e = 0
+# param_loc_poly_deriv = { "h_min" : 0.01, "h_max" : 0.2, "nb_h" : 50}
+# param_loc_poly_TNB = {"h" : 0.05, "p" : 3, "iflag": [1,1], "ibound" : 0}
+# n_resamples = nb_S
+# t = np.linspace(0, 1, nb_S)
+#
+# array_TruePopFP, array_TruePopFP_Noisy = np.empty((n_MC), dtype=object), np.empty((n_MC), dtype=object)
+#
+# res = Parallel(n_jobs=-1)(delayed(simul_populationTNB_additiveVar)(n_curves, L0, s0, K, param_kappa, param_tau, sigma_kappa, sigma_tau, true_curv0, true_tors0, Noisy_flag) for i in range(n_MC))
+#
+# for k in range(n_MC):
+#     array_TruePopFP[k] = res[k][0]
+#     array_TruePopFP_Noisy[k] = res[k][1]
+#
+# res = Parallel(n_jobs=-1)(delayed(add_noise_X_and_preprocess_MultipleCurves)(array_TruePopFP[i], sigma_e, t, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind={"ind":True,"val":1}, locpolyTNB_local=False) for i in range(n_MC))
+#
+# array_PopFP_LP = np.empty((n_MC), dtype=object)
+# array_PopFP_GS = np.empty((n_MC), dtype=object)
+# array_PopTraj = np.empty((n_MC), dtype=object)
+# array_ThetaExtrins = np.empty((n_MC), dtype=object)
+#
+# for k in range(n_MC):
+#     array_PopFP_LP[k] = res[k][1]
+#     array_PopFP_GS[k] = res[k][2]
+#     array_PopTraj[k] = res[k][0]
+#     array_ThetaExtrins[k] = res[k][3]
+#
+# """ ESTIMATION """
+#
+# array_SmoothPopFP = np.empty((n_MC), dtype=object)
+# array_SmoothThetaFP = np.empty((n_MC), dtype=object)
+# array_resOpt = np.empty((n_MC), dtype=object)
+#
+# """ Monte carlo """
+#
+# print("Mean estimations Frenet Serret...")
+#
+# # out = Parallel(n_jobs=-1)(delayed(adaptative_estimation)(array_PopFP_LP[i], domain_range, nb_knots, tracking=False, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, multicurves=True, alignment=False)
+#                             # for i in range(n_MC))
+# out = Parallel(n_jobs=-1)(delayed(single_estim_optimizatinon)(array_PopFP_LP[i], domain_range, nb_knots, tracking=False, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, multicurves=True, alignment=False)
+#                             for i in range(n_MC))
+#
+# print('------------------------------------------------------optimization finish----------------------------------------------------------------')
+#
+# for k in range(n_MC):
+#     array_SmoothPopFP[k] = out[k][0]
+#     array_resOpt[k] = out[k][1]
+#     if array_resOpt[k][1]==True:
+#         array_SmoothThetaFP[k] = FrenetPath(s0, s0, init=mean_Q0(array_SmoothPopFP[k]), curv=array_SmoothPopFP[k].mean_curv, tors=array_SmoothPopFP[k].mean_tors, dim=3)
+#         array_SmoothThetaFP[k].frenet_serret_solve()
+#
+# duration = timer() - start1
+# print('total time', duration)
+#
+#
+# print("Mean estimations SRVF...")
+#
+# array_SRVF_mean = np.empty((n_MC), dtype=object)
+# array_SRVF_gam = np.empty((n_MC), dtype=object)
+#
+# array_SRVF = Parallel(n_jobs=-1)(delayed(compute_mean_SRVF)(array_PopTraj[i], t) for i in range(n_MC))
+#
+# for i in range(n_MC):
+#     array_SRVF_mean[i] = array_SRVF[i][0]
+#     array_SRVF_gam[i] = array_SRVF[i][1]
+#
+# print("Mean estimations Arithmetic...")
+#
+# array_Arithmetic_mean = Parallel(n_jobs=-1)(delayed(compute_mean_Arithmetic)(array_PopTraj[i]) for i in range(n_MC))
+#
+#
+# """ SAVING DATA """
+#
+# print('Saving the data...')
+#
+# filename = "MultipleEstimationAddVarFromX_SingleEstim__nbS_"+str(nb_S)+"N_curves"+str(n_curves)+"_sigma_"+str(sigma_e)+"_K_"+str(concentration)+'_nMC_'+str(n_MC)+'_nCalls_'+str(param_bayopt["n_calls"])+'_3'
+# dic = {"N_curves": n_curves, "X0" : X0, "Q0" : Q0, "true_curv0" : true_curv0, "true_tors0" : true_tors0, "L" : L0, "param_bayopt" : param_bayopt, "K" : concentration, "nb_S" : nb_S, "nb_knots" : nb_knots, "n_MC" : n_MC,
+# "resOpt" : array_resOpt, "TruePopFP" : array_TruePopFP, "SmoothPopFP" : array_SmoothPopFP, "SmoothThetaFP" : array_SmoothThetaFP, "param_noise" : param_noise, "param_loc_poly_deriv" : param_loc_poly_deriv,
+# "param_loc_poly_TNB" : param_loc_poly_TNB, "sigma" : sigma_e, "PopFP_LP" : array_PopFP_LP, "PopFP_GS" : array_PopFP_GS, "PopTraj" : array_PopTraj, "ThetaExtrins" : array_ThetaExtrins, "SRVF_mean" :array_SRVF_mean, "SRVF_gam" : array_SRVF_gam,
+# "Arithmetic_mean" : array_Arithmetic_mean}
+#
+# if os.path.isfile(filename):
+#     print("Le fichier ", filename, " existe déjà.")
+# fil = open(filename,"xb")
+# pickle.dump(dic,fil)
+# fil.close()
+#
+# print('END !')
 
 
 """ ---------------------------------------------------------------------------ADD VAR From X NOISY -------------------------------------------------------------------------------------- """
@@ -429,7 +429,7 @@ sigma_tau = 0.08
 param_noise = {"param_kappa" : param_kappa, "param_tau" : param_tau, "sigma_kappa" : sigma_kappa, "sigma_tau" : sigma_tau}
 sigma_e = 0.05
 param_loc_poly_deriv = { "h_min" : 0.1, "h_max" : 0.2, "nb_h" : 50}
-param_loc_poly_TNB = {"h" : 0.2, "p" : 3, "iflag": [1,1], "ibound" : 0}
+param_loc_poly_TNB = {"h" : 0.2, "p" : 3, "iflag": [1,1], "ibound" : 1}
 n_resamples = nb_S
 t = np.linspace(0, 1, nb_S)
 
