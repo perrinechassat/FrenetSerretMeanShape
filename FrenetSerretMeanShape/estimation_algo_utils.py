@@ -290,6 +290,14 @@ def compute_raw_curvatures_without_alignement(PopulationFrenetPath, h, Populatio
 
     Ms, Momega, Mkappa, Mtau = compute_sort_unique_val(np.around(S, 8), Omega, Kappa, Tau)
 
+    # Test pour enlever les valeurs à zeros.
+    Momega = np.asarray(Momega)
+    ind_nozero = np.where(Momega!=0.)
+    Momega = np.squeeze(Momega[ind_nozero])
+    Mkappa = np.squeeze(np.asarray(Mkappa)[ind_nozero])
+    Mtau = np.squeeze(np.asarray(Mtau)[ind_nozero])
+    Ms = Ms[ind_nozero]
+
     return Mkappa, Mtau, Ms, Momega
 
 
@@ -553,10 +561,10 @@ def single_estimation(TrueFrenetPath, domain_range, nb_basis, x, tracking=False,
     # if tracking==True:
     #     SmoothFrenetPath0 = tracking_smoother(TrueFrenetPath,Model_theta,x[3])
     # else:
-    SmoothFrenetPath0 = lie_smoother(TrueFrenetPath,Model_theta)
+    # SmoothFrenetPath0 = lie_smoother(TrueFrenetPath,Model_theta)
         # print('SmoothFP', SmoothFrenetPath0.data.shape)
         # print('TrueFP', TrueFrenetPath.data.shape)
-    # SmoothFrenetPath0 = TrueFrenetPath #test
+    SmoothFrenetPath0 = TrueFrenetPath #test
     # SmoothFrenetPath_fin, ind_conv = global_estimation(TrueFrenetPath, SmoothFrenetPath0, Model_theta, x, opt_tracking=tracking, opt_alignment=alignment, lam=lam)
     if alignment==False:
         mKappa, mTau, mS, mOmega = compute_raw_curvatures_without_alignement(TrueFrenetPath, x[0], SmoothFrenetPath0)
@@ -569,8 +577,16 @@ def single_estimation(TrueFrenetPath, domain_range, nb_basis, x, tracking=False,
         align_results = collections.namedtuple('align_fPCA', ['convergence'])
         res = align_results(True)
 
+    # plt.figure()
+    # plt.plot(mS, mKappa)
+    # plt.show()
+    # plt.figure()
+    # plt.plot(mS, mTau)
+    # plt.show()
+
     theta_curv = Model_theta.curv.smoothing(mS, mKappa, mOmega, x[1])
     theta_torsion = Model_theta.tors.smoothing(mS, mTau, mOmega, x[2])
+
     # plt.figure()
     # plt.plot(mS, Model_theta.curv.function(mS))
     # plt.show()
