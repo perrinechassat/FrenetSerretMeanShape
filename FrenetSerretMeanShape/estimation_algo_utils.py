@@ -354,14 +354,14 @@ def compute_raw_curvatures_alignement_init(PopulationFrenetPath, h, PopulationSm
         S = S[0][ind_nozero]
 
         # plot initial functions before alignment
-        # plt.figure()
-        # for i in range(len(Omega)):
-        #     plt.plot(S, np.squeeze(Kappa[i,:]))
-        # plt.show()
-        # plt.figure()
-        # for i in range(len(Omega)):
-        #     plt.plot(S, np.squeeze(Tau[i,:]))
-        # plt.show()
+        plt.figure()
+        for i in range(len(Omega)):
+            plt.plot(S, np.squeeze(Kappa[i,:]))
+        plt.show()
+        plt.figure()
+        for i in range(len(Omega)):
+            plt.plot(S, np.squeeze(Tau[i,:]))
+        plt.show()
 
         theta = np.stack((np.transpose(Kappa), np.abs(np.transpose(Tau))))
         theta[np.isnan(theta)] = 0.0
@@ -416,14 +416,14 @@ def compute_raw_curvatures_alignement_boucle(PopulationFrenetPath, h, Population
         Tau = np.squeeze(np.asarray(Tau)[:,ind_nozero])
         S = S[0][ind_nozero]
 
-        # plt.figure()
-        # for i in range(len(Omega)):
-        #     plt.plot(S, np.squeeze(Kappa[i,:]))
-        # plt.show()
-        # plt.figure()
-        # for i in range(len(Omega)):
-        #     plt.plot(S, np.squeeze(Tau[i,:]))
-        # plt.show()
+        plt.figure()
+        for i in range(len(Omega)):
+            plt.plot(S, np.squeeze(Kappa[i,:]))
+        plt.show()
+        plt.figure()
+        for i in range(len(Omega)):
+            plt.plot(S, np.squeeze(Tau[i,:]))
+        plt.show()
 
         # WARP KAPPA BY THE PREVIOUS GAM Functions
         kappa_align, weighted_mean_kappa = warp_curvatures(np.transpose(Kappa), prev_gam, np.squeeze(S), np.transpose(Omega))
@@ -553,10 +553,10 @@ def single_estimation(TrueFrenetPath, domain_range, nb_basis, x, tracking=False,
     # if tracking==True:
     #     SmoothFrenetPath0 = tracking_smoother(TrueFrenetPath,Model_theta,x[3])
     # else:
-        # SmoothFrenetPath0 = lie_smoother(TrueFrenetPath,Model_theta)
+    SmoothFrenetPath0 = lie_smoother(TrueFrenetPath,Model_theta)
         # print('SmoothFP', SmoothFrenetPath0.data.shape)
         # print('TrueFP', TrueFrenetPath.data.shape)
-    SmoothFrenetPath0 = TrueFrenetPath #test
+    # SmoothFrenetPath0 = TrueFrenetPath #test
     # SmoothFrenetPath_fin, ind_conv = global_estimation(TrueFrenetPath, SmoothFrenetPath0, Model_theta, x, opt_tracking=tracking, opt_alignment=alignment, lam=lam)
     if alignment==False:
         mKappa, mTau, mS, mOmega = compute_raw_curvatures_without_alignement(TrueFrenetPath, x[0], SmoothFrenetPath0)

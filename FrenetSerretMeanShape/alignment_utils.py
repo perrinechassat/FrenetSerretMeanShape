@@ -185,10 +185,10 @@ def align_vect_curvatures_fPCA(f, time, weights, num_comp=3, cores=-1, smoothdat
             tmp = U1.dot(alpha_i)
             fhat[k,:,:] = d1 + tmp
             # #
-            # plt.figure()
-            # for i in range(N):
-            #     plt.plot(time, fhat[k,:,i])
-            # plt.show()
+            plt.figure()
+            for i in range(N):
+                plt.plot(time, fhat[k,:,i])
+            plt.show()
 
         cost_init = np.zeros(N)
 
@@ -213,26 +213,26 @@ def align_vect_curvatures_fPCA(f, time, weights, num_comp=3, cores=-1, smoothdat
         ftemp = fi[:, :, :, itr + 1]
         mf[:, :, itr + 1] = weighted_mean_vect(ftemp, weights)
 
-        # plt.figure()
-        # for i in range(N):
-        #     plt.plot(time, gam[:, i, itr])
-        # plt.show()
-        #
-        # plt.figure()
-        # for i in range(N):
-        #     plt.plot(time, ftemp[0, :, i])
-        # plt.show()
-        # plt.figure()
-        # plt.plot(time, mf[0, :, itr + 1])
-        # plt.show()
-        #
-        # plt.figure()
-        # for i in range(N):
-        #     plt.plot(time, ftemp[1, :, i])
-        # plt.show()
-        # plt.figure()
-        # plt.plot(time, mf[1, :, itr + 1])
-        # plt.show()
+        plt.figure()
+        for i in range(N):
+            plt.plot(time, gam[:, i, itr])
+        plt.show()
+
+        plt.figure()
+        for i in range(N):
+            plt.plot(time, ftemp[0, :, i])
+        plt.show()
+        plt.figure()
+        plt.plot(time, mf[0, :, itr + 1])
+        plt.show()
+
+        plt.figure()
+        for i in range(N):
+            plt.plot(time, ftemp[1, :, i])
+        plt.show()
+        plt.figure()
+        plt.plot(time, mf[1, :, itr + 1])
+        plt.show()
 
         fi_cent[:, :, :, itr + 1], mf_cent[:, :, itr + 1] = align_and_center(np.copy(gam), np.copy(mf[:, :, itr + 1]), np.copy(ftemp), itr+1, np.copy(time))
 
@@ -278,26 +278,26 @@ def align_vect_curvatures_fPCA(f, time, weights, num_comp=3, cores=-1, smoothdat
     for k in range(0, N):
         gamf[:, k] = np.interp(time0, time, gamf[:, k])
 
-    # plt.figure()
-    # plt.plot(time, mfn[0])
-    # plt.show()
-    # plt.figure()
-    # plt.plot(time, mfn[1])
-    # plt.show()
-    #
-    # plt.figure()
-    # for i in range(N):
-    #     plt.plot(time, gamf[:, i])
-    # plt.show()
-    #
-    # plt.figure()
-    # for i in range(N):
-    #     plt.plot(time, fn[0, :, i])
-    # plt.show()
-    # plt.figure()
-    # for i in range(N):
-    #     plt.plot(time, fn[1, :, i])
-    # plt.show()
+    plt.figure()
+    plt.plot(time, mfn[0])
+    plt.show()
+    plt.figure()
+    plt.plot(time, mfn[1])
+    plt.show()
+
+    plt.figure()
+    for i in range(N):
+        plt.plot(time, gamf[:, i])
+    plt.show()
+
+    plt.figure()
+    for i in range(N):
+        plt.plot(time, fn[0, :, i])
+    plt.show()
+    plt.figure()
+    for i in range(N):
+        plt.plot(time, fn[1, :, i])
+    plt.show()
 
     align_results = collections.namedtuple('align_fPCA', ['fn', 'gamf', 'mfn', 'fi', 'gam', 'mf', 'nb_itr', 'convergence'])
 
