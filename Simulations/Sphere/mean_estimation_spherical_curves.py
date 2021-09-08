@@ -2,7 +2,7 @@
 
 import sys
 import os.path
-sys.path.insert(1, '../../../FrenetSerretMeanShape')
+sys.path.insert(1, '../../FrenetSerretMeanShape')
 from frenet_path import *
 from trajectory import *
 from model_curvatures import *
