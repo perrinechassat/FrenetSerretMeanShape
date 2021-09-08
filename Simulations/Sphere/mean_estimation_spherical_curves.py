@@ -25,6 +25,7 @@ np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 
 """ Parameters of the simulation """
 n_curves = 25
+N = n_curves
 nb_S = 100
 # n_MC = 100
 hyperparam = [0.006, 1e-12, 1e-12, 1e-12]
@@ -51,7 +52,7 @@ array_Q_LP = []
 array_Q_GS = []
 array_ThetaExtrins = []
 
-for i in range(N):
+for i in range(n_curves):
     X_newi, Xi, Q_LPi, Q_GSi, theta_extrinsi, successLocPoly = pre_process_data(X_tab[:,:,i], t, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind={"ind":True,"val":1}, locpolyTNB_local=True)
     print(successLocPoly)
     array_X.append(Xi)
