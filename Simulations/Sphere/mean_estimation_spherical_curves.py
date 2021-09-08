@@ -33,7 +33,7 @@ param_bayopt = {"n_splits":  10, "n_calls" : 10, "bounds_h" : (0.03, 0.14), "bou
 
 
 """ Generate data """
-Mu, X_tab, V_tab = generative_model_spherical_curves(N, 20, nb_S, (0,1))
+Mu, X_tab, V_tab = generative_model_spherical_curves(n_curves, 20, nb_S, (0,1))
 t = np.linspace(0,1,nb_S)
 
 
