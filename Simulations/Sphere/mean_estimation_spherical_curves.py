@@ -44,6 +44,7 @@ t = np.linspace(0,1,nb_S)
 n_resamples = 100
 param_loc_poly_deriv = { "h_min" : 0.01, "h_max" : 0.2, "nb_h" : 20}
 param_loc_poly_TNB = {"h" : 15, "p" : 3, "iflag": [1,1], "ibound" : 0}
+domain_range = (0,1)
 
 array_X = []
 array_Xnew = []
