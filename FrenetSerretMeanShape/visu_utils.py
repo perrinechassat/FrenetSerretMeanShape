@@ -111,7 +111,7 @@ def plot_3D_means(features1, features2, names1, names2, path=""):
                 z=feat[:,2],
                 mode='lines',
                 name=names1+str(i),
-                line=dict(width=2, color=color_list[(i-9)%9])
+                line=dict(width=2, color=color_list[(i+4-9)%9])
             )
         )
     if path!="":
@@ -176,7 +176,7 @@ def plot_curvatures(s, kappa, tau, kappa_mean, tau_mean, names_mean, names1, pat
 
     fig = go.Figure()
     for i in range(N):
-        fig.add_trace(go.Scatter(x=s, y=kappa[i], mode='lines', name=names1+str(i), line=dict(width=2, dash='dot', color=color_list[(i-9)%9])))
+        fig.add_trace(go.Scatter(x=s, y=kappa[i], mode='lines', name=names1+str(i), line=dict(width=2, dash='dot', color=color_list[(i+4-9)%9])))
     for i in range(n):
         fig.add_trace(go.Scatter(x=s, y=kappa_mean[i], mode='lines', name=names_mean[i], opacity=0.8, line=dict(width=3, color=dict_color[names_mean[i]])))
     fig.update_layout(xaxis_title='s', yaxis_title='kappa')
@@ -186,7 +186,7 @@ def plot_curvatures(s, kappa, tau, kappa_mean, tau_mean, names_mean, names1, pat
 
     fig = go.Figure()
     for i in range(N):
-        fig.add_trace(go.Scatter(x=s, y=tau[i], mode='lines', name=names1+str(i), line=dict(width=2, dash='dot', color=color_list[(i-9)%9])))
+        fig.add_trace(go.Scatter(x=s, y=tau[i], mode='lines', name=names1+str(i), line=dict(width=2, dash='dot', color=color_list[(i+4-9)%9])))
     for i in range(n):
         fig.add_trace(go.Scatter(x=s, y=tau_mean[i], mode='lines', name=names_mean[i], opacity=0.8, line=dict(width=3, color=dict_color[names_mean[i]])))
     fig.update_layout(xaxis_title='s', yaxis_title='tau')

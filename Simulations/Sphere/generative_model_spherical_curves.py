@@ -73,7 +73,7 @@ def V(t,f):
     return np.squeeze(R(t) @ np.array([f(t/2), f((t+1)/2), 0])[:,np.newaxis])
 
 def X(t,f):
-    return exponential_map(np.array([0,0,1]), V(t,f))
+    return exponential_map(mu(t), V(t,f))
 
 def generative_model_spherical_curves(n_curves, K, n_points, domain_range):
     T = np.linspace(domain_range[0], domain_range[1], n_points)
