@@ -362,14 +362,14 @@ def compute_raw_curvatures_alignement_init(PopulationFrenetPath, h, PopulationSm
         S = S[0][ind_nozero]
 
         # plot initial functions before alignment
-        # plt.figure()
-        # for i in range(len(Omega)):
-        #     plt.plot(S, np.squeeze(Kappa[i,:]))
-        # plt.show()
-        # plt.figure()
-        # for i in range(len(Omega)):
-        #     plt.plot(S, np.squeeze(Tau[i,:]))
-        # plt.show()
+        plt.figure()
+        for i in range(len(Omega)):
+            plt.plot(S, np.squeeze(Kappa[i,:]))
+        plt.show()
+        plt.figure()
+        for i in range(len(Omega)):
+            plt.plot(S, np.squeeze(Tau[i,:]))
+        plt.show()
 
         theta = np.stack((np.transpose(Kappa), np.abs(np.transpose(Tau))))
         theta[np.isnan(theta)] = 0.0
@@ -1062,6 +1062,65 @@ def single_estimation_sphere(TrueFrenetPath, domain_range, nb_basis, mean_L, x, 
 
     return SmoothPopulationFrenet_final, res.convergence
 
+
+def single_estimation_sphere_double(TrueFrenetPath, domain_range, nb_basis, mean_L, x, tracking=False, alignment=False, lam=0.0, gam={"flag" : False, "value" : None}):
+
+    N_samples = TrueFrenetPath.nb_samples
+    j_smoother = BasisSmootherDerivatives(domain_range=domain_range, nb_basis=nb_basis)
+
+    Model = Model_J(j_smoother)
+    TrueFrenetPath.compute_neighbors(x[0])
+
+    SmoothFrenetPath0 = TrueFrenetPath #test
+
+    if alignment==False:
+        mKappa, mTau, mS, mOmega = compute_raw_curvatures_without_alignement(TrueFrenetPath, x[0], SmoothFrenetPath0)
+        align_results = collections.namedtuple('align_fPCA', ['convergence'])
+        res = align_results(True)
+    elif alignment==True and gam["flag"]==False:
+        mKappa, mTau, mS, mOmega, gam, res = compute_raw_curvatures_alignement_init(TrueFrenetPath, x[0], SmoothFrenetPath0, lam)
+    else:
+        mKappa, mTau, mS, mOmega, gam, kappa_align, tau_align = compute_raw_curvatures_alignement_boucle(TrueFrenetPath, x[0], SmoothFrenetPath0, gam["value"])
+        align_results = collections.namedtuple('align_fPCA', ['convergence'])
+        res = align_results(True)
+
+    plt.figure()
+    plt.plot(mS, mKappa)
+    plt.show()
+    plt.figure()
+    plt.plot(mS, mTau)
+    plt.show()
+
+    mJ = compute_j(mKappa)
+    mJ_prime = compute_j_prime(mKappa,mTau)
+
+    print('raw estimate of J and J_prime')
+    plt.figure()
+    plt.plot(mS, mJ)
+    plt.show()
+    plt.figure()
+    plt.plot(mS, mJ_prime)
+    plt.show()
+
+    smooth_mJ = Model.j.smoothing(mS, mJ, mJ_prime, mOmega, x[1])
+
+    print('smooth estimate of J and J_prime')
+    plt.figure()
+    plt.plot(mS, Model.j.function(mS))
+    plt.show()
+    plt.figure()
+    plt.plot(mS, Model.j.derivative(mS)/mean_L)
+    plt.show()
+
+    curv_fct, tors_fct = compute_theta_from_j(Model, mean_L)
+
+    SmoothPopulationFrenet_final = SmoothFrenetPath0
+    SmoothPopulationFrenet_final.set_estimate_theta(curv_fct, tors_fct)
+    if N_samples!=1 and alignment==True:
+        SmoothPopulationFrenet_final.set_gam_functions(gam)
+
+    return SmoothPopulationFrenet_final, res.convergence
+
 def single_estim_optimizatinon_sphere(TrueFrenetPath, domain_range, nb_basis, mean_L, tracking=False, hyperparam=None, opt=False, param_bayopt=None, multicurves=False, alignment=False, lam=0.0):
 
     if opt==True:
@@ -1080,6 +1139,6 @@ def single_estim_optimizatinon_sphere(TrueFrenetPath, domain_range, nb_basis, me
         x = hyperparam
         res_opt = x
 
-    SmoothFrenetPath_fin, ind_conv = single_estimation_sphere(TrueFrenetPath, domain_range, nb_basis, mean_L, res_opt, tracking=tracking, alignment=alignment, lam=lam)
+    SmoothFrenetPath_fin, ind_conv = single_estimation_sphere_double(TrueFrenetPath, domain_range, nb_basis, mean_L, res_opt, tracking=tracking, alignment=alignment, lam=lam)
 
     return SmoothFrenetPath_fin, [res_opt,ind_conv]
