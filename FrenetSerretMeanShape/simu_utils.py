@@ -216,7 +216,7 @@ def pre_process_data_fast(data, t_init, n_resamples, param_loc_poly_deriv, param
     X = Trajectory(data, t_init)
     # Estimation des dérivées et de s(t)
     h_opt = opti_loc_poly_traj(X.data, X.t, param_loc_poly_deriv['h_min'], param_loc_poly_deriv['h_max'], param_loc_poly_deriv['nb_h'])
-    print(h_opt)
+    # print(h_opt)
     X.loc_poly_estimation(X.t, 5, h_opt)
     X.compute_S(scale=scale_ind["ind"])
 
@@ -337,7 +337,7 @@ def pre_process_data(data, t_init, n_resamples, param_loc_poly_deriv, param_loc_
     X = Trajectory(data, t_init)
     # Estimation des dérivées et de s(t)
     h_opt = opti_loc_poly_traj(X.data, X.t, param_loc_poly_deriv['h_min'], param_loc_poly_deriv['h_max'], param_loc_poly_deriv['nb_h'])
-    print(h_opt)
+    # print(h_opt)
     X.loc_poly_estimation(X.t, 5, h_opt)
     X.compute_S(scale=scale_ind["ind"])
 
