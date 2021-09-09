@@ -307,7 +307,7 @@ class Trajectory:
 
         success = True
         if len(list_error) > 0:
-            print(list_error)
+            # print(list_error)
             success = False
 
         return Q_fin, vkappa, Param, Param0, vparam, success

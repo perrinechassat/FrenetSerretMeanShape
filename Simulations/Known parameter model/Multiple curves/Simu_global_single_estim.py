@@ -403,7 +403,7 @@ K = concentration*np.eye(3)
 n_MC = 90
 hyperparam = [0.006, 1e-12, 1e-12, 1e-12]
 nb_knots = 40
-param_bayopt = {"n_splits":  10, "n_calls" : 80, "bounds_h" : (0.03, 0.14), "bounds_lcurv" : (1e-10, 0.01), "bounds_ltors" : (1e-5, 10)}
+param_bayopt = {"n_splits":  10, "n_calls" : 80, "bounds_h" : (0.04, 0.14), "bounds_lcurv" : (1e-10, 0.01), "bounds_ltors" : (1e-5, 10)}
 Noisy_flag = False
 
 """ Definition of reference TNB and X"""
