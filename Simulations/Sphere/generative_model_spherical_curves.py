@@ -59,8 +59,8 @@ def rotation_matrix_from_vectors(vec1,vec2):
     return r_proj
 
 def mu(t):
-    # return exponential_map(np.array([0,0,1]), np.array([2*t, 0.3*np.pi*np.sin(np.pi*t), 0]))
-    return exponential_map(np.array([0,0,1]), np.array([np.cos(theta(t))*phi(t), np.sin(theta(t))*phi(t), 0]))
+    return exponential_map(np.array([0,0,1]), np.array([2*t, 0.3*np.pi*np.sin(np.pi*t), 0]))
+    # return exponential_map(np.array([0,0,1]), np.array([np.cos(theta(t))*phi(t), np.sin(theta(t))*phi(t), 0]))
 
 def R(t):
     return rotation_matrix_from_vectors(np.array([0,0,1]), mu(t))
