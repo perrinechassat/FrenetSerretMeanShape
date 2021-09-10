@@ -27,11 +27,17 @@ np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 
 sphere = Hypersphere(dim=2)
 
+# def phi(t):
+#     return (np.power(t,3)+3*t**2+t+1)/2
+#
+# def theta(t):
+#     return 2*t**2+4*t+1/2
+
 def phi(t):
-    return (np.power(t,3)+3*t**2+t+1)/2
+    return 10*(t+1)/2
 
 def theta(t):
-    return 2*t**2+4*t+1/2
+    return 4*t+1/2
 
 # def mu1(t):
 #     return np.stack((np.sin(phi(t))*np.cos(theta(t)), np.sin(phi(t))*np.sin(theta(t)), np.cos(phi(t))), axis=1)
@@ -59,8 +65,8 @@ def rotation_matrix_from_vectors(vec1,vec2):
     return r_proj
 
 def mu(t):
-    return exponential_map(np.array([0,0,1]), np.array([2*t, 0.3*np.pi*np.sin(np.pi*t), 0]))
-    # return exponential_map(np.array([0,0,1]), np.array([np.cos(theta(t))*phi(t), np.sin(theta(t))*phi(t), 0]))
+    # return exponential_map(np.array([0,0,1]), np.array([2*t, 0.3*np.pi*np.sin(np.pi*t), 0]))
+    return exponential_map(np.array([0,0,1]), np.array([np.cos(theta(t))*phi(t), np.sin(theta(t))*phi(t), 0]))
 
 def R(t):
     return rotation_matrix_from_vectors(np.array([0,0,1]), mu(t))

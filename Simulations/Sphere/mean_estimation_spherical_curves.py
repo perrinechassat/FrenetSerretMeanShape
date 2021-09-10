@@ -34,8 +34,8 @@ param_bayopt = {"n_splits":  10, "n_calls" : 80, "bounds_h" : (0.03, 0.14), "bou
 
 
 """ Generate data """
-Mu, X_tab, V_tab = generative_model_spherical_curves(n_curves, 20, nb_S, (0.01,1))
-t = np.linspace(0.01,1,nb_S)
+Mu, X_tab, V_tab = generative_model_spherical_curves(n_curves, 20, nb_S, (0,1))
+t = np.linspace(0,1,nb_S)
 
 
 """--------------------------------------------------------- Frenet-Serret Mean -----------------------------------------------------------------"""
@@ -106,9 +106,9 @@ Arithmetic_mean = compute_mean_Arithmetic(array_Xnew_scale)
 
 print('Saving the data...')
 
-filename = "SphereCurves_FS_estimation_Mu2"+'_nCalls_'+str(param_bayopt["n_calls"])
+filename = "SphereCurves_FS_estimation_Mu3"+'_nCalls_'+str(param_bayopt["n_calls"])
 dic = {"data": X_tab, "array_X" : array_X, "array_Xnew" : array_Xnew, "t" : t, "array_Q_LP" : array_Q_LP, "array_Q_GS" : array_Q_GS, "param_bayopt" : param_bayopt, "nb_knots" : nb_knots,
- "SmoothPopFrenetPath" : SmoothPopFrenetPath, "resOpt_mean": resOpt_mean, "SmoothThetaPopFP" : SmoothThetaPopFP,
+ "SmoothPopFrenetPath1" : SmoothPopFrenetPath1, "resOpt_mean1": resOpt_mean1, "SmoothThetaPopFP1" : SmoothThetaPopFP1,
  "SmoothPopFrenetPath2" : SmoothPopFrenetPath2, "resOpt_mean2": resOpt_mean2, "SmoothThetaPopFP2" : SmoothThetaPopFP2,
  "SmoothPopFrenetPath3" : SmoothPopFrenetPath3, "resOpt_mean3": resOpt_mean3, "SmoothThetaPopFP3" : SmoothThetaPopFP3,
  "param_loc_poly_deriv" : param_loc_poly_deriv, "param_loc_poly_TNB" : param_loc_poly_TNB, "ThetaExtrins" : array_ThetaExtrins, "SRVF_mean" : SRVF_mean, "Arithmetic_mean" : Arithmetic_mean}
