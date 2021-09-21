@@ -345,6 +345,7 @@ def compute_raw_curvatures_alignement_init(PopulationFrenetPath, h, PopulationSm
 
         for i in range(N_samples):
             Ms_i, Momega_i, Mkappa_i, Mtau_i = compute_raw_curvatures_i(PopulationFrenetPath.frenet_paths[i], PopulationSmoothFrenetPath.frenet_paths[i])
+            print(Ms_i)
             # if len(Ms_i)!=len(S[i-1]):
             S.append(Ms_i)
             Omega.append(Momega_i)

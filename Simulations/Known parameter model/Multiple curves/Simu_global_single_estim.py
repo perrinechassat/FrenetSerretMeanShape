@@ -1557,7 +1557,7 @@ K = concentration*np.eye(3)
 n_MC = 90
 hyperparam = [0.006, 1e-12, 1e-12, 1e-12]
 nb_knots = 15
-param_bayopt = {"n_splits":  10, "n_calls" : 80, "bounds_h" : (0.04, 0.09), "bounds_lcurv" : (0.00001, 0.1), "bounds_ltors" : (0.00001, 0.1)}
+param_bayopt = {"n_splits":  10, "n_calls" : 80, "bounds_h" : (0.04, 0.08), "bounds_lcurv" : (0.00001, 0.1), "bounds_ltors" : (0.00001, 0.1)}
 Noisy_flag = False
 
 """ Definition of reference TNB and X"""
@@ -1683,7 +1683,7 @@ K = concentration*np.eye(3)
 n_MC = 90
 hyperparam = [0.006, 1e-12, 1e-12, 1e-12]
 nb_knots = 15
-param_bayopt = {"n_splits":  10, "n_calls" : 80, "bounds_h" : (0.04, 0.09), "bounds_lcurv" : (0.00001, 0.1), "bounds_ltors" : (0.00001, 0.1)}
+param_bayopt = {"n_splits":  10, "n_calls" : 80, "bounds_h" : (0.04, 0.08), "bounds_lcurv" : (0.00001, 0.1), "bounds_ltors" : (0.00001, 0.1)}
 Noisy_flag = False
 
 """ Definition of reference TNB and X"""
@@ -1704,7 +1704,7 @@ start1 = timer()
 
 sigma_e = 0.01
 param_loc_poly_deriv = { "h_min" : 0.01, "h_max" : 0.2, "nb_h" : 50}
-param_loc_poly_TNB = {"h" : 0.1, "p" : 3, "iflag": [1,1], "ibound" : 0}
+param_loc_poly_TNB = {"h" : 0.1, "p" : 3, "iflag": [1,1], "ibound" : 1}
 n_resamples = nb_S
 t = np.linspace(0, 1, nb_S)
 s0_fun = lambda s: s

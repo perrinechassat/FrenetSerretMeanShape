@@ -7,7 +7,7 @@ import plotly.express as px
 """ Set of functions for visualization of mean shape, mean curvature, torsion, etc (visualize 3D curves or 2D curves). """
 
 color_list_mean = px.colors.qualitative.Plotly
-dict_color = {"True Mean" : color_list_mean[0], "Arithmetic Mean" : px.colors.qualitative.Set1[6], "SRVF Mean" : px.colors.qualitative.Set1[8], "FS Mean" : px.colors.qualitative.Dark24[5], "Extrinsic Mean" : px.colors.qualitative.Set1[6], "Individual Mean" : color_list_mean[3]}
+dict_color = {"True Mean" : color_list_mean[0], "Arithmetic Mean" : px.colors.qualitative.Set1[6], "SRVF Mean" : px.colors.qualitative.Set1[8], "FS Mean" : px.colors.qualitative.Dark24[5], "Extrinsic Mean" : px.colors.qualitative.Set1[6], "Individual Mean" : color_list_mean[3], "True Mean 2" : color_list_mean[1]}
 color_list = px.colors.qualitative.Plotly
 
 def plot_array_2D(x, array_y, name_ind, legend={"index":False}):
@@ -136,20 +136,19 @@ def plot_3D(features, names):
     fig.show()
 
 
-def plot_curvatures_grey(s, kappa, tau, kappa_mean, tau_mean, names_mean,names1, path=""):
+def plot_curvatures_grey(s, kappa, tau, kappa_mean, tau_mean, names_mean, names1, path=""):
     N = len(kappa)
     n = len(kappa_mean)
 
     fig = go.Figure()
     for i in range(N):
-        fig.add_trace(go.Scatter(x=s, y=kappa[i], mode='lines', name=names1+str(i), line=dict(
+        fig.add_trace(go.Scatter(x=s, y=kappa[i], mode='lines', name=names1+str(i), opacity=0.3, line=dict(
                 width=1,
                 dash='solid',
                 color='grey',
             )))
     for i in range(n):
         fig.add_trace(go.Scatter(x=s, y=kappa_mean[i], mode='lines', name=names_mean[i], line=dict(width=3, color=dict_color[names_mean[i]])))
-
     fig.update_layout(xaxis_title='s', yaxis_title='kappa')
     if path!="":
         fig.write_html(path+"kappa.html")
@@ -157,7 +156,7 @@ def plot_curvatures_grey(s, kappa, tau, kappa_mean, tau_mean, names_mean,names1,
 
     fig = go.Figure()
     for i in range(N):
-        fig.add_trace(go.Scatter(x=s, y=tau[i], mode='lines', name=names1+str(i), line=dict(
+        fig.add_trace(go.Scatter(x=s, y=tau[i], mode='lines', name=names1+str(i), opacity=0.3, line=dict(
                 width=1,
                 dash='solid',
                 color='grey',
