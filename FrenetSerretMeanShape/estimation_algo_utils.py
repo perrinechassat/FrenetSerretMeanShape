@@ -181,6 +181,9 @@ def lie_smoother(PopFrenetPath, Model):
         return PopulationFrenetPath(data_smoothfrenetpath)
 
 
+""" Computing the raw curvatures estimates """
+
+
 @njit
 def compute_sort_unique_val(S, Omega, Kappa, Tau):
     """
@@ -346,7 +349,9 @@ def compute_raw_curvatures_alignement_init(PopulationFrenetPath, h, PopulationSm
         for i in range(N_samples):
             Ms_i, Momega_i, Mkappa_i, Mtau_i = compute_raw_curvatures_i(PopulationFrenetPath.frenet_paths[i], PopulationSmoothFrenetPath.frenet_paths[i])
             # print(Ms_i)
-            # if len(Ms_i)!=len(S[i-1]):
+            # if i>0 and len(Ms_i)!=len(S[i-1]):
+            #     print(Ms_i)
+            #     print(S[i-1])
             S.append(Ms_i)
             Omega.append(Momega_i)
             Kappa.append(Mkappa_i)
