@@ -1,8 +1,11 @@
 import sys
+import os.path
+sys.path.insert(1, '../Simulations/Sphere')
 from frenet_path import *
 from trajectory import *
 from model_curvatures import *
 from maths_utils import *
+from generative_model_spherical_curves import *
 # from estimation_algo_utils import *
 from optimization_utils import opti_loc_poly_traj
 
@@ -353,6 +356,74 @@ def pre_process_data(data, t_init, n_resamples, param_loc_poly_deriv, param_loc_
     theta_extrins = [curv_extrins, tors_extrins]
 
     return X_new, X, Q_LP, Q_GS, theta_extrins, successLocPoly
+
+
+
+def pre_process_data_sphere(data, t_init, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind={"ind":True,"val":1}, locpolyTNB_local=True):
+
+    X = Trajectory(data, t_init)
+    h_opt = opti_loc_poly_traj(X.data, X.t, param_loc_poly_deriv['h_min'], param_loc_poly_deriv['h_max'], param_loc_poly_deriv['nb_h'])
+    X.loc_poly_estimation(X.t, 5, h_opt)
+    X.compute_S(scale=scale_ind["ind"])
+
+    if scale_ind["ind"]==True:
+        new_grid_S = np.linspace(0,1,n_resamples)
+    else:
+        new_grid_S = np.linspace(0,X.S(X.t)[-1],n_resamples)
+
+    """ estimation TNB local poly """
+    success = False
+    k = 0
+    param_TNB = param_loc_poly_TNB.copy()
+    while success==False and k<10:
+        Q_LP, vkappa, Param, Param0, vparam, success = X.TNB_locPolyReg(grid_in=X.S(X.t), grid_out=new_grid_S, h=param_loc_poly_TNB['h'], p=param_loc_poly_TNB['p'], iflag=param_loc_poly_TNB['iflag'],
+         ibound=param_loc_poly_TNB['ibound'], local=locpolyTNB_local)
+        if locpolyTNB_local==False:
+            param_TNB["h"]+=0.01
+        else:
+            param_TNB["h"]+=2
+        k+=1
+    if k==10:
+        print("ECHEC")
+
+    if scale_ind["ind"]==True:
+        alpha = Q_LP.data_trajectory*X.L
+    else:
+        alpha = Q_LP.data_trajectory
+    beta = Q_LP.data[:,0,:]
+    gamma = np.transpose(np.cross(alpha, np.transpose(beta)))
+    Q = np.zeros((3, 3, n_resamples))
+    Q[:,0,:] = np.transpose(alpha)
+    Q[:,1,:] = beta
+    Q[:,2,:] = gamma
+    NewFrame = FrenetPath(new_grid_S, new_grid_S, data=Q)
+
+    return X, Q_LP, NewFrame, success
+
+
+def simul_Frame_sphere(N, nb_S, domain_range, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind, locpolyTNB_local):
+    """ Generate data """
+    Mu, X_tab, V_tab = generative_model_spherical_curves(N, 20, nb_S, domain_range)
+    t = np.linspace(domain_range[0],domain_range[1],nb_S)
+
+    array_Traj =  []
+    PopQ_LP = []
+    Pop_NewFrame = []
+    list_L = []
+
+    for i in range(N):
+        X, Q_LP, NewFrame, successLocPoly = pre_process_data_sphere(X_tab[:,:,i], t, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind, locpolyTNB_local)
+        # print(successLocPoly)
+        array_Traj.append(X)
+        PopQ_LP.append(Q_LP)
+        Pop_NewFrame.append(NewFrame)
+        list_L.append(X.L)
+
+    mean_L = np.mean(list_L)
+
+    return array_Traj, PopulationFrenetPath(PopQ_LP), PopulationFrenetPath(Pop_NewFrame), mean_L
+
+
 
 
 """Warpings functions"""
