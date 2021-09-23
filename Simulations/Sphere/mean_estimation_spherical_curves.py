@@ -27,10 +27,10 @@ np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 n_curves = 25
 N = n_curves
 nb_S = 100
-n_MC = 1
+n_MC = 90
 hyperparam = [0.006, 1e-12, 1e-12, 1e-12]
 nb_knots = 40
-param_bayopt = {"n_splits":  10, "n_calls" : 3, "bounds_h" : (0.01, 0.1), "bounds_lcurv" : (1e-7, 1), "bounds_ltors" : (1e-7, 1)}
+param_bayopt = {"n_splits":  10, "n_calls" : 80, "bounds_h" : (0.01, 0.1), "bounds_lcurv" : (1e-7, 1), "bounds_ltors" : (1e-7, 1)}
 
 # """ Generate data """
 # Mu, X_tab, V_tab = generative_model_spherical_curves(n_curves, 20, nb_S, (0,1))
