@@ -68,16 +68,16 @@ Alpha_new, Alpha, Alpha_Q_LP, Alpha_Q_GS, Alpha_theta_extrins, Alpha_successLocP
 k_geod_theo = [np.dot(np.cross(NewFrame.data[:,0,:].transpose()[i,:],NewFrame.data[:,1,:].transpose()[i,:]), Alpha.derivatives[:,6:9][i,:]) for i in range(n_resamples)]
 
 
-print("Mean estimations Frenet Serret with alignment...")
-
-array_SmoothPopFP0 = np.empty((n_MC), dtype=object)
-array_resOpt0 = np.empty((n_MC), dtype=object)
-
-out = Parallel(n_jobs=-1)(delayed(single_estim_optimizatinon)(array_PopFP_NewFrame[i], domain_range, nb_knots, tracking=False, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, multicurves=True, alignment=True, lam=100)
-                            for i in range(n_MC))
-for k in range(n_MC):
-    array_SmoothPopFP0[k] = out[k][0]
-    array_resOpt0[k] = out[k][1]
+# print("Mean estimations Frenet Serret with alignment...")
+#
+# array_SmoothPopFP0 = np.empty((n_MC), dtype=object)
+# array_resOpt0 = np.empty((n_MC), dtype=object)
+#
+# out = Parallel(n_jobs=-1)(delayed(single_estim_optimizatinon)(array_PopFP_NewFrame[i], domain_range, nb_knots, tracking=False, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, multicurves=True, alignment=True, lam=100)
+#                             for i in range(n_MC))
+# for k in range(n_MC):
+#     array_SmoothPopFP0[k] = out[k][0]
+#     array_resOpt0[k] = out[k][1]
 
 print("Mean estimations Frenet Serret without alignment...")
 
@@ -111,8 +111,10 @@ array_Arithmetic_mean = Parallel(n_jobs=-1)(delayed(compute_mean_Arithmetic)(arr
 print('Saving the data...')
 
 filename = "SphereCurves_estimation_K_geod"+'_nCalls_'+str(param_bayopt["n_calls"])+'_n_MC_'+str(n_MC)
-dic = {"N_curves": n_curves, "param_bayopt" : param_bayopt, "nb_knots" : nb_knots, "n_MC" : n_MC, "resOpt0" : array_resOpt0, "SmoothPopFP0" : array_SmoothPopFP0,
-"resOpt1" : array_resOpt1, "SmoothPopFP1" : array_SmoothPopFP1, "param_loc_poly_deriv" : param_loc_poly_deriv, "param_loc_poly_TNB" : param_loc_poly_TNB,
+dic = {"N_curves": n_curves, "param_bayopt" : param_bayopt, "nb_knots" : nb_knots, "n_MC" : n_MC,
+# "resOpt0" : array_resOpt0, "SmoothPopFP0" : array_SmoothPopFP0,
+"resOpt1" : array_resOpt1, "SmoothPopFP1" : array_SmoothPopFP1,
+"param_loc_poly_deriv" : param_loc_poly_deriv, "param_loc_poly_TNB" : param_loc_poly_TNB,
 "PopFP_LP" : array_PopFP_LP, "PopFP_NewFrame" : array_PopFP_NewFrame, "PopTraj" : array_PopTraj, "SRVF_mean" :array_SRVF_mean,
 "SRVF_gam" :array_SRVF_gam, "Arithmetic_mean" : array_Arithmetic_mean, "mean_L" : array_meanL, "k_geod_theo" : k_geod_theo}
 
