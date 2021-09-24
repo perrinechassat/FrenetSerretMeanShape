@@ -46,7 +46,7 @@ param_loc_poly_TNB = {"h" : 0.1, "p" : 3, "iflag": [1,1], "ibound" : 0}
 domain_range = (0,1)
 t = np.linspace(0,1,nb_S)
 
-res = Parallel(n_jobs=-1)(delayed(simul_Frame_sphere)(n_curves, nb_S, domain_range, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, {"ind":True,"val":1}, True)
+res = Parallel(n_jobs=-1)(delayed(simul_Frame_sphere)(n_curves, nb_S, domain_range, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, {"ind":True,"val":1}, False)
                             for i in range(n_MC))
 
 array_PopFP_LP = np.empty((n_MC), dtype=object)
