@@ -415,6 +415,8 @@ def simul_Frame_sphere(N, nb_S, domain_range, n_resamples, param_loc_poly_deriv,
     for i in range(N):
         X, Q_LP, NewFrame, successLocPoly = pre_process_data_sphere(X_tab[:,:,i], t, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind, locpolyTNB_local)
         # print(successLocPoly)
+        # if successLocPoly==False:
+        #     return [], [], [], []
         array_Traj.append(X)
         PopQ_LP.append(Q_LP)
         Pop_NewFrame.append(NewFrame)
