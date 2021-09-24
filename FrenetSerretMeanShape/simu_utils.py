@@ -375,7 +375,7 @@ def pre_process_data_sphere(data, t_init, n_resamples, param_loc_poly_deriv, par
     success = False
     k = 0
     param_TNB = param_loc_poly_TNB.copy()
-    while success==False and k<15:
+    while success==False and k<10:
         # print(param_TNB['h'])
         Q_LP, vkappa, Param, Param0, vparam, success = X.TNB_locPolyReg(grid_in=X.S(X.t), grid_out=new_grid_S, h=param_TNB['h'], p=param_TNB['p'], iflag=param_TNB['iflag'],
          ibound=param_loc_poly_TNB['ibound'], local=locpolyTNB_local)
@@ -384,7 +384,7 @@ def pre_process_data_sphere(data, t_init, n_resamples, param_loc_poly_deriv, par
         else:
             param_TNB["h"]+=2
         k+=1
-    if k==15:
+    if k==10:
         print("ECHEC")
 
     if scale_ind["ind"]==True:
