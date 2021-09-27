@@ -25,12 +25,15 @@ np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 
 ### Construction des données et de la liste des trajectoires.
 
-pathFile = r"/home/pchassat/Documents/frenet-serret-smoothing/data/Racket_ArmData/armDat.csv"
-df = pd.read_csv(pathFile,sep=',')
-
-n_cond = df.cond.nunique()
-n_subj = df.subj.nunique()
-n_rept = df.rept.nunique()
+# pathFile = r"/home/pchassat/Documents/frenet-serret-smoothing/data/Racket_ArmData/armDat.csv"
+# df = pd.read_csv(pathFile,sep=',')
+#
+# n_cond = df.cond.nunique()
+# n_subj = df.subj.nunique()
+# n_rept = df.rept.nunique()
+n_cond = 16
+n_subj = 10
+n_rept = 10
 print('Nombre de conditions: ', n_cond, ' , de sujets: ', n_subj, ' , de repetitions: ', n_rept)
 
 # list_cond = [3,7,11,15]
