@@ -586,10 +586,10 @@ def single_estimation(TrueFrenetPath, domain_range, nb_basis, x, tracking=False,
     # plt.plot(mS, mTau)
     # plt.show()
 
-    mean_kappa = np.mean(mKappa)
+    # mean_kappa = np.mean(mKappa)
     # print(mean_kappa)
-    Model_theta.curv.function = lambda s: s*0 + mean_kappa
-    # theta_curv = Model_theta.curv.smoothing(mS, mKappa, mOmega, x[1])
+    # Model_theta.curv.function = lambda s: s*0 + mean_kappa
+    theta_curv = Model_theta.curv.smoothing(mS, mKappa, mOmega, x[1])
     theta_torsion = Model_theta.tors.smoothing(mS, mTau, mOmega, x[2])
 
     # plt.figure()
