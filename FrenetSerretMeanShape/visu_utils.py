@@ -3,6 +3,10 @@ import numpy as np
 import plotly.graph_objs as go
 import plotly.express as px
 
+layout = go.Layout(
+    # paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)'
+)
 
 """ Set of functions for visualization of mean shape, mean curvature, torsion, etc (visualize 3D curves or 2D curves). """
 
@@ -11,7 +15,7 @@ dict_color = {"True Mean" : color_list_mean[0], "Arithmetic Mean" : px.colors.qu
 color_list = px.colors.qualitative.Plotly
 
 def plot_array_2D(x, array_y, name_ind, legend={"index":False}):
-    fig = go.Figure()
+    fig = go.Figure(layout=layout)
     N = array_y.shape[0]
     for i in range(N):
         fig.add_trace(go.Scatter(x=x, y=array_y[i,:], mode='lines', name=name_ind+str(i), line=dict(width=1, color=color_list[(i-9)%9])))
@@ -20,10 +24,12 @@ def plot_array_2D(x, array_y, name_ind, legend={"index":False}):
         title=legend["title"],
         xaxis_title=legend["x axis"],
         yaxis_title=legend["y axis"])
+    fig.update_xaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
+    fig.update_yaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
     fig.show()
 
 def plot_2array_2D(x, array_y, legend={"index":False}):
-    fig = go.Figure()
+    fig = go.Figure(layout=layout)
     N = array_y.shape[0]
     for i in range(N):
         fig.add_trace(go.Scatter(x=x[i], y=array_y[i,:], mode='lines', line=dict(width=2, color=color_list[(i-9)%9])))
@@ -32,21 +38,25 @@ def plot_2array_2D(x, array_y, legend={"index":False}):
         title=legend["title"],
         xaxis_title=legend["x axis"],
         yaxis_title=legend["y axis"])
+    fig.update_xaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
+    fig.update_yaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
     fig.show()
 
 def plot_2D(x, y,  legend={"index":False}):
-    fig = go.Figure()
+    fig = go.Figure(layout=layout)
     fig.add_trace(go.Scatter(x=x, y=y, mode='lines', line=dict(width=2, color=color_list[0])))
     if legend['index']==True:
         fig.update_layout(
         title=legend["title"],
         xaxis_title=legend["x axis"],
         yaxis_title=legend["y axis"])
+    fig.update_xaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
+    fig.update_yaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
     fig.show()
 
 
 def plot_3D_means_grey(features1, features2, names1, names2):
-    fig = go.Figure()
+    fig = go.Figure(layout=layout)
 
     for i, feat in enumerate(features2):
         feat = np.array(feat)
@@ -84,7 +94,7 @@ def plot_3D_means_grey(features1, features2, names1, names2):
     fig.show()
 
 def plot_3D_means(features1, features2, names1, names2, path=""):
-    fig = go.Figure()
+    fig = go.Figure(layout=layout)
 
     for i, feat in enumerate(features2):
         feat = np.array(feat)
@@ -120,7 +130,7 @@ def plot_3D_means(features1, features2, names1, names2, path=""):
 
 
 def plot_3D(features, names):
-    fig = go.Figure()
+    fig = go.Figure(layout=layout)
     for i, feat in enumerate(features):
         feat = np.array(feat)
         fig.add_trace(
@@ -140,32 +150,36 @@ def plot_curvatures_grey(s, kappa, tau, kappa_mean, tau_mean, names_mean, names1
     N = len(kappa)
     n = len(kappa_mean)
 
-    fig = go.Figure()
+    fig = go.Figure(layout=layout)
     for i in range(N):
-        fig.add_trace(go.Scatter(x=s, y=kappa[i], mode='lines', name=names1+str(i), opacity=0.3, line=dict(
+        fig.add_trace(go.Scatter(x=s, y=kappa[i], mode='lines', name=names1+str(i), opacity=0.5, line=dict(
                 width=1,
                 dash='solid',
                 color='grey',
             )))
     for i in range(n):
         fig.add_trace(go.Scatter(x=s, y=kappa_mean[i], mode='lines', name=names_mean[i], line=dict(width=3, color=dict_color[names_mean[i]])))
-    fig.update_layout(xaxis_title='s', yaxis_title='kappa')
+    fig.update_layout(xaxis_title='s', yaxis_title='curvature')
     if path!="":
         fig.write_html(path+"kappa.html")
+    fig.update_xaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
+    fig.update_yaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
     fig.show()
 
-    fig = go.Figure()
+    fig = go.Figure(layout=layout)
     for i in range(N):
-        fig.add_trace(go.Scatter(x=s, y=tau[i], mode='lines', name=names1+str(i), opacity=0.3, line=dict(
+        fig.add_trace(go.Scatter(x=s, y=tau[i], mode='lines', name=names1+str(i), opacity=0.5, line=dict(
                 width=1,
                 dash='solid',
                 color='grey',
             )))
     for i in range(n):
         fig.add_trace(go.Scatter(x=s, y=tau_mean[i], mode='lines', name=names_mean[i], line=dict(width=3, color=dict_color[names_mean[i]])))
-    fig.update_layout(xaxis_title='s', yaxis_title='tau')
+    fig.update_layout(xaxis_title='s', yaxis_title='torsion')
     if path!="":
         fig.write_html(path+"tors.html")
+    fig.update_xaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
+    fig.update_yaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
     fig.show()
 
 
@@ -173,24 +187,28 @@ def plot_curvatures(s, kappa, tau, kappa_mean, tau_mean, names_mean, names1, pat
     N = len(kappa)
     n = len(kappa_mean)
 
-    fig = go.Figure()
+    fig = go.Figure(layout=layout)
     for i in range(N):
         fig.add_trace(go.Scatter(x=s, y=kappa[i], mode='lines', name=names1+str(i), line=dict(width=2, dash='dot', color=color_list[(i+4-9)%9])))
     for i in range(n):
         fig.add_trace(go.Scatter(x=s, y=kappa_mean[i], mode='lines', name=names_mean[i], opacity=0.8, line=dict(width=3, color=dict_color[names_mean[i]])))
-    fig.update_layout(xaxis_title='s', yaxis_title='kappa')
+    fig.update_layout(xaxis_title='s', yaxis_title='curvature')
     if path!="":
         fig.write_html(path+"curv.html")
+    fig.update_xaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
+    fig.update_yaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
     fig.show()
 
-    fig = go.Figure()
+    fig = go.Figure(layout=layout)
     for i in range(N):
         fig.add_trace(go.Scatter(x=s, y=tau[i], mode='lines', name=names1+str(i), line=dict(width=2, dash='dot', color=color_list[(i+4-9)%9])))
     for i in range(n):
         fig.add_trace(go.Scatter(x=s, y=tau_mean[i], mode='lines', name=names_mean[i], opacity=0.8, line=dict(width=3, color=dict_color[names_mean[i]])))
-    fig.update_layout(xaxis_title='s', yaxis_title='tau')
+    fig.update_layout(xaxis_title='s', yaxis_title='torsion')
     if path!="":
         fig.write_html(path+"tors.html")
+    fig.update_xaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
+    fig.update_yaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
     fig.show()
 
 
@@ -200,32 +218,36 @@ def plot_curvatures_raket(s, kappa, tau, kappa_mean, tau_mean, names_mean, names
     n_rept = kappa.shape[1]
     n = len(kappa_mean)
 
-    fig = go.Figure()
+    fig = go.Figure(layout=layout)
     for i in range(n_subj):
         for j in range(n_rept):
             fig.add_trace(go.Scatter(x=s, y=kappa[i,j], mode='lines', name=names1+str(i), line=dict(width=2, dash='dot', color=color_list[i])))
     for i in range(n):
         fig.add_trace(go.Scatter(x=s, y=kappa_mean[i], mode='lines', name=names_mean[i], opacity=0.8, line=dict(width=3, color=dict_color[names_mean[i]])))
-    # fig.update_layout(xaxis_title='s', yaxis_title='kappa')
+    # fig.update_layout(xaxis_title='s', yaxis_title='curvature')
     fig.update_layout(showlegend=False)
     # fig.write_html(path+"curv.html")
+    fig.update_xaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
+    fig.update_yaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
     fig.show()
 
-    fig = go.Figure()
+    fig = go.Figure(layout=layout)
     for i in range(n_subj):
         for j in range(n_rept):
             fig.add_trace(go.Scatter(x=s, y=tau[i,j], mode='lines', name=names1+str(i), line=dict(width=2,  dash='dot', color=color_list[i])))
     for i in range(n):
         fig.add_trace(go.Scatter(x=s, y=tau_mean[i], mode='lines', name=names_mean[i], opacity=0.8, line=dict(width=3, color=dict_color[names_mean[i]])))
-    # fig.update_layout(xaxis_title='s', yaxis_title='tau')
+    # fig.update_layout(xaxis_title='s', yaxis_title='torsion')
     fig.update_layout(showlegend=False)
     # fig.write_html(path+"tors.html")
+    fig.update_xaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
+    fig.update_yaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
     fig.show()
 
 
 
 def plot_3D_means_raket(features1, features2, names1, names2, path):
-    fig = go.Figure()
+    fig = go.Figure(layout=layout)
 
     n_subj = features1.shape[0]
     n_rept = features1.shape[1]
