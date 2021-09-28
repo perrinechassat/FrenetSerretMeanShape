@@ -41,7 +41,7 @@ print('Nombre de conditions: ', n_cond, ' , de sujets: ', n_subj, ' , de repetit
 array_traj = np.ndarray((n_cond,n_subj,n_rept,),dtype=np.object_)
 
 k = 0
-for cond in list_cond:
+for cond in range(n_cond):
     data_cond = df[df.cond.eq(cond+1)]
     for subj in range(n_subj):
         data_subj = data_cond[data_cond.subj.eq(subj+1)]
