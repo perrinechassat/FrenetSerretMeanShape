@@ -25,72 +25,72 @@ np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 
 ### Construction des données et de la liste des trajectoires.
 
-# pathFile = r"/home/pchassat/Documents/frenet-serret-smoothing/data/Racket_ArmData/armDat.csv"
-# df = pd.read_csv(pathFile,sep=',')
+pathFile = r"armDat.csv"
+df = pd.read_csv(pathFile,sep=',')
 #
-# n_cond = df.cond.nunique()
-# n_subj = df.subj.nunique()
-# n_rept = df.rept.nunique()
-n_cond = 16
-n_subj = 10
-n_rept = 10
+n_cond = df.cond.nunique()
+n_subj = df.subj.nunique()
+n_rept = df.rept.nunique()
+# n_cond = 16
+# n_subj = 10
+# n_rept = 10
 print('Nombre de conditions: ', n_cond, ' , de sujets: ', n_subj, ' , de repetitions: ', n_rept)
 
 # list_cond = [3,7,11,15]
 # n_cond = 4
-# array_traj = np.ndarray((n_cond,n_subj,n_rept,),dtype=np.object_)
-#
-# k = 0
-# for cond in list_cond:
-#     data_cond = df[df.cond.eq(cond+1)]
-#     for subj in range(n_subj):
-#         data_subj = data_cond[data_cond.subj.eq(subj+1)]
-#         for rept in range(n_rept):
-#             data_rept = data_subj[data_subj.rept.eq(rept+1)]
-#             traj = data_rept[['y1', 'y2', 'y3']]
-#             # time = np.linspace(0, 100, len(data_rept['time'].to_numpy()[10:-15]))
-#             # time = time/np.max(time)
-#             time = np.linspace(0, 1, len(data_rept['time'].to_numpy()))
-#             ind = np.intersect1d(np.where(0.1 < time), np.where(0.8 > time))
-#             time = time[ind]
-#             time = time - time[0]
-#             time = time/np.max(time)
-#             traj_np = traj.to_numpy()[ind]
-#             array_traj[k,subj,rept] = Trajectory(data=traj_np,t=time)
-#     k+=1
+array_traj = np.ndarray((n_cond,n_subj,n_rept,),dtype=np.object_)
+
+k = 0
+for cond in list_cond:
+    data_cond = df[df.cond.eq(cond+1)]
+    for subj in range(n_subj):
+        data_subj = data_cond[data_cond.subj.eq(subj+1)]
+        for rept in range(n_rept):
+            data_rept = data_subj[data_subj.rept.eq(rept+1)]
+            traj = data_rept[['y1', 'y2', 'y3']]
+            # time = np.linspace(0, 100, len(data_rept['time'].to_numpy()[10:-15]))
+            # time = time/np.max(time)
+            time = np.linspace(0, 1, len(data_rept['time'].to_numpy()))
+            ind = np.intersect1d(np.where(0.1 < time), np.where(0.8 > time))
+            time = time[ind]
+            time = time - time[0]
+            time = time/np.max(time)
+            traj_np = traj.to_numpy()[ind]
+            array_traj[k,subj,rept] = Trajectory(data=traj_np,t=time)
+    k+=1
 
 """Pre-processing"""
 
 n_resamples = 200
-# param_loc_poly_deriv = { "h_min" : 0.1, "h_max" : 0.2, "nb_h" : 20}
-# param_loc_poly_TNB = {"h" : 20, "p" : 3, "iflag": [1,1], "ibound" : 0}
+param_loc_poly_deriv = { "h_min" : 0.1, "h_max" : 0.2, "nb_h" : 20}
+param_loc_poly_TNB = {"h" : 20, "p" : 3, "iflag": [1,1], "ibound" : 0}
 
-# array_X = np.ndarray((n_cond,n_subj,n_rept,),dtype=np.object_)
-# array_Xnew = np.ndarray((n_cond,n_subj,n_rept,),dtype=np.object_)
-# array_Xnew_scale = np.ndarray((n_cond,n_subj,n_rept,),dtype=np.object_)
-# array_Q_LP = np.ndarray((n_cond,n_subj,n_rept,),dtype=np.object_)
-# array_Q_GS = np.ndarray((n_cond,n_subj,n_rept,),dtype=np.object_)
-# array_ThetaExtrins = np.ndarray((n_cond,n_subj,n_rept,),dtype=np.object_)
-#
-# for i in range(n_cond):
-#     for j in range(n_subj):
-#         res = Parallel(n_jobs=-1)(delayed(pre_process_data)(array_traj[i,j,k].data, array_traj[i,j,k].t, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind={"ind":True,"val":1}, locpolyTNB_local=True) for k in range(n_rept))
-#         for k in range(n_rept):
-#             # array_Xnew[i,j,k], array_X[i,j,k], array_Q_LP[i,j,k], array_Q_GS[i,j,k], array_ThetaExtrins[i,j,k], successLocPoly = pre_process_data(array_traj[i,j,k].data, array_traj[i,j,k].t, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind={"ind":True,"val":1}, locpolyTNB_local=True)
-#             array_Xnew[i,j,k], array_X[i,j,k], array_Q_LP[i,j,k], array_Q_GS[i,j,k], array_ThetaExtrins[i,j,k], successLocPoly = res[k][0], res[k][1], res[k][2], res[k][3], res[k][4], res[k][5]
-#             print(successLocPoly)
-#             array_Xnew_scale[i,j,k] = array_Xnew[i,j,k]/array_X[i,j,k].L
-#
-#
-# filename = "Raket_data_preprocessed_SingleEstim_3"
-# dic = {"array_X" : array_X, "array_Xnew" : array_Xnew, "array_Xnew_scale" : array_Xnew_scale, "ThetaExtrins" : array_ThetaExtrins, "array_Q_LP" : array_Q_LP, "array_Q_GS" : array_Q_GS,
-# "param_loc_poly_deriv" : param_loc_poly_deriv, "param_loc_poly_TNB" : param_loc_poly_TNB}
-#
-# if os.path.isfile(filename):
-#     print("Le fichier ", filename, " existe déjà.")
-# fil = open(filename,"xb")
-# pickle.dump(dic,fil)
-# fil.close()
+array_X = np.ndarray((n_cond,n_subj,n_rept,),dtype=np.object_)
+array_Xnew = np.ndarray((n_cond,n_subj,n_rept,),dtype=np.object_)
+array_Xnew_scale = np.ndarray((n_cond,n_subj,n_rept,),dtype=np.object_)
+array_Q_LP = np.ndarray((n_cond,n_subj,n_rept,),dtype=np.object_)
+array_Q_GS = np.ndarray((n_cond,n_subj,n_rept,),dtype=np.object_)
+array_ThetaExtrins = np.ndarray((n_cond,n_subj,n_rept,),dtype=np.object_)
+array_echec_flag = np.ndarray((n_cond,n_subj,n_rept,),dtype=np.object_)
+
+for i in range(n_cond):
+    for j in range(n_subj):
+        res = Parallel(n_jobs=-1)(delayed(preprocess_raket)(array_traj[i,j,k].data, array_traj[i,j,k].t, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind={"ind":True,"val":1}, locpolyTNB_local=True) for k in range(n_rept))
+        for k in range(n_rept):
+            array_Xnew[i,j,k], array_X[i,j,k], array_Q_LP[i,j,k], array_echec_flag[i,j,k] = res[k][0], res[k][1], res[k][2], res[k][3]
+            print(array_echec_flag[i,j,k])
+            array_Xnew_scale[i,j,k] = array_Xnew[i,j,k]/array_X[i,j,k].L
+
+
+filename = "Raket_data_preprocessed_SingleEstim_4"
+dic = {"array_X" : array_X, "array_Xnew" : array_Xnew, "array_Xnew_scale" : array_Xnew_scale, "ThetaExtrins" : array_ThetaExtrins, "array_Q_LP" : array_Q_LP, "array_Q_GS" : array_Q_GS,
+"param_loc_poly_deriv" : param_loc_poly_deriv, "param_loc_poly_TNB" : param_loc_poly_TNB}
+
+if os.path.isfile(filename):
+    print("Le fichier ", filename, " existe déjà.")
+fil = open(filename,"xb")
+pickle.dump(dic,fil)
+fil.close()
 
 
 
@@ -323,15 +323,21 @@ n_resamples = 200
 # ### Estimation of mean at condition fixed
 
 
-filename = "Raket_data_preprocessed"
-fil = open(filename,"rb")
-dic = pickle.load(fil)
-fil.close()
-
-array_X, array_Xnew, array_Xnew_scale = dic["array_X"], dic["array_Xnew"], dic["array_Xnew_scale"]
-array_Q_LP, array_Q_GS = dic["array_Q_LP"], dic["array_Q_GS"]
+# filename = "Raket_data_preprocessed"
+# fil = open(filename,"rb")
+# dic = pickle.load(fil)
+# fil.close()
+#
+# array_X, array_Xnew, array_Xnew_scale = dic["array_X"], dic["array_Xnew"], dic["array_Xnew_scale"]
+# array_Q_LP, array_Q_GS = dic["array_Q_LP"], dic["array_Q_GS"]
 s0 = array_Q_LP[0,0,0].grid_obs
-ThetaExtrins = dic["ThetaExtrins"]
+# ThetaExtrins = dic["ThetaExtrins"]
+
+for i in range(n_cond):
+    for j in range(n_subj):
+        for k in range(n_rept):
+            if array_echec_flag[i,j,k]==True:
+                del array_Q_LP[i,j,k]
 
 print('Estimation of means at condition fixed...')
 
@@ -349,17 +355,17 @@ array_X_srvf = np.empty((n_cond), dtype=object)
 array_X_Arithm = np.empty((n_cond), dtype=object)
 
 for i in range(n_cond):
-    if i==4:
-        list_Q_LP = list(np.concatenate(array_Q_LP[i]))
-        list_X_srvf = list(np.concatenate(array_Xnew[i]))
-        list_X_arithm = list(np.concatenate(array_Xnew_scale[i]))
-        del list_Q_LP[16]
-        del list_X_srvf[16]
-        del list_X_arithm[16]
-    else:
-        list_Q_LP = list(np.concatenate(array_Q_LP[i]))
-        list_X_srvf = list(np.concatenate(array_Xnew[i]))
-        list_X_arithm = list(np.concatenate(array_Xnew_scale[i]))
+    # if i==4:
+    #     list_Q_LP = list(np.concatenate(array_Q_LP[i]))
+    #     list_X_srvf = list(np.concatenate(array_Xnew[i]))
+    #     list_X_arithm = list(np.concatenate(array_Xnew_scale[i]))
+    #     del list_Q_LP[16]
+    #     del list_X_srvf[16]
+    #     del list_X_arithm[16]
+    # else:
+    list_Q_LP = list(np.concatenate(array_Q_LP[i]))
+    list_X_srvf = list(np.concatenate(array_Xnew[i]))
+    list_X_arithm = list(np.concatenate(array_Xnew_scale[i]))
     array_TruePopFP[i] = PopulationFrenetPath(list_Q_LP)
     array_X_srvf[i] = list_X_srvf
     array_X_Arithm[i] = list_X_arithm

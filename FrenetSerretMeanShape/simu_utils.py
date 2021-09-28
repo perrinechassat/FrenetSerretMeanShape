@@ -246,6 +246,7 @@ def add_noise_X_and_preprocess(X0, sigma, t, n_resamples, param_loc_poly_deriv, 
     success = False
     k = 0
     param_TNB = param_loc_poly_TNB.copy()
+    echec_flag = False
     while success==False and k<10:
         # print(param_loc_poly_TNB["h"])
         if sigma!=0:
@@ -261,7 +262,8 @@ def add_noise_X_and_preprocess(X0, sigma, t, n_resamples, param_loc_poly_deriv, 
         k+=1
     if k==10:
         print("ECHEC")
-    return X, Q_LP, Q_GS, theta_extrins
+        echec_flag = True
+    return X, Q_LP, Q_GS, theta_extrins, echec_flag
 
 
 def add_noise_X_and_preprocess_MultipleCurves(PopFrenetPath, sigma, t, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind={"ind":True,"val":1}, locpolyTNB_local=False):
@@ -427,7 +429,22 @@ def simul_Frame_sphere(N, nb_S, domain_range, n_resamples, param_loc_poly_deriv,
     return array_Traj, PopulationFrenetPath(PopQ_LP), PopulationFrenetPath(Pop_NewFrame), mean_L
 
 
-
+def preprocess_raket(X0, t, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind={"ind":True,"val":1}, locpolyTNB_local=False):
+    success = False
+    k = 0
+    param_TNB = param_loc_poly_TNB.copy()
+    echec_flag = False
+    while success==False and k<10:
+        X_new, X, Q_LP, Q_GS, theta_extrins, success = pre_process_data(X0, t, n_resamples, param_loc_poly_deriv, param_TNB, scale_ind, locpolyTNB_local)
+        if locpolyTNB_local==False:
+            param_TNB["h"]+=0.01
+        else:
+            param_TNB["h"]+=2
+        k+=1
+    if k==10:
+        print("ECHEC")
+        echec_flag = True
+    return X_new, X, Q_LP, echec_flag
 
 """Warpings functions"""
 

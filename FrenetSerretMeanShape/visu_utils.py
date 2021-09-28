@@ -24,8 +24,8 @@ def plot_array_2D(x, array_y, name_ind, legend={"index":False}):
         title=legend["title"],
         xaxis_title=legend["x axis"],
         yaxis_title=legend["y axis"])
-    fig.update_xaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
-    fig.update_yaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
+    fig.update_xaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
+    fig.update_yaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
     fig.show()
 
 def plot_2array_2D(x, array_y, legend={"index":False}):
@@ -38,8 +38,8 @@ def plot_2array_2D(x, array_y, legend={"index":False}):
         title=legend["title"],
         xaxis_title=legend["x axis"],
         yaxis_title=legend["y axis"])
-    fig.update_xaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
-    fig.update_yaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
+    fig.update_xaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
+    fig.update_yaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
     fig.show()
 
 def plot_2D(x, y,  legend={"index":False}):
@@ -50,8 +50,8 @@ def plot_2D(x, y,  legend={"index":False}):
         title=legend["title"],
         xaxis_title=legend["x axis"],
         yaxis_title=legend["y axis"])
-    fig.update_xaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
-    fig.update_yaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
+    fig.update_xaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
+    fig.update_yaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
     fig.show()
 
 
@@ -82,19 +82,67 @@ def plot_3D_means_grey(features1, features2, names1, names2):
                 y=feat[:,1],
                 z=feat[:,2],
                 mode='lines',
-                name=names1+str(i),
                 line=dict(
                 width=0.8,
                 dash='solid',
-                color='grey',
-            )
+                color='grey',),
+                showlegend=False
             )
         )
+    fig.update_layout(scene = dict(
+                    xaxis = dict(
+                         backgroundcolor="rgb(0, 0, 0)",
+                         gridcolor="grey",
+                         gridwidth=0.8,
+                         zeroline=False,
+                         showbackground=False,),
+                    yaxis = dict(
+                         backgroundcolor="rgb(0, 0, 0)",
+                         gridcolor="grey",
+                         gridwidth=0.8,
+                         zeroline=False,
+                         showbackground=False,),
+                    zaxis = dict(
+                         backgroundcolor="rgb(0, 0, 0)",
+                         gridcolor="grey",
+                         gridwidth=0.8,
+                         zeroline=False,
+                         showbackground=False,),),
+                  )
 
     fig.show()
 
 def plot_3D_means(features1, features2, names1, names2, path=""):
     fig = go.Figure(layout=layout)
+
+    if names1!='' and names1!="":
+        for i, feat in enumerate(features1):
+            feat = np.array(feat)
+            fig.add_trace(
+                go.Scatter3d(
+                    x=feat[:,0],
+                    y=feat[:,1],
+                    z=feat[:,2],
+                    mode='lines',
+                    opacity=0.8,
+                    name=names1+str(i),
+                    line=dict(width=2, color=color_list[(i+4-9)%9])
+                )
+            )
+    else:
+        for i, feat in enumerate(features1):
+            feat = np.array(feat)
+            fig.add_trace(
+                go.Scatter3d(
+                    x=feat[:,0],
+                    y=feat[:,1],
+                    z=feat[:,2],
+                    mode='lines',
+                    opacity=0.8,
+                    line=dict(width=2, color=color_list[(i+4-9)%9]),
+                    showlegend=False
+                )
+            )
 
     for i, feat in enumerate(features2):
         feat = np.array(feat)
@@ -111,19 +159,26 @@ def plot_3D_means(features1, features2, names1, names2, path=""):
             )
             )
         )
-
-    for i, feat in enumerate(features1):
-        feat = np.array(feat)
-        fig.add_trace(
-            go.Scatter3d(
-                x=feat[:,0],
-                y=feat[:,1],
-                z=feat[:,2],
-                mode='lines',
-                name=names1+str(i),
-                line=dict(width=2, color=color_list[(i+4-9)%9])
-            )
-        )
+    fig.update_layout(scene = dict(
+                    xaxis = dict(
+                         backgroundcolor="rgb(0, 0, 0)",
+                         gridcolor="grey",
+                         gridwidth=0.8,
+                         zeroline=False,
+                         showbackground=False,),
+                    yaxis = dict(
+                         backgroundcolor="rgb(0, 0, 0)",
+                         gridcolor="grey",
+                         gridwidth=0.8,
+                         zeroline=False,
+                         showbackground=False,),
+                    zaxis = dict(
+                         backgroundcolor="rgb(0, 0, 0)",
+                         gridcolor="grey",
+                         gridwidth=0.8,
+                         zeroline=False,
+                         showbackground=False,),),
+                  )
     if path!="":
         fig.write_html(path+"means.html")
     fig.show()
@@ -149,19 +204,18 @@ def plot_3D(features, names):
 def plot_curvatures_grey(s, kappa, tau, kappa_mean, tau_mean, names_mean, names1, path=""):
     N = len(kappa)
     n = len(kappa_mean)
-    name = ["Ref", "Mean Phi"]
     fig = go.Figure(layout=layout)
     for i in range(N):
         fig.add_trace(go.Scatter(x=s, y=kappa[i], mode='lines', name=names1+str(i), opacity=0.5, line=dict(
                 width=1,dash='solid',color='grey',),showlegend=False))
     for i in range(n):
-        # fig.add_trace(go.Scatter(x=s, y=kappa_mean[i], mode='lines', name=names_mean[i], line=dict(width=3, color=dict_color[names_mean[i]])))
-        fig.add_trace(go.Scatter(x=s, y=kappa_mean[i], mode='lines', name=name[i], line=dict(width=3, color=dict_color[names_mean[i]])))
+        fig.add_trace(go.Scatter(x=s, y=kappa_mean[i], mode='lines', name=names_mean[i], line=dict(width=3, color=dict_color[names_mean[i]])))
+        # fig.add_trace(go.Scatter(x=s, y=kappa_mean[i], mode='lines', name=name[i], line=dict(width=3, color=dict_color[names_mean[i]])))
     fig.update_layout(legend=dict(orientation="h",yanchor="top",y=1.15,xanchor="right", x=1), xaxis_title='s', yaxis_title='curvature')
     if path!="":
         fig.write_html(path+"kappa.html")
-    fig.update_xaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
-    fig.update_yaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
+    fig.update_xaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
+    fig.update_yaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
     fig.show()
 
     fig = go.Figure(layout=layout)
@@ -169,13 +223,13 @@ def plot_curvatures_grey(s, kappa, tau, kappa_mean, tau_mean, names_mean, names1
         fig.add_trace(go.Scatter(x=s, y=tau[i], mode='lines', name=names1+str(i), opacity=0.5, line=dict(
                 width=1,dash='solid',color='grey',),showlegend=False))
     for i in range(n):
-        # fig.add_trace(go.Scatter(x=s, y=tau_mean[i], mode='lines', name=names_mean[i], line=dict(width=3, color=dict_color[names_mean[i]])))
-            fig.add_trace(go.Scatter(x=s, y=tau_mean[i], mode='lines', name=name[i], line=dict(width=3, color=dict_color[names_mean[i]])))
+        fig.add_trace(go.Scatter(x=s, y=tau_mean[i], mode='lines', name=names_mean[i], line=dict(width=3, color=dict_color[names_mean[i]])))
+            # fig.add_trace(go.Scatter(x=s, y=tau_mean[i], mode='lines', name=name[i], line=dict(width=3, color=dict_color[names_mean[i]])))
     fig.update_layout(legend=dict(orientation="h",yanchor="top",y=1.15,xanchor="right", x=1), xaxis_title='s', yaxis_title='torsion')
     if path!="":
         fig.write_html(path+"tors.html")
-    fig.update_xaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
-    fig.update_yaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
+    fig.update_xaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
+    fig.update_yaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
     fig.show()
 
 
@@ -184,27 +238,35 @@ def plot_curvatures(s, kappa, tau, kappa_mean, tau_mean, names_mean, names1, pat
     n = len(kappa_mean)
 
     fig = go.Figure(layout=layout)
-    for i in range(N):
-        fig.add_trace(go.Scatter(x=s, y=kappa[i], mode='lines', name=names1+str(i), line=dict(width=2, dash='dot', color=color_list[(i+4-9)%9])))
+    if names1!='' and names1!="":
+        for i in range(N):
+            fig.add_trace(go.Scatter(x=s, y=kappa[i], mode='lines', name=names1+str(i), line=dict(width=2, dash='dot', color=color_list[(i+4-9)%9])))
+    else:
+        for i in range(N):
+            fig.add_trace(go.Scatter(x=s, y=kappa[i], mode='lines', showlegend=False, line=dict(width=2, dash='dot', color=color_list[(i+4-9)%9])))
     for i in range(n):
         fig.add_trace(go.Scatter(x=s, y=kappa_mean[i], mode='lines', name=names_mean[i], opacity=0.8, line=dict(width=3, color=dict_color[names_mean[i]])))
-    fig.update_layout(xaxis_title='s', yaxis_title='curvature')
+    fig.update_layout(legend=dict(orientation="h",yanchor="top",y=1.15,xanchor="right", x=1), xaxis_title='s', yaxis_title='curvature')
     if path!="":
         fig.write_html(path+"curv.html")
-    fig.update_xaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
-    fig.update_yaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
+    fig.update_xaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
+    fig.update_yaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
     fig.show()
 
     fig = go.Figure(layout=layout)
-    for i in range(N):
-        fig.add_trace(go.Scatter(x=s, y=tau[i], mode='lines', name=names1+str(i), line=dict(width=2, dash='dot', color=color_list[(i+4-9)%9])))
+    if names1!='' and names1!="":
+        for i in range(N):
+            fig.add_trace(go.Scatter(x=s, y=tau[i], mode='lines', name=names1+str(i), line=dict(width=2, dash='dot', color=color_list[(i+4-9)%9])))
+    else:
+        for i in range(N):
+            fig.add_trace(go.Scatter(x=s, y=tau[i], mode='lines', showlegend=False, line=dict(width=2, dash='dot', color=color_list[(i+4-9)%9])))
     for i in range(n):
         fig.add_trace(go.Scatter(x=s, y=tau_mean[i], mode='lines', name=names_mean[i], opacity=0.8, line=dict(width=3, color=dict_color[names_mean[i]])))
-    fig.update_layout(xaxis_title='s', yaxis_title='torsion')
+    fig.update_layout(legend=dict(orientation="h",yanchor="top",y=1.15,xanchor="right", x=1), xaxis_title='s', yaxis_title='torsion')
     if path!="":
         fig.write_html(path+"tors.html")
-    fig.update_xaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
-    fig.update_yaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
+    fig.update_xaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
+    fig.update_yaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
     fig.show()
 
 
@@ -223,8 +285,8 @@ def plot_curvatures_raket(s, kappa, tau, kappa_mean, tau_mean, names_mean, names
     # fig.update_layout(xaxis_title='s', yaxis_title='curvature')
     fig.update_layout(showlegend=False)
     # fig.write_html(path+"curv.html")
-    fig.update_xaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
-    fig.update_yaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
+    fig.update_xaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
+    fig.update_yaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
     fig.show()
 
     fig = go.Figure(layout=layout)
@@ -236,8 +298,8 @@ def plot_curvatures_raket(s, kappa, tau, kappa_mean, tau_mean, names_mean, names
     # fig.update_layout(xaxis_title='s', yaxis_title='torsion')
     fig.update_layout(showlegend=False)
     # fig.write_html(path+"tors.html")
-    fig.update_xaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
-    fig.update_yaxes(showline=True, showgrid=False, linewidth=2, linecolor='black')
+    fig.update_xaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
+    fig.update_yaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
     fig.show()
 
 
@@ -277,5 +339,25 @@ def plot_3D_means_raket(features1, features2, names1, names2, path):
             )
             )
         )
+    fig.update_layout(scene = dict(
+                    xaxis = dict(
+                         backgroundcolor="rgb(0, 0, 0)",
+                         gridcolor="grey",
+                         gridwidth=0.8,
+                         zeroline=False,
+                         showbackground=False,),
+                    yaxis = dict(
+                         backgroundcolor="rgb(0, 0, 0)",
+                         gridcolor="grey",
+                         gridwidth=0.8,
+                         zeroline=False,
+                         showbackground=False,),
+                    zaxis = dict(
+                         backgroundcolor="rgb(0, 0, 0)",
+                         gridcolor="grey",
+                         gridwidth=0.8,
+                         zeroline=False,
+                         showbackground=False,),),
+                  )
 
     fig.write_html(path+".html")
