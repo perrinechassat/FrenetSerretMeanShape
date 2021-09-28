@@ -344,7 +344,7 @@ print('Estimation of means at condition fixed...')
 
 
 hyperparam = [0.011, 0.000000001, 0.0000001]
-param_bayopt = {"n_splits":  10, "n_calls" : 80, "bounds_h" : (0.015, 0.1), "bounds_lcurv" : (1e-12, 1e-8), "bounds_ltors" : (1e-10, 1e-6)}  # Pas utilisé
+param_bayopt = {"n_splits":  10, "n_calls" : 80, "bounds_h" : (0.015, 0.08), "bounds_lcurv" : (1e-12, 1e-8), "bounds_ltors" : (1e-10, 1e-6)}  # Pas utilisé
 nb_knots = 100
 domain_range = (0.0,1.0)
 
@@ -408,8 +408,8 @@ for k in range(n_cond):
         array_SmoothThetaFP[k] = FrenetPath(array_SmoothPopFP[k].grids_obs[0], array_SmoothPopFP[k].grids_obs[0], init=mean_Q0(array_SmoothPopFP[k]), curv=array_SmoothPopFP[k].mean_curv, tors=array_SmoothPopFP[k].mean_tors, dim=3)
         array_SmoothThetaFP[k].frenet_serret_solve()
 
-duration = timer() - start1
-print('total time', duration)
+# duration = timer() - start1
+# print('total time', duration)
 
 
 list_X_LP = np.empty((n_cond), dtype=object)

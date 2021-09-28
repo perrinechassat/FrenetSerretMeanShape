@@ -204,7 +204,7 @@ def plot_curvatures_grey(s, kappa, tau, kappa_mean, tau_mean, names_mean, names1
     n = len(kappa_mean)
     fig = go.Figure(layout=layout)
     for i in range(N):
-        fig.add_trace(go.Scatter(x=s, y=kappa[i], mode='lines', name=names1+str(i), opacity=0.5, line=dict(
+        fig.add_trace(go.Scatter(x=s, y=kappa[i], mode='lines', name=names1+str(i), opacity=0.4, line=dict(
                 width=1,dash='solid',color='grey',),showlegend=False))
     for i in range(n):
         fig.add_trace(go.Scatter(x=s, y=kappa_mean[i], mode='lines', name=names_mean[i], line=dict(width=3, color=dict_color[names_mean[i]])))
@@ -218,7 +218,7 @@ def plot_curvatures_grey(s, kappa, tau, kappa_mean, tau_mean, names_mean, names1
 
     fig = go.Figure(layout=layout)
     for i in range(N):
-        fig.add_trace(go.Scatter(x=s, y=tau[i], mode='lines', name=names1+str(i), opacity=0.5, line=dict(
+        fig.add_trace(go.Scatter(x=s, y=tau[i], mode='lines', name=names1+str(i), opacity=0.4, line=dict(
                 width=1,dash='solid',color='grey',),showlegend=False))
     for i in range(n):
         fig.add_trace(go.Scatter(x=s, y=tau_mean[i], mode='lines', name=names_mean[i], line=dict(width=3, color=dict_color[names_mean[i]])))
