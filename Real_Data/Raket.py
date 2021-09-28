@@ -78,7 +78,8 @@ for i in range(n_cond):
         res = Parallel(n_jobs=-1)(delayed(preprocess_raket)(array_traj[i,j,k].data, array_traj[i,j,k].t, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind={"ind":True,"val":1}, locpolyTNB_local=True) for k in range(n_rept))
         for k in range(n_rept):
             array_Xnew[i,j,k], array_X[i,j,k], array_Q_LP[i,j,k], array_echec_flag[i,j,k] = res[k][0], res[k][1], res[k][2], res[k][3]
-            print(array_echec_flag[i,j,k])
+            if array_echec_flag[i,j,k]==True:
+                print('echec :', i, j, k)
             array_Xnew_scale[i,j,k] = array_Xnew[i,j,k]/array_X[i,j,k].L
 
 
