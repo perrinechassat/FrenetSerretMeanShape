@@ -364,3 +364,89 @@ def plot_3D_means_raket(features1, features2, names1, names2, path):
 
     fig.write_html(path+".html")
     fig.show()
+
+green_color = ['#008158', '#00AD7A', '#00CC96', '#17E098', '#2FF198']
+blue_color = ['#2833A6', '#424DD2', '#636EFA', '#6B90FF', '#76B3FF']
+red_color = ['#A62309', '#D2391E', '#EF553B', '#FE6D43', '#FF874E']
+
+def plot_means_cond_raket(s, kappa_mean, tau_mean, name):
+
+    n_cond = len(kappa_mean)
+    kappa_T = [kappa_mean[2+i*3] for i in range(5)]
+    kappa_M = [kappa_mean[1+i*3] for i in range(5)]
+    kappa_S = [kappa_mean[i*3] for i in range(5)]
+    tau_T = [tau_mean[2+i*3] for i in range(5)]
+    tau_M = [tau_mean[1+i*3] for i in range(5)]
+    tau_S = [tau_mean[i*3] for i in range(5)]
+
+    fig = go.Figure(layout=layout)
+    for i in range(5):
+        fig.add_trace(go.Scatter(x=s, y=kappa_T[i], mode='lines', name=name+str(3+i*3), line=dict(width=2,  color=blue_color[i])))
+    for i in range(5):
+        fig.add_trace(go.Scatter(x=s, y=kappa_M[i], mode='lines', name=name+str(2+i*3), line=dict(width=2, color=red_color[i])))
+    for i in range(5):
+        fig.add_trace(go.Scatter(x=s, y=kappa_S[i], mode='lines', name=name+str(1+i*3), line=dict(width=2, color=green_color[i])))
+    fig.add_trace(go.Scatter(x=s, y=kappa_mean[-1], mode='lines', name=name+str(16), line=dict(width=2, color=px.colors.qualitative.Set2[5])))
+    fig.update_layout(legend=dict(orientation="h",yanchor="top",y=1.2,xanchor="right", x=1), xaxis_title='s', yaxis_title='curvature')
+    fig.update_xaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
+    fig.update_yaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
+    fig.show()
+
+    fig = go.Figure(layout=layout)
+    for i in range(5):
+        fig.add_trace(go.Scatter(x=s, y=tau_T[i], mode='lines', name=name+str(3+i*3), line=dict(width=2, color=blue_color[i])))
+    for i in range(5):
+        fig.add_trace(go.Scatter(x=s, y=tau_M[i], mode='lines', name=name+str(2+i*3), line=dict(width=2,  color=red_color[i])))
+    for i in range(5):
+        fig.add_trace(go.Scatter(x=s, y=tau_S[i], mode='lines', name=name+str(1+i*3), line=dict(width=2, color=green_color[i])))
+    fig.add_trace(go.Scatter(x=s, y=tau_mean[-1], mode='lines', name=name+str(16), line=dict(width=2, color=px.colors.qualitative.Set2[5])))
+    fig.update_layout(legend=dict(orientation="h",yanchor="top",y=1.2,xanchor="right", x=1), xaxis_title='s', yaxis_title='torsion')
+    fig.update_xaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
+    fig.update_yaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
+    fig.show()
+
+
+def plot_3D_means_cond_raket(features, name, path):
+    fig = go.Figure(layout=layout)
+
+    n_cond = len(features)
+    feat_T = [features[2+i*3] for i in range(5)]
+    feat_M = [features[1+i*3] for i in range(5)]
+    feat_S = [features[i*3] for i in range(5)]
+
+    for i in range(5):
+        feat = feat_T[i]
+        fig.add_trace(go.Scatter3d(x=feat[:,0],y=feat[:,1],z=feat[:,2], mode='lines',name=name+str(3+i*3),line=dict(width=8,color=blue_color[i])))
+    for i in range(5):
+        feat = feat_M[i]
+        fig.add_trace(go.Scatter3d(x=feat[:,0],y=feat[:,1],z=feat[:,2], mode='lines',name=name+str(3+i*3),line=dict(width=8,color=red_color[i])))
+    for i in range(5):
+        feat = feat_S[i]
+        fig.add_trace(go.Scatter3d(x=feat[:,0],y=feat[:,1],z=feat[:,2], mode='lines',name=name+str(3+i*3),line=dict(width=8,color=green_color[i])))
+    feat = features[-1]
+    fig.add_trace(go.Scatter3d(x=feat[:,0],y=feat[:,1],z=feat[:,2], mode='lines',name=name+str(16),line=dict(width=8,color=px.colors.qualitative.Set2[5])))
+    fig.update_layout(
+    # legend=dict(orientation="h",yanchor="top",y=1.2,xanchor="right", x=1),
+                    scene = dict(
+                    xaxis = dict(
+                         backgroundcolor="rgb(0, 0, 0)",
+                         gridcolor="grey",
+                         gridwidth=0.8,
+                         zeroline=False,
+                         showbackground=False,),
+                    yaxis = dict(
+                         backgroundcolor="rgb(0, 0, 0)",
+                         gridcolor="grey",
+                         gridwidth=0.8,
+                         zeroline=False,
+                         showbackground=False,),
+                    zaxis = dict(
+                         backgroundcolor="rgb(0, 0, 0)",
+                         gridcolor="grey",
+                         gridwidth=0.8,
+                         zeroline=False,
+                         showbackground=False,),),
+                  )
+
+    fig.write_html(path+".html")
+    fig.show()

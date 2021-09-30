@@ -63,61 +63,6 @@ class BasisSmoother:
         return np.squeeze(self.coefficients) #différent de GPR peut être changer ca
 
 
-class BasisSmootherDerivatives:
-
-    """
-    A class used to define a Bspline smoother
-
-    ...
-
-    Attributes
-    ----------
-    basis : Bspline basis representation initialized with an order, a num of basis functions, a number of knots and the range of the domain
-    function : the smoothed function, initialized to 0
-    variances : array, weights for the smoothing
-    smoothing_parameter : float, parameter for the penalization
-    fd_basis : estimated basis after the smoothing
-    coefficients : estimated coefficients after the smoothing
-
-    Methods
-    -------
-    reinitialize():
-        put the argument function to 0.
-
-    smoothing(self, grid_pts, data_pts, weights, smoothing_parameter):
-        do a Bspline basis smoothing of the "data_pts".
-    """
-
-    def __init__(self, basis_type='bspline', domain_range=None, nb_basis=None, order=4, knots=None):
-        if basis_type=='bspline':
-            self.basis1 = BSpline(domain_range=domain_range, n_basis=nb_basis, order=order, knots=knots)
-            self.basis2 = self.basis1.derivative()
-        else:
-            raise ValueError("basis type does not exist")
-        def f_init(x): return 0
-        self.function = f_init
-        self.derivative = f_init
-
-    def reinitialize(self):
-        def f_init(x): return 0
-        self.function = f_init
-        self.derivative = f_init
-
-    def smoothing(self, grid_pts, data_pts1, data_pts2, weights, smoothing_parameter):
-        self.variances = weights
-        self.smoothing_parameter = smoothing_parameter
-        fd1 = FDataGrid(data_matrix=data_pts1, grid_points=grid_pts, extrapolation="bounds")
-        fd2 = FDataGrid(data_matrix=data_pts2, grid_points=grid_pts, extrapolation="bounds")
-        self.smoother = BasisSmootherDouble(self.basis1, self.basis2, smoothing_parameter=self.smoothing_parameter, regularization=TikhonovRegularization(LinearDifferentialOperator(2)), weights=np.diag(self.variances), return_basis=True, method='Matrix')
-        self.fd_basis = self.smoother.transform(fd1,fd2)
-        self.coefficients = self.fd_basis.coefficients
-        def f(x): return np.squeeze(self.fd_basis.evaluate(x))
-        def f_prime(x): return np.squeeze(self.fd_basis.derivative().evaluate(x))
-        self.function = f
-        self.derivative = f_prime
-        return np.squeeze(self.coefficients) #différent de GPR peut être changer ca
-
-
 # def mykernel(x,y):
 #     Kern = lambda x: (3/4)*(1-np.power(x,2))
 
@@ -185,18 +130,3 @@ class Model:
     def __init__(self, curv_basis_smoother, tors_basis_smoother):
         self.curv = curv_basis_smoother
         self.tors = tors_basis_smoother
-
-
-class Model_J:
-    """
-    A class used to represent a Model for curvature and torsion
-    ...
-
-    Attributes
-    ----------
-    j : instance of BasisSmoother or GaussianProcessSmoother
-
-    """
-
-    def __init__(self, j_basis_smoother):
-        self.j = j_basis_smoother
