@@ -11,7 +11,6 @@ from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, WhiteKernel, RationalQuadratic
 from skfda.misc.regularization import TikhonovRegularization
 from skfda.misc.operators import LinearDifferentialOperator
-from BasisSmoother_additional_code import *
 
 
 class BasisSmoother:
