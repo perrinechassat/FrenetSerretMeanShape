@@ -276,8 +276,10 @@ def add_noise_X_and_preprocess_MultipleCurves(PopFrenetPath, sigma, t, n_resampl
     array_ThetaExtrins = []
     for i in range(N_samples):
         # print(i)
-        X, Q_LP, Q_GS, theta_extrins = add_noise_X_and_preprocess(PopFrenetPath.frenet_paths[i].data_trajectory, sigma, t, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind, locpolyTNB_local)
+        X, Q_LP, Q_GS, theta_extrins, echec_flag = add_noise_X_and_preprocess(PopFrenetPath.frenet_paths[i].data_trajectory, sigma, t, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind, locpolyTNB_local)
         # array_Traj[i], array_ThetaExtrins[i] = X, theta_extrins
+        if echec_flag==True:
+            print('echec')
         array_Traj.append(X)
         PopQ_GS.append(Q_GS)
         PopQ_LP.append(Q_LP)
