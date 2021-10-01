@@ -393,7 +393,7 @@ array_Arithmetic_mean = Parallel(n_jobs=-1)(delayed(compute_mean_Arithmetic)(arr
 
 print('Saving the data...')
 
-filename = "MultipleEstimationAddVarFromX_SingleEstim__nbS_"+str(nb_S)+"N_curves"+str(n_curves)+"_sigma_"+str(sigma_e)+"_K_"+str(concentration)+'_nMC_'+str(n_MC)+'_nCalls_'+str(param_bayopt["n_calls"])+'_3'
+filename = "MultipleEstimationAddVarFromX_SingleEstim__nbS_"+str(nb_S)+"N_curves"+str(n_curves)+"_sigma_"+str(sigma_e)+"_K_"+str(concentration)+'_nMC_'+str(n_MC)+'_nCalls_'+str(param_bayopt["n_calls"])+'_newparam'
 dic = {"N_curves": n_curves, "X0" : X0, "Q0" : Q0, "true_curv0" : true_curv0, "true_tors0" : true_tors0, "L" : L0, "param_bayopt" : param_bayopt, "K" : concentration, "nb_S" : nb_S, "nb_knots" : nb_knots, "n_MC" : n_MC,
 "resOpt" : array_resOpt, "TruePopFP" : array_TruePopFP, "SmoothPopFP" : array_SmoothPopFP, "SmoothThetaFP" : array_SmoothThetaFP, "param_noise" : param_noise, "param_loc_poly_deriv" : param_loc_poly_deriv,
 "param_loc_poly_TNB" : param_loc_poly_TNB, "sigma" : sigma_e, "PopFP_LP" : array_PopFP_LP, "PopFP_GS" : array_PopFP_GS, "PopTraj" : array_PopTraj, "ThetaExtrins" : array_ThetaExtrins, "SRVF_mean" :array_SRVF_mean, "SRVF_gam" : array_SRVF_gam,
@@ -536,7 +536,7 @@ array_Arithmetic_mean = Parallel(n_jobs=-1)(delayed(compute_mean_Arithmetic)(arr
 
 print('Saving the data...')
 
-filename = "MultipleEstimationAddVarFromX_SingleEstim__nbS_"+str(nb_S)+"N_curves"+str(n_curves)+"_sigma_"+str(sigma_e)+"_K_"+str(concentration)+'_nMC_'+str(n_MC)+'_nCalls_'+str(param_bayopt["n_calls"])+'_3'
+filename = "MultipleEstimationAddVarFromX_SingleEstim__nbS_"+str(nb_S)+"N_curves"+str(n_curves)+"_sigma_"+str(sigma_e)+"_K_"+str(concentration)+'_nMC_'+str(n_MC)+'_nCalls_'+str(param_bayopt["n_calls"])+'_newparam'
 dic = {"N_curves": n_curves, "X0" : X0, "Q0" : Q0, "true_curv0" : true_curv0, "true_tors0" : true_tors0, "L" : L0, "param_bayopt" : param_bayopt, "K" : concentration, "nb_S" : nb_S, "nb_knots" : nb_knots, "n_MC" : n_MC,
 "resOpt" : array_resOpt, "TruePopFP" : array_TruePopFP, "SmoothPopFP" : array_SmoothPopFP, "SmoothThetaFP" : array_SmoothThetaFP, "param_noise" : param_noise, "param_loc_poly_deriv" : param_loc_poly_deriv,
 "param_loc_poly_TNB" : param_loc_poly_TNB, "sigma" : sigma_e, "PopFP_LP" : array_PopFP_LP, "PopFP_GS" : array_PopFP_GS, "PopTraj" : array_PopTraj, "ThetaExtrins" : array_ThetaExtrins, "SRVF_mean" :array_SRVF_mean, "SRVF_gam" : array_SRVF_gam,
