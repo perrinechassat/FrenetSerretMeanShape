@@ -1,6 +1,7 @@
 import sys
 import os.path
 sys.path.insert(1, '../../../FrenetSerretMeanShape')
+sys.path.insert(1, '../../Sphere')
 import numpy as np
 from pickle import *
 import dill as pickle
@@ -9,6 +10,7 @@ from frenet_path import *
 from trajectory import *
 from model_curvatures import *
 from simu_utils import *
+from scipy import interpolate
 
 """ Load file """
 
@@ -16,7 +18,7 @@ n_MC = 90
 n_curves = 25
 nb_S = 100
 n_calls = 80
-sigma_e = 0.03
+sigma_e = 0
 sigma_p = 0.05
 
 # dic = {"N_curves": n_curves, "L" : L0, "param_bayopt" : param_bayopt, "nb_knots" : nb_knots, "n_MC" : n_MC, "resOpt" : array_resOpt, "SmoothPopFP" : array_SmoothPopFP,
@@ -38,6 +40,7 @@ df = lambda t,phi: np.array([-phi[0]*np.sin(phi[0]*t), phi[1]*np.cos(phi[1]*t), 
 ddf = lambda t,phi: np.array([-(phi[0]**2)*np.cos(phi[0]*t), -(phi[1]**2)*np.sin(phi[1]*t), 0])
 dddf = lambda t,phi: np.array([np.power(phi[0],3)*np.sin(phi[0]*t), -np.power(phi[1],3)*np.cos(phi[1]*t), 0])
 
+t = np.linspace(0,1,100)
 s0 = np.linspace(0,L0,nb_S)
 
 def true_curv(t,phi):
@@ -93,9 +96,9 @@ for k in range(n_MC):
     # for i in range(n_curves):
     #     mean_kappa_ext += (np.linalg.norm((ThetaExtrins[k][i][0] - true_curv0(s0)*array_Xmean[k].L))**2)/nb_S
     # d_kappa_ext[k] = (np.linalg.norm((mean_kappa_ext/n_curves - true_curv0(s0)*array_Xmean[k].L))**2)/nb_S
-    mean_kappa_ext = np.zeros(nb_S)
     for i in range(n_curves):
-        mean_kappa_ext += (np.linalg.norm((ThetaExtrins[k][i][0] - true_curv0(s0)))**2)/nb_S
+        kappa_ext = interpolate.interp1d(PopTraj[k][i].S(t), ThetaExtrins[k][i][0])(s0/L0)
+        mean_kappa_ext += (np.linalg.norm((kappa_ext - true_curv0(s0)))**2)/nb_S
     d_kappa_ext[k] = (np.linalg.norm((mean_kappa_ext/n_curves - true_curv0(s0)))**2)/nb_S
 
     """ delta tau ext """
@@ -104,7 +107,8 @@ for k in range(n_MC):
     #     mean_tau_ext += (np.linalg.norm((ThetaExtrins[k][i][1] - true_tors0(s0)*array_Xmean[k].L))**2)/nb_S
     # d_tau_ext[k] = (np.linalg.norm((mean_tau_ext/n_curves - true_tors0(s0)*array_Xmean[k].L))**2)/nb_S
     for i in range(n_curves):
-        mean_tau_ext += (np.linalg.norm((ThetaExtrins[k][i][1] - true_tors0(s0)))**2)/nb_S
+        tau_ext = interpolate.interp1d(PopTraj[k][i].S(t), ThetaExtrins[k][i][1])(s0/L0)
+        mean_tau_ext += (np.linalg.norm((tau_ext - true_tors0(s0)))**2)/nb_S
     d_tau_ext[k] = (np.linalg.norm((mean_tau_ext/n_curves - true_tors0(s0)))**2)/nb_S
 
     """ delta kappa ind """

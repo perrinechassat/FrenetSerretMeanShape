@@ -20,7 +20,9 @@ from timeit import default_timer as timer
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 
 
-"""From TNB"""
+
+""" ---------------------------------------------------------------------------ADD VAR From TNB NOISY -------------------------------------------------------------------------------------- """
+print('------------------ ADD VAR From TNB NOISY --------------------')
 
 """ DEFINE DATA """
 
@@ -82,14 +84,11 @@ array_k_indiv = []
 
 for n in range(n_curves):
 
-    # out = Parallel(n_jobs=-1)(delayed(adaptative_estimation)(array_TruePopFP_Noisy[i].frenet_paths[n], domain_range, nb_knots, tracking=False, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, multicurves=False, alignment=False)
-    #                             for i in range(n_MC))
-    out = Parallel(n_jobs=-1)(delayed(single_estim_optimizatinon)(array_TruePopFP_Noisy[i].frenet_paths[n], domain_range, nb_knots, tracking=False, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, multicurves=False, alignment=False)
+    out = Parallel(n_jobs=-1)(delayed(global_estimation)(array_TruePopFP_Noisy[i].frenet_paths[n], param_model, smoothing, tracking=False, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, alignment=False)
                                 for i in range(n_MC))
 
     for i in range(n_MC):
         array_SmoothFPIndiv[i,n] = out[i][0]
-        # array_k_indiv.append(array_SmoothFPIndiv[i,n].k)
         array_resOptIndiv[i,n] = out[i][1]
         if array_resOptIndiv[i,n][1]==True:
             array_SmoothThetaFPIndiv[i,n] = FrenetPath(array_SmoothFPIndiv[i,n].grid_obs, array_SmoothFPIndiv[i,n].grid_obs, init=array_SmoothFPIndiv[i,n].data[:,:,0], curv=array_SmoothFPIndiv[i,n].curv, tors=array_SmoothFPIndiv[i,n].tors, dim=3)
@@ -105,14 +104,11 @@ array_SmoothThetaFP = np.empty((n_MC), dtype=object)
 array_resOpt = np.empty((n_MC), dtype=object)
 array_k = []
 
-# out = Parallel(n_jobs=-1)(delayed(adaptative_estimation)(array_TruePopFP_Noisy[i], domain_range, nb_knots, tracking=False, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, multicurves=True, alignment=False)
-#                             for i in range(n_MC))
-out = Parallel(n_jobs=-1)(delayed(single_estim_optimizatinon)(array_TruePopFP_Noisy[i], domain_range, nb_knots, tracking=False, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, multicurves=True, alignment=False)
+out = Parallel(n_jobs=-1)(delayed(global_estimation)(array_TruePopFP_Noisy[i], param_model, smoothing, tracking=False, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, alignment=False)
                             for i in range(n_MC))
 
 for k in range(n_MC):
     array_SmoothPopFP[k] = out[k][0]
-    # array_k.append(array_SmoothPopFP[k].k)
     array_resOpt[k] = out[k][1]
     if array_resOpt[k][1]==True:
         array_SmoothThetaFP[k] = FrenetPath(s0, s0, init=mean_Q0(array_SmoothPopFP[k]), curv=array_SmoothPopFP[k].mean_curv, tors=array_SmoothPopFP[k].mean_tors, dim=3)
@@ -126,7 +122,7 @@ print('total time', duration)
 
 print('Saving the data...')
 
-filename = "MultipleEstimationAddVarFromTNB_SingleEstim_nbS_"+str(nb_S)+"N_curves"+str(n_curves)+str_Noise+"_K_"+str(concentration)+'_nMC_'+str(n_MC)+'_nCalls_'+str(param_bayopt["n_calls"])
+filename = "MultipleEstimationAddVarFromTNB_SingleEstim_SmoothInit_nbS_"+str(nb_S)+"N_curves"+str(n_curves)+str_Noise+"_K_"+str(concentration)+'_nMC_'+str(n_MC)+'_nCalls_'+str(param_bayopt["n_calls"])
 dic = {"N_curves": n_curves, "X0" : X0, "Q0" : Q0, "true_curv0" : true_curv0, "true_tors0" : true_tors0, "L" : L0, "param_bayopt" : param_bayopt, "K" : concentration, "nb_S" : nb_S, "nb_knots" : nb_knots, "n_MC" : n_MC,
 "resOpt" : array_resOpt, "TruePopFP" : array_TruePopFP, "TruePopFP_Noisy" : array_TruePopFP_Noisy, "SmoothPopFP" : array_SmoothPopFP, "SmoothThetaFP" : array_SmoothThetaFP, "param_noise" : param_noise,
 "SmoothFPIndiv" : array_SmoothFPIndiv, "resOptIndiv" : array_resOptIndiv, "SmoothThetaFPIndiv" : array_SmoothThetaFPIndiv, "array_k_indiv" : array_k_indiv, "array_k" : array_k}
@@ -139,6 +135,8 @@ fil.close()
 
 print('END !')
 
+""" ---------------------------------------------------------------------------ADD VAR From TNB EXACT -------------------------------------------------------------------------------------- """
+print('------------------ ADD VAR From TNB EXACT --------------------')
 
 """From TNB"""
 
@@ -194,6 +192,8 @@ for k in range(n_MC):
 print("Individual estimations...")
 
 param_bayopt = {"n_splits":  10, "n_calls" : 30, "bounds_h" : (0.2, 0.6), "bounds_lcurv" : (10e-3, 10), "bounds_ltors" : (10e-3, 10)}
+param_model = {"nb_basis" : nb_knots, "domain_range": (0.0,L0)}
+smoothing = {"flag":False, "method":"karcher_mean"}
 
 array_SmoothFPIndiv = np.empty((n_MC, n_curves), dtype=object)
 array_resOptIndiv = np.empty((n_MC, n_curves), dtype=object)
@@ -202,14 +202,11 @@ array_k_indiv = []
 
 for n in range(n_curves):
 
-    # out = Parallel(n_jobs=-1)(delayed(adaptative_estimation)(array_TruePopFP_Noisy[i].frenet_paths[n], domain_range, nb_knots, tracking=False, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, multicurves=False, alignment=False)
-    #                             for i in range(n_MC))
-    out = Parallel(n_jobs=-1)(delayed(single_estim_optimizatinon)(array_TruePopFP_Noisy[i].frenet_paths[n], domain_range, nb_knots, tracking=False, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, multicurves=False, alignment=False)
+    out = Parallel(n_jobs=-1)(delayed(global_estimation)(array_TruePopFP_Noisy[i].frenet_paths[n], param_model, smoothing, tracking=False, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, alignment=False)
                                 for i in range(n_MC))
 
     for i in range(n_MC):
         array_SmoothFPIndiv[i,n] = out[i][0]
-        # array_k_indiv.append(array_SmoothFPIndiv[i,n].k)
         array_resOptIndiv[i,n] = out[i][1]
         if array_resOptIndiv[i,n][1]==True:
             array_SmoothThetaFPIndiv[i,n] = FrenetPath(array_SmoothFPIndiv[i,n].grid_obs, array_SmoothFPIndiv[i,n].grid_obs, init=array_SmoothFPIndiv[i,n].data[:,:,0], curv=array_SmoothFPIndiv[i,n].curv, tors=array_SmoothFPIndiv[i,n].tors, dim=3)
@@ -219,20 +216,19 @@ for n in range(n_curves):
 print("Mean estimations...")
 
 param_bayopt = {"n_splits":  10, "n_calls" : 80, "bounds_h" : (0.2, 0.6), "bounds_lcurv" : (10e-3, 10), "bounds_ltors" : (10e-2, 100)}
+param_model = {"nb_basis" : nb_knots, "domain_range": (0.0,L0)}
+smoothing = {"flag": False, "method": "karcher_mean"}
 
 array_SmoothPopFP = np.empty((n_MC), dtype=object)
 array_SmoothThetaFP = np.empty((n_MC), dtype=object)
 array_resOpt = np.empty((n_MC), dtype=object)
 array_k = []
 
-# out = Parallel(n_jobs=-1)(delayed(adaptative_estimation)(array_TruePopFP_Noisy[i], domain_range, nb_knots, tracking=False, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, multicurves=True, alignment=False)
-#                             for i in range(n_MC))
-out = Parallel(n_jobs=-1)(delayed(single_estim_optimizatinon)(array_TruePopFP_Noisy[i], domain_range, nb_knots, tracking=False, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, multicurves=True, alignment=False)
+out = Parallel(n_jobs=-1)(delayed(global_estimation)(array_TruePopFP_Noisy[i], param_model, smoothing, tracking=False, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, alignment=False)
                             for i in range(n_MC))
 
 for k in range(n_MC):
     array_SmoothPopFP[k] = out[k][0]
-    # array_k.append(array_SmoothPopFP[k].k)
     array_resOpt[k] = out[k][1]
     if array_resOpt[k][1]==True:
         array_SmoothThetaFP[k] = FrenetPath(s0, s0, init=mean_Q0(array_SmoothPopFP[k]), curv=array_SmoothPopFP[k].mean_curv, tors=array_SmoothPopFP[k].mean_tors, dim=3)
