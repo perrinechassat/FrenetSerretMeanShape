@@ -28,9 +28,9 @@ np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 n_curves = 25
 N = n_curves
 nb_S = 100
-n_MC = 1
+n_MC = 90
 hyperparam = [0.015, 0.01, 0.01]
-param_bayopt = {"n_splits":  10, "n_calls" : 5, "bounds_h" : (0.02, 0.08), "bounds_lcurv" : (1e-4, 1), "bounds_ltors" : (1e-4, 1)}
+param_bayopt = {"n_splits":  10, "n_calls" : 80, "bounds_h" : (0.02, 0.08), "bounds_lcurv" : (1e-4, 1), "bounds_ltors" : (1e-4, 1)}
 nb_knots = 30
 param_model = {"nb_basis" : 30, "domain_range" : (0,1)}
 smoothing = {"flag": False, "method": "karcher_mean"}
@@ -100,6 +100,7 @@ for n in range(n_curves):
 # for k in range(n_MC):
 #     array_SmoothPopFP0[k] = out[k][0]
 #     array_resOpt0[k] = out[k][1]
+param_bayopt = {"n_splits":  10, "n_calls" : 80, "bounds_h" : (0.02, 0.08), "bounds_lcurv" : (1e-4, 1), "bounds_ltors" : (1e-4, 1)}
 
 print("Mean estimations Frenet Serret without alignment...")
 
@@ -158,9 +159,9 @@ print('END !')
 n_curves = 25
 N = n_curves
 nb_S = 100
-n_MC = 1
+n_MC = 90
 hyperparam = [0.015, 0.01, 0.01]
-param_bayopt = {"n_splits":  10, "n_calls" : 5, "bounds_h" : (0.02, 0.08), "bounds_lcurv" : (1e-4, 1), "bounds_ltors" : (1e-4, 1)}
+param_bayopt = {"n_splits":  10, "n_calls" : 80, "bounds_h" : (0.02, 0.08), "bounds_lcurv" : (1e-4, 1), "bounds_ltors" : (1e-4, 1)}
 nb_knots = 30
 param_model = {"nb_basis" : 30, "domain_range" : (0,1)}
 smoothing = {"flag": False, "method": "karcher_mean"}
@@ -225,6 +226,7 @@ for n in range(n_curves):
 # for k in range(n_MC):
 #     array_SmoothPopFP0[k] = out[k][0]
 #     array_resOpt0[k] = out[k][1]
+param_bayopt = {"n_splits":  10, "n_calls" : 80, "bounds_h" : (0.02, 0.08), "bounds_lcurv" : (1e-4, 1), "bounds_ltors" : (1e-4, 1)}
 
 print("Mean estimations Frenet Serret without alignment...")
 
