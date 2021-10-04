@@ -2,6 +2,7 @@ from matplotlib.pyplot import legend
 import numpy as np
 import plotly.graph_objs as go
 import plotly.express as px
+import plotly.colors as pc
 
 layout = go.Layout(
     # paper_bgcolor='rgba(0,0,0,0)',
@@ -11,8 +12,10 @@ layout = go.Layout(
 """ Set of functions for visualization of mean shape, mean curvature, torsion, etc (visualize 3D curves or 2D curves). """
 
 color_list_mean = px.colors.qualitative.Plotly
-dict_color = {"True Mean" : color_list_mean[0], "Arithmetic Mean" : px.colors.qualitative.Set1[6], "SRVF Mean" : px.colors.qualitative.Set1[8], "FS Mean" : px.colors.qualitative.Dark24[5], "Extrinsic Mean" : color_list_mean[2], "Individual Mean" : color_list_mean[3], "True Mean 2" : color_list_mean[1]}
+# dict_color = {"True Mean" : color_list_mean[0], "Arithmetic Mean" : px.colors.qualitative.Set1[6], "SRVF Mean" : px.colors.qualitative.Set1[8], "FS Mean" : px.colors.qualitative.Dark24[5], "Extrinsic Mean" : color_list_mean[2], "Individual Mean" : color_list_mean[3], "True Mean 2" : color_list_mean[1]}
 color_list = px.colors.qualitative.Plotly
+dict_color = {"True Mean" : color_list_mean[0], "Arithmetic Mean" : color_list_mean[3], "SRVF Mean" : color_list_mean[2], "FS Mean" : color_list_mean[1], "Extrinsic Mean" : color_list_mean[4], "Individual Mean" : color_list_mean[5]}
+
 
 def plot_array_2D(x, array_y, name_ind, legend={"index":False}):
     fig = go.Figure(layout=layout)
@@ -449,4 +452,48 @@ def plot_3D_means_cond_raket(features, name, path):
                   )
 
     fig.write_html(path+".html")
+    fig.show()
+
+
+
+def plot_curvatures_grey_bis(s, kappa, tau, kappa_mean, tau_mean, names_mean, name1, path=""):
+    N = len(kappa)
+    n = len(kappa_mean)
+
+    mean_kappa = np.mean(kappa, axis=0)
+    min_kappa = np.amin(np.array(kappa), axis=0)
+    max_kappa = np.amax(np.array(kappa), axis=0)
+    color_mean = dict_color[name1]
+    color_mean_rgb = pc.hex_to_rgb(color_mean)
+    color_mean_transp = (color_mean_rgb[0], color_mean_rgb[1], color_mean_rgb[2], 0.2)
+    pc.hex_to_rgb(color_list_mean[0])
+    fig = go.Figure(layout=layout)
+    fig.add_trace(go.Scatter(x=s, y=mean_kappa, mode='lines', name=name1, line=dict(width=3,color=color_mean)))
+    fig.add_trace(go.Scatter(x=s, y=max_kappa, mode='lines', name='Upper Bound', marker=dict(color="#444"),line=dict(width=0),showlegend=False))
+    fig.add_trace(go.Scatter(x=s, y=min_kappa, mode='lines', name='Lower Bound', marker=dict(color="#444"),line=dict(width=0),fillcolor='rgba'+str(color_mean_transp),fill='tonexty',showlegend=False))
+    for i in range(n):
+        fig.add_trace(go.Scatter(x=s, y=kappa_mean[i], mode='lines', name=names_mean[i], line=dict(width=3, color=dict_color[names_mean[i]])))
+        # fig.add_trace(go.Scatter(x=s, y=kappa_mean[i], mode='lines', name=name[i], line=dict(width=3, color=dict_color[names_mean[i]])))
+    fig.update_layout(legend=dict(orientation="h",yanchor="top",y=1.15,xanchor="right", x=1), xaxis_title='s', yaxis_title='curvature')
+    if path!="":
+        fig.write_html(path+"kappa.html")
+    fig.update_xaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
+    fig.update_yaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
+    fig.show()
+
+    mean_tau = np.mean(tau, axis=0)
+    min_tau = np.amin(np.array(tau), axis=0)
+    max_tau = np.amax(np.array(tau), axis=0)
+    fig = go.Figure(layout=layout)
+    fig.add_trace(go.Scatter(x=s, y=mean_tau, mode='lines', name=name1, line=dict(width=3,color=color_mean)))
+    fig.add_trace(go.Scatter(x=s, y=max_tau, mode='lines', name='Upper Bound', marker=dict(color="#444"),line=dict(width=0),showlegend=False))
+    fig.add_trace(go.Scatter(x=s, y=min_tau, mode='lines', name='Lower Bound', marker=dict(color="#444"),line=dict(width=0), fillcolor='rgba'+str(color_mean_transp),fill='tonexty',showlegend=False))
+    for i in range(n):
+        fig.add_trace(go.Scatter(x=s, y=tau_mean[i], mode='lines', name=names_mean[i], line=dict(width=3, color=dict_color[names_mean[i]])))
+            # fig.add_trace(go.Scatter(x=s, y=tau_mean[i], mode='lines', name=name[i], line=dict(width=3, color=dict_color[names_mean[i]])))
+    fig.update_layout(legend=dict(orientation="h",yanchor="top",y=1.15,xanchor="right", x=1), xaxis_title='s', yaxis_title='torsion')
+    if path!="":
+        fig.write_html(path+"tors.html")
+    fig.update_xaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
+    fig.update_yaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
     fig.show()
