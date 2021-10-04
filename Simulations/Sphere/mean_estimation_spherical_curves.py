@@ -137,9 +137,9 @@ print('Saving the data...')
 filename = "SphereCurves_estimation_K_geod"+'_nCalls_'+str(param_bayopt["n_calls"])+'_sigma_e_'+str(sigma_e)+'_n_MC_'+str(n_MC)
 dic = {"N_curves": n_curves, "param_bayopt" : param_bayopt, "param_model" : param_model, "n_MC" : n_MC,
 # "resOpt0" : array_resOpt0, "SmoothPopFP0" : array_SmoothPopFP0,
-"resOpt1" : array_resOpt1, "SmoothPopFP1" : array_SmoothPopFP1,
+"resOpt1" : array_resOpt1, "SmoothPopFP1" : array_SmoothPopFP1, "kGeod_Extrins" : array_kGeod_Extrins,
 "param_loc_poly_deriv" : param_loc_poly_deriv, "param_loc_poly_TNB" : param_loc_poly_TNB,
-"PopFP_LP" : array_PopFP_LP, "PopFP_NewFrame" : array_PopFP_NewFrame, "PopTraj" : array_PopTraj, "SRVF_mean" :array_SRVF_mean,
+"PopNewFrame_LP" : array_PopNewFrame_LP, "PopNewFrame" : array_PopNewFrame, "PopTraj" : array_PopTraj, "SRVF_mean" :array_SRVF_mean,
 "SRVF_gam" :array_SRVF_gam, "Arithmetic_mean" : array_Arithmetic_mean, "mean_L" : array_meanL, "k_geod_theo" : k_geod_theo, "SmoothFPIndiv" : array_SmoothFPIndiv, "resOptIndiv" : array_resOptIndiv}
 
 
@@ -263,9 +263,9 @@ print('Saving the data...')
 filename = "SphereCurves_estimation_K_geod"+'_nCalls_'+str(param_bayopt["n_calls"])+'_sigma_e_'+str(sigma_e)+'_n_MC_'+str(n_MC)
 dic = {"N_curves": n_curves, "param_bayopt" : param_bayopt, "param_model" : param_model, "n_MC" : n_MC,
 # "resOpt0" : array_resOpt0, "SmoothPopFP0" : array_SmoothPopFP0,
-"resOpt1" : array_resOpt1, "SmoothPopFP1" : array_SmoothPopFP1,
+"resOpt1" : array_resOpt1, "SmoothPopFP1" : array_SmoothPopFP1, "kGeod_Extrins" : array_kGeod_Extrins,
 "param_loc_poly_deriv" : param_loc_poly_deriv, "param_loc_poly_TNB" : param_loc_poly_TNB,
-"PopFP_LP" : array_PopFP_LP, "PopFP_NewFrame" : array_PopFP_NewFrame, "PopTraj" : array_PopTraj, "SRVF_mean" :array_SRVF_mean,
+"PopNewFrame_LP" : array_PopNewFrame_LP, "PopNewFrame" : array_PopNewFrame, "PopTraj" : array_PopTraj, "SRVF_mean" :array_SRVF_mean,
 "SRVF_gam" :array_SRVF_gam, "Arithmetic_mean" : array_Arithmetic_mean, "mean_L" : array_meanL, "k_geod_theo" : k_geod_theo, "SmoothFPIndiv" : array_SmoothFPIndiv, "resOptIndiv" : array_resOptIndiv}
 
 
