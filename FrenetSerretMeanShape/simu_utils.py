@@ -375,6 +375,19 @@ def pre_process_data_sphere(data, t_init, n_resamples, param_loc_poly_deriv, par
     else:
         new_grid_S = np.linspace(0,X.S(X.t)[-1],n_resamples)
 
+    k_geod_extrins = np.zeros(len(t_init))
+    dX1 = X.dX1(t_init)/X.L
+    dX2 = X.dX2(t_init)/X.L
+    gamma = np.cross(X.derivatives[:,0:3]*X.L, dX1)
+    for i in range(len(t_init)):
+        k_geod_extrins[i] = np.inner(dX2[i],gamma[i])
+
+    Q = np.zeros((3, 3, len(t_init)))
+    Q[:,0,:] = np.transpose(X.derivatives[:,0:3]*X.L)
+    Q[:,1,:] = dX1.transpose()
+    Q[:,2,:] = gamma.transpose()
+    NewFrame = FrenetPath(X.S(t_init), X.S(t_init), data=Q)
+
     """ estimation TNB local poly """
     success = False
     k = 0
@@ -389,7 +402,8 @@ def pre_process_data_sphere(data, t_init, n_resamples, param_loc_poly_deriv, par
             param_TNB["h"]+=2
         k+=1
     if k==15:
-        print("ECHEC")
+        # print("ECHEC")
+        success = False
 
     if scale_ind["ind"]==True:
         alpha = Q_LP.data_trajectory*X.L
@@ -401,34 +415,36 @@ def pre_process_data_sphere(data, t_init, n_resamples, param_loc_poly_deriv, par
     Q[:,0,:] = np.transpose(alpha)
     Q[:,1,:] = beta
     Q[:,2,:] = gamma
-    NewFrame = FrenetPath(new_grid_S, new_grid_S, data=Q)
+    NewFrame_LP = FrenetPath(new_grid_S, new_grid_S, data=Q)
 
-    return X, Q_LP, NewFrame, success
+    return X, NewFrame_LP, NewFrame, k_geod_extrins, success
 
 
-def simul_Frame_sphere(N, nb_S, domain_range, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind, locpolyTNB_local):
+def simul_Frame_sphere(N, nb_S, domain_range, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind, locpolyTNB_local, sigma):
     """ Generate data """
     Mu, X_tab, V_tab = generative_model_spherical_curves(N, 20, nb_S, domain_range)
     t = np.linspace(domain_range[0],domain_range[1],nb_S)
 
     array_Traj =  []
-    PopQ_LP = []
+    Pop_NewFrame_LP = []
     Pop_NewFrame = []
+    K_geod_Extrins = []
     list_L = []
 
     for i in range(N):
-        X, Q_LP, NewFrame, successLocPoly = pre_process_data_sphere(X_tab[:,:,i], t, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind, locpolyTNB_local)
-        # print(successLocPoly)
-        # if successLocPoly==False:
-        #     return [], [], [], []
+        noise = np.random.randn(X_tab[:,:,i].shape[0], X_tab[:,:,i].shape[1])
+        data_X_noisy = np.add(X_tab[:,:,i], sigma*noise)
+        X, NewFrame_LP, NewFrame, k_geod_extrins, successLocPoly = pre_process_data_sphere(data_X_noisy, t, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind, locpolyTNB_local)
+        if successLocPoly==False:
+            print('Echec')
         array_Traj.append(X)
-        PopQ_LP.append(Q_LP)
+        Pop_NewFrame_LP.append(NewFrame_LP)
         Pop_NewFrame.append(NewFrame)
+        K_geod_Extrins.append(k_geod_extrins)
         list_L.append(X.L)
 
     mean_L = np.mean(list_L)
-
-    return array_Traj, PopulationFrenetPath(PopQ_LP), PopulationFrenetPath(Pop_NewFrame), mean_L
+    return array_Traj, PopulationFrenetPath(Pop_NewFrame_LP), PopulationFrenetPath(Pop_NewFrame), K_geod_Extrins, mean_L
 
 
 def preprocess_raket(X0, t, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind={"ind":True,"val":1}, locpolyTNB_local=False):
