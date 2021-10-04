@@ -402,7 +402,7 @@ def pre_process_data_sphere(data, t_init, n_resamples, param_loc_poly_deriv, par
             param_TNB["h"]+=2
         k+=1
     if k==15:
-        # print("ECHEC")
+        print("ECHEC")
         success = False
 
     if scale_ind["ind"]==True:
