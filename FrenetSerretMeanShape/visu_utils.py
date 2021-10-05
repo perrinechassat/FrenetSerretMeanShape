@@ -551,7 +551,10 @@ def plot_curvatures_grey_bis(s, kappa, tau, kappa_mean, tau_mean, names_mean, na
     fig.add_trace(go.Scatter(x=s, y=max_kappa, mode='lines', name='Upper Bound', marker=dict(color="#444"),line=dict(width=0),showlegend=False))
     fig.add_trace(go.Scatter(x=s, y=min_kappa, mode='lines', name='Lower Bound', marker=dict(color="#444"),line=dict(width=0),fillcolor='rgba'+str(color_mean_transp),fill='tonexty',showlegend=False))
     for i in range(n):
-        fig.add_trace(go.Scatter(x=s, y=kappa_mean[i], mode='lines', name=names_mean[i], line=dict(width=3, color=dict_color[names_mean[i]])))
+        if names_mean[i]=='Mean Param':
+            fig.add_trace(go.Scatter(x=s, y=kappa_mean[i], mode='lines', name=names_mean[i], line=dict(width=3, dash='dash', color=dict_color[names_mean[i]])))
+        else:
+            fig.add_trace(go.Scatter(x=s, y=kappa_mean[i], mode='lines', name=names_mean[i], line=dict(width=3, dash='dashdot', color=dict_color[names_mean[i]])))
         # fig.add_trace(go.Scatter(x=s, y=kappa_mean[i], mode='lines', name=name[i], line=dict(width=3, color=dict_color[names_mean[i]])))
     fig.update_layout(legend=dict(orientation="h",yanchor="top",y=1.15,xanchor="right", x=1), xaxis_title='s', yaxis_title='curvature')
     if path!="":
@@ -568,7 +571,10 @@ def plot_curvatures_grey_bis(s, kappa, tau, kappa_mean, tau_mean, names_mean, na
     fig.add_trace(go.Scatter(x=s, y=max_tau, mode='lines', name='Upper Bound', marker=dict(color="#444"),line=dict(width=0),showlegend=False))
     fig.add_trace(go.Scatter(x=s, y=min_tau, mode='lines', name='Lower Bound', marker=dict(color="#444"),line=dict(width=0), fillcolor='rgba'+str(color_mean_transp),fill='tonexty',showlegend=False))
     for i in range(n):
-        fig.add_trace(go.Scatter(x=s, y=tau_mean[i], mode='lines', name=names_mean[i], line=dict(width=3, color=dict_color[names_mean[i]])))
+        if names_mean[i]=='Mean Param':
+            fig.add_trace(go.Scatter(x=s, y=tau_mean[i], mode='lines', name=names_mean[i], line=dict(width=3, dash='dash', color=dict_color[names_mean[i]])))
+        else:
+            fig.add_trace(go.Scatter(x=s, y=tau_mean[i], mode='lines', name=names_mean[i], line=dict(width=3, dash='dashdot', color=dict_color[names_mean[i]])))
             # fig.add_trace(go.Scatter(x=s, y=tau_mean[i], mode='lines', name=name[i], line=dict(width=3, color=dict_color[names_mean[i]])))
     fig.update_layout(legend=dict(orientation="h",yanchor="top",y=1.15,xanchor="right", x=1), xaxis_title='s', yaxis_title='torsion')
     if path!="":

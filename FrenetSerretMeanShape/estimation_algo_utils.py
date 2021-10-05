@@ -573,6 +573,7 @@ def single_estimation(TrueFrenetPath, domain_range, nb_basis, x, tracking=False,
         align_results = collections.namedtuple('align_fPCA', ['convergence'])
         if np.abs(mKappa).any() > 1e8 or np.abs(mTau).any() > 1e8:
             res = align_results(False)
+            print('extrem value')
         else:
             res = align_results(True)
     elif alignment==True and gam["flag"]==False:
