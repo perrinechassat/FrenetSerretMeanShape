@@ -571,7 +571,10 @@ def single_estimation(TrueFrenetPath, domain_range, nb_basis, x, tracking=False,
     if alignment==False:
         mKappa, mTau, mS, mOmega = compute_raw_curvatures_without_alignement(TrueFrenetPath, x[0], SmoothFrenetPath0)
         align_results = collections.namedtuple('align_fPCA', ['convergence'])
-        res = align_results(True)
+        if np.abs(mKappa).any() > 1e8 or np.abs(mTau).any() > 1e8:
+            res = align_results(False)
+        else:
+            res = align_results(True)
     elif alignment==True and gam["flag"]==False:
         mKappa, mTau, mS, mOmega, gam, res = compute_raw_curvatures_alignement_init(TrueFrenetPath, x[0], SmoothFrenetPath0, lam)
     else:
@@ -587,7 +590,7 @@ def single_estimation(TrueFrenetPath, domain_range, nb_basis, x, tracking=False,
     # plt.show()
 
     mean_kappa = np.mean(mKappa)
-    # print(mean_kappa)
+    # # print(mean_kappa)
     Model_theta.curv.function = lambda s: s*0 + mean_kappa
     # theta_curv = Model_theta.curv.smoothing(mS, mKappa, mOmega, x[1])
     theta_torsion = Model_theta.tors.smoothing(mS, mTau, mOmega, x[2])
