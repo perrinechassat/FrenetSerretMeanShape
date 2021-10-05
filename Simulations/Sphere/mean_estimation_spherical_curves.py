@@ -53,6 +53,7 @@ array_PopNewFrame = np.empty((n_MC), dtype=object)
 array_PopTraj = np.empty((n_MC), dtype=object)
 array_kGeod_Extrins = np.empty((n_MC), dtype=object)
 array_meanL = np.empty((n_MC), dtype=object)
+list_echec = []
 
 for k in range(n_MC):
     array_PopNewFrame_LP[k] = res[k][1]
@@ -60,6 +61,8 @@ for k in range(n_MC):
     array_PopTraj[k] = res[k][0]
     array_kGeod_Extrins[k] = res[k][3]
     array_meanL[k] = res[k][4]
+    if res[k][5]==False:
+        list_echec.append(k)
 
 print("True mean...")
 
@@ -67,7 +70,6 @@ Mu, X_tab, V_tab = generative_model_spherical_curves(n_curves, 20, nb_S, domain_
 X, NewFrame_LP, NewFrame, k_geod_extrins, uccessLocPoly = pre_process_data_sphere(Mu, t, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind={"ind":True,"val":1}, locpolyTNB_local=True)
 Alpha_new, Alpha, Alpha_Q_LP, Alpha_Q_GS, Alpha_theta_extrins, Alpha_successLocPoly = pre_process_data(NewFrame_LP.data[:,0,:].transpose()/X.L, NewFrame_LP.grid_obs, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind={"ind":True,"val":1}, locpolyTNB_local=True)
 k_geod_theo = [np.dot(np.cross(NewFrame_LP.data[:,0,:].transpose()[i,:],NewFrame_LP.data[:,1,:].transpose()[i,:]), Alpha.derivatives[:,6:9][i,:]) for i in range(n_resamples)]
-
 
 
 param_bayopt = {"n_splits":  10, "n_calls" : 50, "bounds_h" : (0.02, 0.1), "bounds_lcurv" : (1e-4, 1), "bounds_ltors" : (1e-9, 1e-3)}
@@ -140,7 +142,7 @@ dic = {"N_curves": n_curves, "param_bayopt" : param_bayopt, "param_model" : para
 "resOpt1" : array_resOpt1, "SmoothPopFP1" : array_SmoothPopFP1, "kGeod_Extrins" : array_kGeod_Extrins,
 "param_loc_poly_deriv" : param_loc_poly_deriv, "param_loc_poly_TNB" : param_loc_poly_TNB,
 "PopNewFrame_LP" : array_PopNewFrame_LP, "PopNewFrame" : array_PopNewFrame, "PopTraj" : array_PopTraj, "SRVF_mean" :array_SRVF_mean,
-"SRVF_gam" :array_SRVF_gam, "Arithmetic_mean" : array_Arithmetic_mean, "mean_L" : array_meanL, "k_geod_theo" : k_geod_theo, "SmoothFPIndiv" : array_SmoothFPIndiv, "resOptIndiv" : array_resOptIndiv}
+"SRVF_gam" :array_SRVF_gam, "Arithmetic_mean" : array_Arithmetic_mean, "mean_L" : array_meanL, "k_geod_theo" : k_geod_theo, "SmoothFPIndiv" : array_SmoothFPIndiv, "resOptIndiv" : array_resOptIndiv, "list_echec" : list_echec}
 
 
 if os.path.isfile(filename):
@@ -184,6 +186,7 @@ array_PopNewFrame = np.empty((n_MC), dtype=object)
 array_PopTraj = np.empty((n_MC), dtype=object)
 array_kGeod_Extrins = np.empty((n_MC), dtype=object)
 array_meanL = np.empty((n_MC), dtype=object)
+list_echec = []
 
 for k in range(n_MC):
     array_PopNewFrame_LP[k] = res[k][1]
@@ -191,6 +194,8 @@ for k in range(n_MC):
     array_PopTraj[k] = res[k][0]
     array_kGeod_Extrins[k] = res[k][3]
     array_meanL[k] = res[k][4]
+    if res[k][5]==False:
+        list_echec.append(k)
 
 print("True mean...")
 
@@ -266,7 +271,7 @@ dic = {"N_curves": n_curves, "param_bayopt" : param_bayopt, "param_model" : para
 "resOpt1" : array_resOpt1, "SmoothPopFP1" : array_SmoothPopFP1, "kGeod_Extrins" : array_kGeod_Extrins,
 "param_loc_poly_deriv" : param_loc_poly_deriv, "param_loc_poly_TNB" : param_loc_poly_TNB,
 "PopNewFrame_LP" : array_PopNewFrame_LP, "PopNewFrame" : array_PopNewFrame, "PopTraj" : array_PopTraj, "SRVF_mean" :array_SRVF_mean,
-"SRVF_gam" :array_SRVF_gam, "Arithmetic_mean" : array_Arithmetic_mean, "mean_L" : array_meanL, "k_geod_theo" : k_geod_theo, "SmoothFPIndiv" : array_SmoothFPIndiv, "resOptIndiv" : array_resOptIndiv}
+"SRVF_gam" :array_SRVF_gam, "Arithmetic_mean" : array_Arithmetic_mean, "mean_L" : array_meanL, "k_geod_theo" : k_geod_theo, "SmoothFPIndiv" : array_SmoothFPIndiv, "resOptIndiv" : array_resOptIndiv, "list_echec" : list_echec}
 
 
 if os.path.isfile(filename):

@@ -431,12 +431,13 @@ def simul_Frame_sphere(N, nb_S, domain_range, n_resamples, param_loc_poly_deriv,
     K_geod_Extrins = []
     list_L = []
 
+    echec_flag = True
     for i in range(N):
         noise = np.random.randn(X_tab[:,:,i].shape[0], X_tab[:,:,i].shape[1])
         data_X_noisy = np.add(X_tab[:,:,i], sigma*noise)
         X, NewFrame_LP, NewFrame, k_geod_extrins, successLocPoly = pre_process_data_sphere(data_X_noisy, t, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind, locpolyTNB_local)
         if successLocPoly==False:
-            print('Echec')
+            echec_flag = False
         array_Traj.append(X)
         Pop_NewFrame_LP.append(NewFrame_LP)
         Pop_NewFrame.append(NewFrame)
@@ -444,7 +445,7 @@ def simul_Frame_sphere(N, nb_S, domain_range, n_resamples, param_loc_poly_deriv,
         list_L.append(X.L)
 
     mean_L = np.mean(list_L)
-    return array_Traj, PopulationFrenetPath(Pop_NewFrame_LP), PopulationFrenetPath(Pop_NewFrame), K_geod_Extrins, mean_L
+    return array_Traj, PopulationFrenetPath(Pop_NewFrame_LP), PopulationFrenetPath(Pop_NewFrame), K_geod_Extrins, mean_L, echec_flag
 
 
 def preprocess_raket(X0, t, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind={"ind":True,"val":1}, locpolyTNB_local=False):
