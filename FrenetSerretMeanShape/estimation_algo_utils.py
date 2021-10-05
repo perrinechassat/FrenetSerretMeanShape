@@ -579,12 +579,12 @@ def single_estimation(TrueFrenetPath, domain_range, nb_basis, x, tracking=False,
         align_results = collections.namedtuple('align_fPCA', ['convergence'])
         res = align_results(True)
 
-    # plt.figure()
-    # plt.plot(mS, mKappa)
-    # plt.show()
-    # plt.figure()
-    # plt.plot(mS, mTau)
-    # plt.show()
+    plt.figure()
+    plt.plot(mS, mKappa)
+    plt.show()
+    plt.figure()
+    plt.plot(mS, mTau)
+    plt.show()
 
     mean_kappa = np.mean(mKappa)
     # print(mean_kappa)
@@ -592,12 +592,12 @@ def single_estimation(TrueFrenetPath, domain_range, nb_basis, x, tracking=False,
     # theta_curv = Model_theta.curv.smoothing(mS, mKappa, mOmega, x[1])
     theta_torsion = Model_theta.tors.smoothing(mS, mTau, mOmega, x[2])
 
-    # plt.figure()
-    # plt.plot(mS, Model_theta.curv.function(mS))
-    # plt.show()
-    # plt.figure()
-    # plt.plot(mS, Model_theta.tors.function(mS))
-    # plt.show()
+    plt.figure()
+    plt.plot(mS, Model_theta.curv.function(mS))
+    plt.show()
+    plt.figure()
+    plt.plot(mS, Model_theta.tors.function(mS))
+    plt.show()
 
     SmoothPopulationFrenet_final = SmoothFrenetPath0
     SmoothPopulationFrenet_final.set_estimate_theta(Model_theta.curv.function, Model_theta.tors.function)

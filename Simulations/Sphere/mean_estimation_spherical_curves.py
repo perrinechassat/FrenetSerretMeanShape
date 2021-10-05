@@ -30,7 +30,7 @@ N = n_curves
 nb_S = 100
 n_MC = 90
 hyperparam = [0.015, 0.01, 0.01]
-param_bayopt = {"n_splits":  10, "n_calls" : 80, "bounds_h" : (0.03, 0.08), "bounds_lcurv" : (1e-4, 1), "bounds_ltors" : (1e-4, 1)}
+param_bayopt = {"n_splits":  10, "n_calls" : 80, "bounds_h" : (0.02, 0.1), "bounds_lcurv" : (1e-4, 1), "bounds_ltors" : (1e-9, 1e-3)}
 nb_knots = 30
 param_model = {"nb_basis" : 30, "domain_range" : (0,1)}
 smoothing = {"flag": False, "method": "karcher_mean"}
@@ -41,7 +41,7 @@ sigma_e = 0
 """ Preprocessing """
 n_resamples = 100
 param_loc_poly_deriv = { "h_min" : 0.1, "h_max" : 0.2, "nb_h" : 20}
-param_loc_poly_TNB = {"h" : 8, "p" : 3, "iflag": [1,1], "ibound" : 0}
+param_loc_poly_TNB = {"h" : 16, "p" : 3, "iflag": [1,1], "ibound" : 0}
 domain_range = (0,1)
 t = np.linspace(0,1,nb_S)
 
@@ -70,7 +70,7 @@ k_geod_theo = [np.dot(np.cross(NewFrame_LP.data[:,0,:].transpose()[i,:],NewFrame
 
 
 
-param_bayopt = {"n_splits":  10, "n_calls" : 50, "bounds_h" : (0.02, 0.08), "bounds_lcurv" : (1e-4, 1), "bounds_ltors" : (1e-4, 1)}
+param_bayopt = {"n_splits":  10, "n_calls" : 50, "bounds_h" : (0.02, 0.1), "bounds_lcurv" : (1e-4, 1), "bounds_ltors" : (1e-9, 1e-3)}
 
 print("Individual estimations...")
 
@@ -100,7 +100,7 @@ for n in range(n_curves):
 # for k in range(n_MC):
 #     array_SmoothPopFP0[k] = out[k][0]
 #     array_resOpt0[k] = out[k][1]
-param_bayopt = {"n_splits":  10, "n_calls" : 80, "bounds_h" : (0.02, 0.08), "bounds_lcurv" : (1e-4, 1), "bounds_ltors" : (1e-4, 1)}
+param_bayopt = {"n_splits":  10, "n_calls" : 80, "bounds_h" : (0.02, 0.1), "bounds_lcurv" : (1e-4, 1), "bounds_ltors" : (1e-9, 1e-3)}
 
 print("Mean estimations Frenet Serret without alignment...")
 
@@ -161,7 +161,7 @@ N = n_curves
 nb_S = 100
 n_MC = 90
 hyperparam = [0.015, 0.01, 0.01]
-param_bayopt = {"n_splits":  10, "n_calls" : 80, "bounds_h" : (0.02, 0.08), "bounds_lcurv" : (1e-4, 1), "bounds_ltors" : (1e-4, 1)}
+param_bayopt = {"n_splits":  10, "n_calls" : 80, "bounds_h" : (0.02, 0.1), "bounds_lcurv" : (1e-4, 1), "bounds_ltors" : (1e-9, 1e-3)}
 nb_knots = 30
 param_model = {"nb_basis" : 30, "domain_range" : (0,1)}
 smoothing = {"flag": False, "method": "karcher_mean"}
@@ -172,7 +172,7 @@ sigma_e = 0.05
 """ Preprocessing """
 n_resamples = 100
 param_loc_poly_deriv = { "h_min" : 0.1, "h_max" : 0.2, "nb_h" : 20}
-param_loc_poly_TNB = {"h" : 15, "p" : 3, "iflag": [1,1], "ibound" : 0}
+param_loc_poly_TNB = {"h" : 16, "p" : 3, "iflag": [1,1], "ibound" : 0}
 domain_range = (0,1)
 t = np.linspace(0,1,nb_S)
 
@@ -199,7 +199,7 @@ X, NewFrame_LP, NewFrame, k_geod_extrins, successLocPoly = pre_process_data_sphe
 Alpha_new, Alpha, Alpha_Q_LP, Alpha_Q_GS, Alpha_theta_extrins, Alpha_successLocPoly = pre_process_data(NewFrame_LP.data[:,0,:].transpose()/X.L, NewFrame_LP.grid_obs, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind={"ind":True,"val":1}, locpolyTNB_local=True)
 k_geod_theo = [np.dot(np.cross(NewFrame_LP.data[:,0,:].transpose()[i,:],NewFrame_LP.data[:,1,:].transpose()[i,:]), Alpha.derivatives[:,6:9][i,:]) for i in range(n_resamples)]
 
-param_bayopt = {"n_splits":  10, "n_calls" : 50, "bounds_h" : (0.02, 0.08), "bounds_lcurv" : (1e-4, 1), "bounds_ltors" : (1e-4, 1)}
+param_bayopt = {"n_splits":  10, "n_calls" : 50, "bounds_h" : (0.02, 0.1), "bounds_lcurv" : (1e-4, 1), "bounds_ltors" : (1e-9, 1e-3)}
 
 print("Individual estimations...")
 
@@ -226,7 +226,7 @@ for n in range(n_curves):
 # for k in range(n_MC):
 #     array_SmoothPopFP0[k] = out[k][0]
 #     array_resOpt0[k] = out[k][1]
-param_bayopt = {"n_splits":  10, "n_calls" : 80, "bounds_h" : (0.02, 0.08), "bounds_lcurv" : (1e-4, 1), "bounds_ltors" : (1e-4, 1)}
+param_bayopt = {"n_splits":  10, "n_calls" : 80, "bounds_h" : (0.02, 0.1), "bounds_lcurv" : (1e-4, 1), "bounds_ltors" : (1e-9, 1e-3)}
 
 print("Mean estimations Frenet Serret without alignment...")
 
