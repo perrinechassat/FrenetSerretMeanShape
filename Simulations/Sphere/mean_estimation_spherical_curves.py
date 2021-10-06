@@ -167,14 +167,14 @@ param_bayopt = {"n_splits":  10, "n_calls" : 80, "bounds_h" : (0.02, 0.1), "boun
 nb_knots = 30
 param_model = {"nb_basis" : 30, "domain_range" : (0,1)}
 smoothing = {"flag": False, "method": "karcher_mean"}
-sigma_e = 0.05
+sigma_e = 0.03
 
 """--------------------------------------------------------- Frenet-Serret Mean -----------------------------------------------------------------"""
 
 """ Preprocessing """
 n_resamples = 100
 param_loc_poly_deriv = { "h_min" : 0.1, "h_max" : 0.2, "nb_h" : 20}
-param_loc_poly_TNB = {"h" : 16, "p" : 3, "iflag": [1,1], "ibound" : 0}
+param_loc_poly_TNB = {"h" : 30, "p" : 3, "iflag": [1,1], "ibound" : 0}
 domain_range = (0,1)
 t = np.linspace(0,1,nb_S)
 
