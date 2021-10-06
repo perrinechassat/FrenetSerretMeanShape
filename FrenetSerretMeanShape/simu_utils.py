@@ -404,6 +404,7 @@ def pre_process_data_sphere(data, t_init, n_resamples, param_loc_poly_deriv, par
     if k==15:
         print("ECHEC")
         success = False
+    # print(param_TNB["h"])
 
     if scale_ind["ind"]==True:
         alpha = Q_LP.data_trajectory*X.L
