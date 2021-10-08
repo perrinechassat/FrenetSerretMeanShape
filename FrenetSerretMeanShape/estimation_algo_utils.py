@@ -583,12 +583,12 @@ def single_estimation(TrueFrenetPath, domain_range, nb_basis, x, tracking=False,
         align_results = collections.namedtuple('align_fPCA', ['convergence'])
         res = align_results(True)
 
-    plt.figure()
-    plt.plot(mS, mKappa)
-    plt.show()
-    plt.figure()
-    plt.plot(mS, mTau)
-    plt.show()
+    # plt.figure()
+    # plt.plot(mS, mKappa)
+    # plt.show()
+    # plt.figure()
+    # plt.plot(mS, mTau)
+    # plt.show()
 
     mean_kappa = np.mean(mKappa)
     # # print(mean_kappa)
