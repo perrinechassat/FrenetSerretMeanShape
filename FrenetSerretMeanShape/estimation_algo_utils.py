@@ -583,12 +583,12 @@ def single_estimation(TrueFrenetPath, domain_range, nb_basis, x, tracking=False,
         align_results = collections.namedtuple('align_fPCA', ['convergence'])
         res = align_results(True)
 
-    # plt.figure()
-    # plt.plot(mS, mKappa)
-    # plt.show()
-    # plt.figure()
-    # plt.plot(mS, mTau)
-    # plt.show()
+    plt.figure()
+    plt.plot(mS, mKappa)
+    plt.show()
+    plt.figure()
+    plt.plot(mS, mTau)
+    plt.show()
 
     mean_kappa = np.mean(mKappa)
     # # print(mean_kappa)
@@ -623,7 +623,8 @@ def single_estim_optimizatinon(TrueFrenetPath, domain_range, nb_basis, tracking=
         else:
             start = timer()
             Opt_fun = lambda x: objective_single_curve_single_estim(param_bayopt["n_splits"], TrueFrenetPath, domain_range, nb_basis, x, opt_tracking=tracking)
-            x = bayesian_optimisation(Opt_fun, param_bayopt["n_calls"], [param_bayopt["bounds_h"], param_bayopt["bounds_lcurv"], param_bayopt["bounds_ltors"]])
+            # x = bayesian_optimisation(Opt_fun, param_bayopt["n_calls"], [param_bayopt["bounds_h"], param_bayopt["bounds_lcurv"], param_bayopt["bounds_ltors"]])
+            x = bayesian_optimisation(Opt_fun, param_bayopt["n_calls"], [param_bayopt["bounds_h"], param_bayopt["bounds_ltors"]])
             duration = timer() - start
             print('Time for bayesian optimisation: ', duration)
         res_opt = x
