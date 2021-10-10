@@ -204,7 +204,7 @@ X, NewFrame_LP, NewFrame, k_geod_extrins, successLocPoly = pre_process_data_sphe
 Alpha_new, Alpha, Alpha_Q_LP, Alpha_Q_GS, Alpha_theta_extrins, Alpha_successLocPoly = pre_process_data(NewFrame_LP.data[:,0,:].transpose()/X.L, NewFrame_LP.grid_obs, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind={"ind":True,"val":1}, locpolyTNB_local=True)
 k_geod_theo = [np.dot(np.cross(NewFrame_LP.data[:,0,:].transpose()[i,:],NewFrame_LP.data[:,1,:].transpose()[i,:]), Alpha.derivatives[:,6:9][i,:]) for i in range(n_resamples)]
 
-param_bayopt = {"n_splits":  10, "n_calls" : 40, "bounds_h" : (0.02, 0.06), "bounds_lcurv" : (1e-4, 1), "bounds_ltors" : (1e-9, 1e-3)}
+param_bayopt = {"n_splits":  10, "n_calls" : 40, "bounds_h" : (0.02, 0.05), "bounds_lcurv" : (1e-4, 1), "bounds_ltors" : (1e-9, 1e-3)}
 
 print("Individual estimations...")
 
@@ -231,7 +231,7 @@ for n in range(n_curves):
 # for k in range(n_MC):
 #     array_SmoothPopFP0[k] = out[k][0]
 #     array_resOpt0[k] = out[k][1]
-param_bayopt = {"n_splits":  10, "n_calls" : 50, "bounds_h" : (0.02, 0.06), "bounds_lcurv" : (1e-4, 1), "bounds_ltors" : (1e-9, 1e-3)}
+param_bayopt = {"n_splits":  10, "n_calls" : 50, "bounds_h" : (0.02, 0.05), "bounds_lcurv" : (1e-4, 1), "bounds_ltors" : (1e-9, 1e-3)}
 
 print("Mean estimations Frenet Serret without alignment...")
 
