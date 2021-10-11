@@ -171,6 +171,19 @@ sigma_e = 0.02
 
 """--------------------------------------------------------- Frenet-Serret Mean -----------------------------------------------------------------"""
 
+filename = "SphereCurves_estimation_K_geod"+'_sigma_e_'+str(sigma_e)+'_n_MC_'+str(n_MC)+'_preprocess'
+
+fil = open(filename,"rb")
+dic = pickle.load(fil)
+fil.close()
+
+array_PopNewFrame_LP = dic["PopNewFrame_LP"]
+array_PopNewFrame = dic["PopNewFrame"]
+array_PopTraj = dic["PopTraj"]
+array_meanL = dic["mean_L"]
+list_echec = dic["list_echec"]
+
+
 """ Preprocessing """
 n_resamples = 100
 param_loc_poly_deriv = { "h_min" : 0.1, "h_max" : 0.2, "nb_h" : 50}
@@ -178,24 +191,24 @@ param_loc_poly_TNB = {"h" : 8, "p" : 3, "iflag": [1,1], "ibound" : 1}
 domain_range = (0,1)
 t = np.linspace(0,1,nb_S)
 
-res = Parallel(n_jobs=-1)(delayed(simul_Frame_sphere)(n_curves, nb_S, domain_range, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, {"ind":True,"val":1}, True, sigma_e)
-                            for i in range(n_MC))
-
-array_PopNewFrame_LP = np.empty((n_MC), dtype=object)
-array_PopNewFrame = np.empty((n_MC), dtype=object)
-array_PopTraj = np.empty((n_MC), dtype=object)
-array_kGeod_Extrins = np.empty((n_MC), dtype=object)
-array_meanL = np.empty((n_MC), dtype=object)
-list_echec = []
-
-for k in range(n_MC):
-    array_PopNewFrame_LP[k] = res[k][1]
-    array_PopNewFrame[k] = res[k][2]
-    array_PopTraj[k] = res[k][0]
-    array_kGeod_Extrins[k] = res[k][3]
-    array_meanL[k] = res[k][4]
-    if res[k][5]==False:
-        list_echec.append(k)
+# res = Parallel(n_jobs=-1)(delayed(simul_Frame_sphere)(n_curves, nb_S, domain_range, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, {"ind":True,"val":1}, True, sigma_e)
+#                             for i in range(n_MC))
+#
+# array_PopNewFrame_LP = np.empty((n_MC), dtype=object)
+# array_PopNewFrame = np.empty((n_MC), dtype=object)
+# array_PopTraj = np.empty((n_MC), dtype=object)
+# array_kGeod_Extrins = np.empty((n_MC), dtype=object)
+# array_meanL = np.empty((n_MC), dtype=object)
+# list_echec = []
+#
+# for k in range(n_MC):
+#     array_PopNewFrame_LP[k] = res[k][1]
+#     array_PopNewFrame[k] = res[k][2]
+#     array_PopTraj[k] = res[k][0]
+#     array_kGeod_Extrins[k] = res[k][3]
+#     array_meanL[k] = res[k][4]
+#     if res[k][5]==False:
+#         list_echec.append(k)
 
 print(list_echec)
 
@@ -207,17 +220,17 @@ Alpha_new, Alpha, Alpha_Q_LP, Alpha_Q_GS, Alpha_theta_extrins, Alpha_successLocP
 k_geod_theo = [np.dot(np.cross(NewFrame_LP.data[:,0,:].transpose()[i,:],NewFrame_LP.data[:,1,:].transpose()[i,:]), Alpha.derivatives[:,6:9][i,:]) for i in range(n_resamples)]
 
 
-filename = "SphereCurves_estimation_K_geod"+'_sigma_e_'+str(sigma_e)+'_n_MC_'+str(n_MC)+'_preprocess'
-dic = {"N_curves": n_curves, "param_model" : param_model, "n_MC" : n_MC, "kGeod_Extrins" : array_kGeod_Extrins,
-"param_loc_poly_deriv" : param_loc_poly_deriv, "param_loc_poly_TNB" : param_loc_poly_TNB,
-"PopNewFrame_LP" : array_PopNewFrame_LP, "PopNewFrame" : array_PopNewFrame, "PopTraj" : array_PopTraj, "mean_L" : array_meanL, "k_geod_theo" : k_geod_theo, "list_echec" : list_echec}
-
-
-if os.path.isfile(filename):
-    print("Le fichier ", filename, " existe déjà.")
-fil = open(filename,"xb")
-pickle.dump(dic,fil)
-fil.close()
+# filename = "SphereCurves_estimation_K_geod"+'_sigma_e_'+str(sigma_e)+'_n_MC_'+str(n_MC)+'_preprocess'
+# dic = {"N_curves": n_curves, "param_model" : param_model, "n_MC" : n_MC, "kGeod_Extrins" : array_kGeod_Extrins,
+# "param_loc_poly_deriv" : param_loc_poly_deriv, "param_loc_poly_TNB" : param_loc_poly_TNB,
+# "PopNewFrame_LP" : array_PopNewFrame_LP, "PopNewFrame" : array_PopNewFrame, "PopTraj" : array_PopTraj, "mean_L" : array_meanL, "k_geod_theo" : k_geod_theo, "list_echec" : list_echec}
+#
+#
+# if os.path.isfile(filename):
+#     print("Le fichier ", filename, " existe déjà.")
+# fil = open(filename,"xb")
+# pickle.dump(dic,fil)
+# fil.close()
 
 
 param_bayopt = {"n_splits":  10, "n_calls" : 30, "bounds_h" : (0.02, 0.05), "bounds_lcurv" : (1e-4, 1), "bounds_ltors" : (1e-9, 1e-3)}
