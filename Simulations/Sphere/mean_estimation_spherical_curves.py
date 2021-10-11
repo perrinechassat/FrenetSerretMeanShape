@@ -197,12 +197,28 @@ for k in range(n_MC):
     if res[k][5]==False:
         list_echec.append(k)
 
+print(list_echec)
+
 print("True mean...")
 
 Mu, X_tab, V_tab = generative_model_spherical_curves(n_curves, 20, nb_S, domain_range)
 X, NewFrame_LP, NewFrame, k_geod_extrins, successLocPoly = pre_process_data_sphere(Mu, t, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind={"ind":True,"val":1}, locpolyTNB_local=True)
 Alpha_new, Alpha, Alpha_Q_LP, Alpha_Q_GS, Alpha_theta_extrins, Alpha_successLocPoly = pre_process_data(NewFrame_LP.data[:,0,:].transpose()/X.L, NewFrame_LP.grid_obs, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind={"ind":True,"val":1}, locpolyTNB_local=True)
 k_geod_theo = [np.dot(np.cross(NewFrame_LP.data[:,0,:].transpose()[i,:],NewFrame_LP.data[:,1,:].transpose()[i,:]), Alpha.derivatives[:,6:9][i,:]) for i in range(n_resamples)]
+
+
+filename = "SphereCurves_estimation_K_geod"+'_sigma_e_'+str(sigma_e)+'_n_MC_'+str(n_MC)+'_preprocess'
+dic = {"N_curves": n_curves, "param_model" : param_model, "n_MC" : n_MC, "kGeod_Extrins" : array_kGeod_Extrins,
+"param_loc_poly_deriv" : param_loc_poly_deriv, "param_loc_poly_TNB" : param_loc_poly_TNB,
+"PopNewFrame_LP" : array_PopNewFrame_LP, "PopNewFrame" : array_PopNewFrame, "PopTraj" : array_PopTraj, "mean_L" : array_meanL, "k_geod_theo" : k_geod_theo, "list_echec" : list_echec}
+
+
+if os.path.isfile(filename):
+    print("Le fichier ", filename, " existe déjà.")
+fil = open(filename,"xb")
+pickle.dump(dic,fil)
+fil.close()
+
 
 param_bayopt = {"n_splits":  10, "n_calls" : 30, "bounds_h" : (0.02, 0.05), "bounds_lcurv" : (1e-4, 1), "bounds_ltors" : (1e-9, 1e-3)}
 
@@ -213,26 +229,26 @@ domain_range=(0.0,1.0)
 array_SmoothFPIndiv = np.empty((n_MC, n_curves), dtype=object)
 array_resOptIndiv = np.empty((n_MC, n_curves), dtype=object)
 
-for n in range(n_curves):
-
-    print('--------------------------------------------------------------------------------------- curves ',n,'--------------------------------------------------------------------------------')
-    out = Parallel(n_jobs=-1)(delayed(single_estim_optimizatinon)(array_PopNewFrame_LP[i].frenet_paths[n], domain_range, nb_knots, tracking=False, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, multicurves=False, alignment=False)
-                                for i in range(n_MC))
-    for i in range(n_MC):
-        array_SmoothFPIndiv[i,n] = out[i][0]
-        array_resOptIndiv[i,n] = out[i][1]
-
-filename = "SphereCurves_estimation_K_geod"+'_nCalls_'+str(param_bayopt["n_calls"])+'_sigma_e_'+str(sigma_e)+'_n_MC_'+str(n_MC)
-dic = {"N_curves": n_curves, "param_bayopt" : param_bayopt, "param_model" : param_model, "n_MC" : n_MC, "kGeod_Extrins" : array_kGeod_Extrins,
-"param_loc_poly_deriv" : param_loc_poly_deriv, "param_loc_poly_TNB" : param_loc_poly_TNB,
-"PopNewFrame_LP" : array_PopNewFrame_LP, "PopNewFrame" : array_PopNewFrame, "PopTraj" : array_PopTraj, "mean_L" : array_meanL, "k_geod_theo" : k_geod_theo, "SmoothFPIndiv" : array_SmoothFPIndiv, "resOptIndiv" : array_resOptIndiv, "list_echec" : list_echec}
-
-
-if os.path.isfile(filename):
-    print("Le fichier ", filename, " existe déjà.")
-fil = open(filename,"xb")
-pickle.dump(dic,fil)
-fil.close()
+# for n in range(n_curves):
+#
+#     print('--------------------------------------------------------------------------------------- curves ',n,'--------------------------------------------------------------------------------')
+#     out = Parallel(n_jobs=-1)(delayed(single_estim_optimizatinon)(array_PopNewFrame_LP[i].frenet_paths[n], domain_range, nb_knots, tracking=False, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, multicurves=False, alignment=False)
+#                                 for i in range(n_MC))
+#     for i in range(n_MC):
+#         array_SmoothFPIndiv[i,n] = out[i][0]
+#         array_resOptIndiv[i,n] = out[i][1]
+#
+# filename = "SphereCurves_estimation_K_geod"+'_nCalls_'+str(param_bayopt["n_calls"])+'_sigma_e_'+str(sigma_e)+'_n_MC_'+str(n_MC)
+# dic = {"N_curves": n_curves, "param_bayopt" : param_bayopt, "param_model" : param_model, "n_MC" : n_MC, "kGeod_Extrins" : array_kGeod_Extrins,
+# "param_loc_poly_deriv" : param_loc_poly_deriv, "param_loc_poly_TNB" : param_loc_poly_TNB,
+# "PopNewFrame_LP" : array_PopNewFrame_LP, "PopNewFrame" : array_PopNewFrame, "PopTraj" : array_PopTraj, "mean_L" : array_meanL, "k_geod_theo" : k_geod_theo, "SmoothFPIndiv" : array_SmoothFPIndiv, "resOptIndiv" : array_resOptIndiv, "list_echec" : list_echec}
+#
+#
+# if os.path.isfile(filename):
+#     print("Le fichier ", filename, " existe déjà.")
+# fil = open(filename,"xb")
+# pickle.dump(dic,fil)
+# fil.close()
 
 # print("Mean estimations Frenet Serret with alignment...")
 #
