@@ -251,11 +251,8 @@ for n in range(n_curves):
         array_SmoothFPIndiv[i,n] = out[i][0]
         array_resOptIndiv[i,n] = out[i][1]
 
-filename = "SphereCurves_estimation_K_geod"+'_nCalls_'+str(param_bayopt["n_calls"])+'_sigma_e_'+str(sigma_e)+'_n_MC_'+str(n_MC)
-dic = {"N_curves": n_curves, "param_bayopt" : param_bayopt, "param_model" : param_model, "n_MC" : n_MC, "kGeod_Extrins" : array_kGeod_Extrins,
-"param_loc_poly_deriv" : param_loc_poly_deriv, "param_loc_poly_TNB" : param_loc_poly_TNB,
-"PopNewFrame_LP" : array_PopNewFrame_LP, "PopNewFrame" : array_PopNewFrame, "PopTraj" : array_PopTraj, "mean_L" : array_meanL, "k_geod_theo" : k_geod_theo, "SmoothFPIndiv" : array_SmoothFPIndiv, "resOptIndiv" : array_resOptIndiv, "list_echec" : list_echec}
-
+filename = "SphereCurves_estimation_K_geod"+'_nCalls_'+str(param_bayopt["n_calls"])+'_sigma_e_'+str(sigma_e)+'_n_MC_'+str(n_MC)+'_single_estim'
+dic = {"SmoothFPIndiv" : array_SmoothFPIndiv, "resOptIndiv" : array_resOptIndiv}
 
 if os.path.isfile(filename):
     print("Le fichier ", filename, " existe déjà.")

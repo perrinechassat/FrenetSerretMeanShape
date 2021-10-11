@@ -736,7 +736,10 @@ def step_cross_val_on_Q_single_estim(domain_range, nb_basis, test_index, train_i
         temp_FrenetPath_Q0.frenet_serret_solve()
 
         dist = geodesic_dist(np.rollaxis(SingleFrenetPath.data[:,:,test_index], 2), np.rollaxis(temp_FrenetPath_Q0.data[:,:,test_index], 2))
-        return dist
+        if dist==None:
+            return 100
+        else:
+            return dist
     else:
         return 100
 
@@ -829,7 +832,7 @@ def objective_single_curve_single_estim(n_splits, SingleFrenetPath, domain_range
 
         dist = step_cross_val_on_Q_single_estim(domain_range, nb_basis, test_index, train_index, SingleFrenetPath, hyperparam)
 
-        if dist==None:
+        if dist==100:
             return 100
         else:
             if np.isnan(dist):
@@ -846,7 +849,6 @@ def objective_single_curve_single_estim(n_splits, SingleFrenetPath, domain_range
     # else:
     #     err = Parallel(n_jobs=10)(delayed(step_cross_val_on_Q)(curv_smoother, tors_smoother, test_index, np.concatenate((np.array([0]), train_index+1, np.array([len(SingleFrenetPath.grid_obs)-1]))), SingleFrenetPath, hyperparam)
     #         for train_index, test_index in kf.split(SingleFrenetPath.grid_obs[1:-1]))
-
 
     return np.mean(np.array(err))
 
