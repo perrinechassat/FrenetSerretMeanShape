@@ -571,11 +571,22 @@ def single_estimation(TrueFrenetPath, domain_range, nb_basis, x, tracking=False,
     if alignment==False:
         mKappa, mTau, mS, mOmega = compute_raw_curvatures_without_alignement(TrueFrenetPath, x[0], SmoothFrenetPath0)
         align_results = collections.namedtuple('align_fPCA', ['convergence'])
-        if np.abs(mKappa).any() > 1e8 or np.abs(mTau).any() > 1e8:
-            res = align_results(False)
-            print('extrem value')
-        else:
-            res = align_results(True)
+        res = align_results(True)
+        for i in range(len(mKappa)):
+            if mKappa[i]>1e+5:
+                res = align_results(False)
+                # print('extrem value')
+        for i in range(len(mTau)):
+            if mTau[i]>1e+5:
+                res = align_results(False)
+                # print('extrem value')
+        # print(res.convergence)
+        # print(mKappa)
+        # if np.abs(mKappa).any() > 1e8 or np.abs(mTau).any() > 1e8:
+        #     res = align_results(False)
+        #     print('extrem value')
+        # else:
+        #     res = align_results(True)
     elif alignment==True and gam["flag"]==False:
         mKappa, mTau, mS, mOmega, gam, res = compute_raw_curvatures_alignement_init(TrueFrenetPath, x[0], SmoothFrenetPath0, lam)
     else:
@@ -590,24 +601,27 @@ def single_estimation(TrueFrenetPath, domain_range, nb_basis, x, tracking=False,
     # plt.plot(mS, mTau)
     # plt.show()
 
-    mean_kappa = np.mean(mKappa)
-    # # print(mean_kappa)
-    Model_theta.curv.function = lambda s: s*0 + mean_kappa
-    theta_torsion = Model_theta.tors.smoothing(mS, mTau, mOmega, x[1])
+    if res.convergence==True:
+        mean_kappa = np.mean(mKappa)
+        # # print(mean_kappa)
+        Model_theta.curv.function = lambda s: s*0 + mean_kappa
+        theta_torsion = Model_theta.tors.smoothing(mS, mTau, mOmega, x[1])
 
-    # theta_curv = Model_theta.curv.smoothing(mS, mKappa, mOmega, x[1])
-    # theta_torsion = Model_theta.tors.smoothing(mS, mTau, mOmega, x[2])
-    # plt.figure()
-    # plt.plot(mS, Model_theta.curv.function(mS))
-    # plt.show()
-    # plt.figure()
-    # plt.plot(mS, Model_theta.tors.function(mS))
-    # plt.show()
+        # theta_curv = Model_theta.curv.smoothing(mS, mKappa, mOmega, x[1])
+        # theta_torsion = Model_theta.tors.smoothing(mS, mTau, mOmega, x[2])
+        # plt.figure()
+        # plt.plot(mS, Model_theta.curv.function(mS))
+        # plt.show()
+        # plt.figure()
+        # plt.plot(mS, Model_theta.tors.function(mS))
+        # plt.show()
 
-    SmoothPopulationFrenet_final = SmoothFrenetPath0
-    SmoothPopulationFrenet_final.set_estimate_theta(Model_theta.curv.function, Model_theta.tors.function)
-    if N_samples!=1 and alignment==True:
-        SmoothPopulationFrenet_final.set_gam_functions(gam)
+        SmoothPopulationFrenet_final = SmoothFrenetPath0
+        SmoothPopulationFrenet_final.set_estimate_theta(Model_theta.curv.function, Model_theta.tors.function)
+        if N_samples!=1 and alignment==True:
+            SmoothPopulationFrenet_final.set_gam_functions(gam)
+    else:
+        SmoothPopulationFrenet_final = SmoothFrenetPath0
 
     # print('fin single estim')
 
