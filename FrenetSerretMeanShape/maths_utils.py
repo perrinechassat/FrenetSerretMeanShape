@@ -197,7 +197,7 @@ def weighted_mean_vect(f, weights):
                 mfw[i,j] = 0
     return mfw
 
-@with_timeout(10)
+@with_timeout(5)
 def geodesic_dist(data1,data2):
     """
     Compute the geodesic distance between two rotation matrices
