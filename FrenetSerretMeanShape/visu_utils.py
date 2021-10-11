@@ -588,3 +588,65 @@ def plot_curvatures_grey_bis(s, kappa, tau, kappa_mean, tau_mean, names_mean, na
     fig.update_xaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
     fig.update_yaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
     fig.show()
+
+
+
+def plot_3D_res_simu_method(features, X_mean, title, color):
+    fig = go.Figure(layout=layout)
+    for i, feat in enumerate(features):
+        feat = np.array(feat)
+        fig.add_trace(
+            go.Scatter3d(
+                x=feat[:,0],
+                y=feat[:,1],
+                z=feat[:,2],
+                mode='lines',
+                opacity=0.6,
+                line=dict(width=1, color=color),
+                showlegend=False
+            )
+        )
+    feat = np.array(X_mean)
+    fig.add_trace(
+        go.Scatter3d(
+            x=feat[:,0],
+            y=feat[:,1],
+            z=feat[:,2],
+            mode='lines',
+            name="True Mean",
+            line=dict(
+        width=6,
+        color=dict_color["True Mean"],
+        )
+        )
+    )
+    fig.update_layout(title=title,
+                    legend=dict(orientation="h",yanchor="top",y=1.2,xanchor="right", x=1),
+                    scene = dict(
+                    xaxis = dict(
+                            backgroundcolor="rgb(0, 0, 0)",
+                            gridcolor="grey",
+                            gridwidth=0.8,
+                            zeroline=False,
+                            showbackground=False,),
+                    yaxis = dict(
+                            backgroundcolor="rgb(0, 0, 0)",
+                            gridcolor="grey",
+                            gridwidth=0.8,
+                            zeroline=False,
+                            showbackground=False,),
+                    zaxis = dict(
+                            backgroundcolor="rgb(0, 0, 0)",
+                            gridcolor="grey",
+                            gridwidth=0.8,
+                            zeroline=False,
+                            showbackground=False,),),
+                    )
+    fig.show()
+
+
+def plot_3D_res_simu(features_FS, features_SRVF, features_Arithm, X_mean):
+
+    plot_3D_res_simu_method(features_FS, X_mean, "Results of estimation with Frenet Serret Method", dict_color["FS Mean"])
+    plot_3D_res_simu_method(features_SRVF, X_mean, "Results of estimation with SRVF Method", dict_color["SRVF Mean"])
+    plot_3D_res_simu_method(features_Arithm, X_mean, "Results of estimation with Arithmetic Method", dict_color["Arithmetic Mean"])

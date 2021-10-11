@@ -1003,7 +1003,7 @@ def objective_multiple_curve_single_estim(n_splits, PopFrenetPath, domain_range,
         else:
             dist = step_cross_val_on_Q_multiple_curves_single_estim(domain_range, nb_basis, test_index, train_index, PopFrenetPath,  hyperparam, alignment, lam)
 
-        if dist==None:
+        if dist==100:
             return 100
         else:
             if np.isnan(dist):
