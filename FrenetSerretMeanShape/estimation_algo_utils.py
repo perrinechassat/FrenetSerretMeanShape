@@ -633,7 +633,8 @@ def single_estim_optimizatinon(TrueFrenetPath, domain_range, nb_basis, tracking=
     if opt==True:
         if multicurves==True:
             Opt_fun = lambda x: objective_multiple_curve_single_estim(param_bayopt["n_splits"], TrueFrenetPath, domain_range, nb_basis, x, alignment, lam)
-            x = bayesian_optimisation(Opt_fun, param_bayopt["n_calls"], [param_bayopt["bounds_h"], param_bayopt["bounds_lcurv"], param_bayopt["bounds_ltors"]])
+            # x = bayesian_optimisation(Opt_fun, param_bayopt["n_calls"], [param_bayopt["bounds_h"], param_bayopt["bounds_lcurv"], param_bayopt["bounds_ltors"]])
+            x = bayesian_optimisation(Opt_fun, param_bayopt["n_calls"], [param_bayopt["bounds_h"], param_bayopt["bounds_ltors"]])
             print('End bayesian optimisation')
         else:
             start = timer()
@@ -828,13 +829,16 @@ def objective_single_curve_single_estim(n_splits, SingleFrenetPath, domain_range
 
         dist = step_cross_val_on_Q_single_estim(domain_range, nb_basis, test_index, train_index, SingleFrenetPath, hyperparam)
 
-        if np.isnan(dist):
-            print('nan value', k)
+        if dist==None:
             return 100
         else:
-            err.append(dist)
+            if np.isnan(dist):
+                print('nan value', k)
+                return 100
+            else:
+                err.append(dist)
 
-        k += 1
+            k += 1
 
     # if opt_tracking==True:
     #     err = Parallel(n_jobs=10)(delayed(step_cross_val_on_Q_tracking)(curv_smoother, tors_smoother, test_index+1,  np.concatenate((np.array([0]), train_index+1, np.array([len(SingleFrenetPath.grid_obs)-1]))), SingleFrenetPath, hyperparam)
@@ -933,8 +937,6 @@ def objective_multiple_curve(n_splits, PopFrenetPath, curv_smoother, tors_smooth
     return np.mean(np.array(err))
 
 
-
-
 def step_cross_val_on_Q_multiple_curves_single_estim(domain_range, nb_basis, test_index, train_index, PopFrenetPath,  hyperparam, alignment, lam, gam={"flag" : False, "value" : None}):
     """
     Step of cross validation in the case of estimation on multiple curves. The error is computed here on Q.
@@ -961,6 +963,8 @@ def step_cross_val_on_Q_multiple_curves_single_estim(domain_range, nb_basis, tes
         dist = np.zeros(n_curves)
         for i in range(n_curves):
             dist[i] = geodesic_dist(np.rollaxis(PopFrenetPath.data[i][:,:,test_index], 2), np.rollaxis(temp_FrenetPath_Q0.data[:,:,test_index], 2))
+            if dist[i]==None:
+                return 100
 
         return dist.mean()
     else:
@@ -999,13 +1003,16 @@ def objective_multiple_curve_single_estim(n_splits, PopFrenetPath, domain_range,
         else:
             dist = step_cross_val_on_Q_multiple_curves_single_estim(domain_range, nb_basis, test_index, train_index, PopFrenetPath,  hyperparam, alignment, lam)
 
-        if np.isnan(dist):
-            print('nan value', k)
-            # err.append(100)
+        if dist==None:
             return 100
         else:
-            err.append(dist)
-        k += 1
+            if np.isnan(dist):
+                print('nan value', k)
+                # err.append(100)
+                return 100
+            else:
+                err.append(dist)
+            k += 1
 
     # if alignment==True:
     #     err = Parallel(n_jobs=10)(delayed(step_cross_val_on_Q_multiple_curves)(curv_smoother, tors_smoother, test_index, train_index, PopFrenetPath,  hyperparam, alignment, lam, gam)

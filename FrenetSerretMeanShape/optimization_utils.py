@@ -59,4 +59,3 @@ def bayesian_optimisation(func, n_call, hyperparam_bounds, plot=True):
         # figure.show()
     print('the optimal hyperparameters selected are: ', x)
     return x
-

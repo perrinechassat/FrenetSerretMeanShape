@@ -535,7 +535,7 @@ def plot_3D_means_cond_raket(features, name, path):
 
 
 
-def plot_curvatures_grey_bis(s, kappa, tau, kappa_mean, tau_mean, names_mean, name1, path=""):
+def plot_curvatures_grey_bis(s, kappa, tau, kappa_mean, tau_mean, names_mean, name1, path="", title=""):
     N = len(kappa)
     n = len(kappa_mean)
 
@@ -556,7 +556,10 @@ def plot_curvatures_grey_bis(s, kappa, tau, kappa_mean, tau_mean, names_mean, na
         else:
             fig.add_trace(go.Scatter(x=s, y=kappa_mean[i], mode='lines', name=names_mean[i], line=dict(width=3, dash='dashdot', color=dict_color[names_mean[i]])))
         # fig.add_trace(go.Scatter(x=s, y=kappa_mean[i], mode='lines', name=name[i], line=dict(width=3, color=dict_color[names_mean[i]])))
-    fig.update_layout(legend=dict(orientation="h",yanchor="top",y=1.15,xanchor="right", x=1), xaxis_title='s', yaxis_title='curvature')
+    if title=="":
+        fig.update_layout(legend=dict(orientation="h",yanchor="top",y=1.15,xanchor="right", x=1), xaxis_title='s', yaxis_title='curvature')
+    else:
+        fig.update_layout(title=title, legend=dict(orientation="h",yanchor="top",y=1.15,xanchor="right", x=1), xaxis_title='s', yaxis_title='curvature')
     if path!="":
         fig.write_html(path+"kappa.html")
     fig.update_xaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
@@ -576,7 +579,10 @@ def plot_curvatures_grey_bis(s, kappa, tau, kappa_mean, tau_mean, names_mean, na
         else:
             fig.add_trace(go.Scatter(x=s, y=tau_mean[i], mode='lines', name=names_mean[i], line=dict(width=3, dash='dashdot', color=dict_color[names_mean[i]])))
             # fig.add_trace(go.Scatter(x=s, y=tau_mean[i], mode='lines', name=name[i], line=dict(width=3, color=dict_color[names_mean[i]])))
-    fig.update_layout(legend=dict(orientation="h",yanchor="top",y=1.15,xanchor="right", x=1), xaxis_title='s', yaxis_title='torsion')
+    if title=="":
+        fig.update_layout(legend=dict(orientation="h",yanchor="top",y=1.15,xanchor="right", x=1), xaxis_title='s', yaxis_title='torsion')
+    else:
+        fig.update_layout(title=title, legend=dict(orientation="h",yanchor="top",y=1.15,xanchor="right", x=1), xaxis_title='s', yaxis_title='torsion')
     if path!="":
         fig.write_html(path+"tors.html")
     fig.update_xaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
