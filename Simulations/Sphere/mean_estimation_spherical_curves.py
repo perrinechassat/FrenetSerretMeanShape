@@ -197,7 +197,7 @@ t = np.linspace(0,1,nb_S)
 # array_PopNewFrame_LP = np.empty((n_MC), dtype=object)
 # array_PopNewFrame = np.empty((n_MC), dtype=object)
 # array_PopTraj = np.empty((n_MC), dtype=object)
-# array_kGeod_Extrins = np.empty((n_MC), dtype=object)
+array_kGeod_Extrins = np.empty((n_MC), dtype=object)
 # array_meanL = np.empty((n_MC), dtype=object)
 # list_echec = []
 #
@@ -242,26 +242,26 @@ domain_range=(0.0,1.0)
 array_SmoothFPIndiv = np.empty((n_MC, n_curves), dtype=object)
 array_resOptIndiv = np.empty((n_MC, n_curves), dtype=object)
 
-# for n in range(n_curves):
-#
-#     print('--------------------------------------------------------------------------------------- curves ',n,'--------------------------------------------------------------------------------')
-#     out = Parallel(n_jobs=-1)(delayed(single_estim_optimizatinon)(array_PopNewFrame_LP[i].frenet_paths[n], domain_range, nb_knots, tracking=False, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, multicurves=False, alignment=False)
-#                                 for i in range(n_MC))
-#     for i in range(n_MC):
-#         array_SmoothFPIndiv[i,n] = out[i][0]
-#         array_resOptIndiv[i,n] = out[i][1]
-#
-# filename = "SphereCurves_estimation_K_geod"+'_nCalls_'+str(param_bayopt["n_calls"])+'_sigma_e_'+str(sigma_e)+'_n_MC_'+str(n_MC)
-# dic = {"N_curves": n_curves, "param_bayopt" : param_bayopt, "param_model" : param_model, "n_MC" : n_MC, "kGeod_Extrins" : array_kGeod_Extrins,
-# "param_loc_poly_deriv" : param_loc_poly_deriv, "param_loc_poly_TNB" : param_loc_poly_TNB,
-# "PopNewFrame_LP" : array_PopNewFrame_LP, "PopNewFrame" : array_PopNewFrame, "PopTraj" : array_PopTraj, "mean_L" : array_meanL, "k_geod_theo" : k_geod_theo, "SmoothFPIndiv" : array_SmoothFPIndiv, "resOptIndiv" : array_resOptIndiv, "list_echec" : list_echec}
-#
-#
-# if os.path.isfile(filename):
-#     print("Le fichier ", filename, " existe déjà.")
-# fil = open(filename,"xb")
-# pickle.dump(dic,fil)
-# fil.close()
+for n in range(n_curves):
+
+    print('--------------------------------------------------------------------------------------- curves ',n,'--------------------------------------------------------------------------------')
+    out = Parallel(n_jobs=-1)(delayed(single_estim_optimizatinon)(array_PopNewFrame_LP[i].frenet_paths[n], domain_range, nb_knots, tracking=False, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, multicurves=False, alignment=False)
+                                for i in range(n_MC))
+    for i in range(n_MC):
+        array_SmoothFPIndiv[i,n] = out[i][0]
+        array_resOptIndiv[i,n] = out[i][1]
+
+filename = "SphereCurves_estimation_K_geod"+'_nCalls_'+str(param_bayopt["n_calls"])+'_sigma_e_'+str(sigma_e)+'_n_MC_'+str(n_MC)
+dic = {"N_curves": n_curves, "param_bayopt" : param_bayopt, "param_model" : param_model, "n_MC" : n_MC, "kGeod_Extrins" : array_kGeod_Extrins,
+"param_loc_poly_deriv" : param_loc_poly_deriv, "param_loc_poly_TNB" : param_loc_poly_TNB,
+"PopNewFrame_LP" : array_PopNewFrame_LP, "PopNewFrame" : array_PopNewFrame, "PopTraj" : array_PopTraj, "mean_L" : array_meanL, "k_geod_theo" : k_geod_theo, "SmoothFPIndiv" : array_SmoothFPIndiv, "resOptIndiv" : array_resOptIndiv, "list_echec" : list_echec}
+
+
+if os.path.isfile(filename):
+    print("Le fichier ", filename, " existe déjà.")
+fil = open(filename,"xb")
+pickle.dump(dic,fil)
+fil.close()
 
 # print("Mean estimations Frenet Serret with alignment...")
 #
@@ -273,6 +273,7 @@ array_resOptIndiv = np.empty((n_MC, n_curves), dtype=object)
 # for k in range(n_MC):
 #     array_SmoothPopFP0[k] = out[k][0]
 #     array_resOpt0[k] = out[k][1]
+
 param_bayopt = {"n_splits":  10, "n_calls" : 50, "bounds_h" : (0.02, 0.05), "bounds_lcurv" : (1e-4, 1), "bounds_ltors" : (1e-9, 1e-3)}
 
 print("Mean estimations Frenet Serret without alignment...")
@@ -310,7 +311,7 @@ print('Saving the data...')
 filename = "SphereCurves_estimation_K_geod"+'_nCalls_'+str(param_bayopt["n_calls"])+'_sigma_e_'+str(sigma_e)+'_n_MC_'+str(n_MC)
 dic = {"N_curves": n_curves, "param_bayopt" : param_bayopt, "param_model" : param_model, "n_MC" : n_MC,
 # "resOpt0" : array_resOpt0, "SmoothPopFP0" : array_SmoothPopFP0,
-"resOpt1" : array_resOpt1, "SmoothPopFP1" : array_SmoothPopFP1, "kGeod_Extrins" : array_kGeod_Extrins,
+"resOpt1" : array_resOpt1, "SmoothPopFP1" : array_SmoothPopFP1,
 "param_loc_poly_deriv" : param_loc_poly_deriv, "param_loc_poly_TNB" : param_loc_poly_TNB,
 "PopNewFrame_LP" : array_PopNewFrame_LP, "PopNewFrame" : array_PopNewFrame, "PopTraj" : array_PopTraj, "SRVF_mean" :array_SRVF_mean,
 "SRVF_gam" :array_SRVF_gam, "Arithmetic_mean" : array_Arithmetic_mean, "mean_L" : array_meanL, "k_geod_theo" : k_geod_theo, "SmoothFPIndiv" : array_SmoothFPIndiv, "resOptIndiv" : array_resOptIndiv, "list_echec" : list_echec}
