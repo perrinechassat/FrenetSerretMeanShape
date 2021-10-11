@@ -23,6 +23,25 @@ from skfda.representation.grid import FDataGrid
 from skfda.preprocessing.registration import ElasticRegistration, ShiftRegistration, landmark_registration_warping
 from skfda.preprocessing.registration.elastic import elastic_mean
 from skfda.misc import metrics
+import time
+import multiprocessing
+import functools
+
+np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
+
+
+def with_timeout(timeout):
+    def decorator(decorated):
+        @functools.wraps(decorated)
+        def inner(*args, **kwargs):
+            pool = multiprocessing.pool.ThreadPool(1)
+            async_result = pool.apply_async(decorated, args, kwargs)
+            try:
+                return async_result.get(timeout)
+            except multiprocessing.TimeoutError:
+                return
+        return inner
+    return decorator
 
 """ Set of mathematical functions useful """
 
