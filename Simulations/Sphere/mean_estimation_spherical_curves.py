@@ -161,13 +161,13 @@ np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 n_curves = 25
 N = n_curves
 nb_S = 100
-n_MC = 5
+n_MC = 90
 hyperparam = [0.015, 0.01, 0.01]
 param_bayopt = {"n_splits":  10, "n_calls" : 50, "bounds_h" : (0.02, 0.06), "bounds_lcurv" : (1e-4, 1), "bounds_ltors" : (1e-9, 1e-3)}
 nb_knots = 30
 param_model = {"nb_basis" : 30, "domain_range" : (0,1)}
 smoothing = {"flag": False, "method": "karcher_mean"}
-sigma_e = 0.03
+sigma_e = 0.02
 
 """--------------------------------------------------------- Frenet-Serret Mean -----------------------------------------------------------------"""
 
