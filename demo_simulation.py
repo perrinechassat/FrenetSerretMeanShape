@@ -77,7 +77,7 @@ array_SmoothThetaFPIndiv_TNB = np.empty((n_MC, n_curves), dtype=object)
 
 for n in range(n_curves):
 
-    out = Parallel(n_jobs=-1)(delayed(global_estimation_2)(array_TruePopFP_Noisy[i].frenet_paths[n], param_model, smoothing, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, alignment=False)
+    out = Parallel(n_jobs=-1)(delayed(global_estimation)(array_TruePopFP_Noisy[i].frenet_paths[n], param_model, smoothing, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, alignment=False)
                                 for i in range(n_MC))
     for i in range(n_MC):
         array_SmoothFPIndiv_TNB[i,n] = out[i][0]
@@ -94,7 +94,7 @@ array_SmoothPopFP_TNB = np.empty((n_MC), dtype=object)
 array_SmoothThetaFP_TNB = np.empty((n_MC), dtype=object)
 array_resOpt_TNB = np.empty((n_MC), dtype=object)
 
-out = Parallel(n_jobs=-1)(delayed(global_estimation_2)(array_TruePopFP_Noisy[i], param_model, smoothing, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, alignment=True, lam=100)
+out = Parallel(n_jobs=-1)(delayed(global_estimation)(array_TruePopFP_Noisy[i], param_model, smoothing, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, alignment=True, lam=100)
                             for i in range(n_MC))
 
 for k in range(n_MC):
@@ -131,7 +131,7 @@ array_SmoothThetaFPIndiv_X = np.empty((n_MC, n_curves), dtype=object)
 
 for n in range(n_curves):
 
-    out = Parallel(n_jobs=-1)(delayed(global_estimation_2)(array_PopFP_LP[i].frenet_paths[n], param_model, smoothing, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, alignment=False)
+    out = Parallel(n_jobs=-1)(delayed(global_estimation)(array_PopFP_LP[i].frenet_paths[n], param_model, smoothing, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, alignment=False)
                                 for i in range(n_MC))
     for i in range(n_MC):
         array_SmoothFPIndiv_X[i,n] = out[i][0]
@@ -148,7 +148,7 @@ array_SmoothPopFP_X = np.empty((n_MC), dtype=object)
 array_SmoothThetaFP_X = np.empty((n_MC), dtype=object)
 array_resOpt_X = np.empty((n_MC), dtype=object)
 
-out = Parallel(n_jobs=-1)(delayed(global_estimation_2)(array_PopFP_LP[i],  param_model, smoothing, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, alignment=True, lam=100)
+out = Parallel(n_jobs=-1)(delayed(global_estimation)(array_PopFP_LP[i],  param_model, smoothing, hyperparam=hyperparam, opt=True, param_bayopt=param_bayopt, alignment=True, lam=100)
                             for i in range(n_MC))
 
 for k in range(n_MC):

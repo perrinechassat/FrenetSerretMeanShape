@@ -309,7 +309,7 @@ def estimation(PopFrenetPath, Model, x, smoothing={"flag":False, "method":"karch
     return SmoothPopFrenetPath, ind_conv
 
 
-def global_estimation_2(PopFrenetPath, param_model, smoothing={"flag":False, "method":"karcher_mean"}, hyperparam=None, opt=False, param_bayopt=None, alignment=False, lam=0.0):
+def global_estimation(PopFrenetPath, param_model, smoothing={"flag":False, "method":"karcher_mean"}, hyperparam=None, opt=False, param_bayopt=None, alignment=False, lam=0.0):
 
     N_samples = PopFrenetPath.nb_samples
     curv_smoother = BasisSmoother(domain_range=param_model["domain_range"], nb_basis=param_model["nb_basis"])
