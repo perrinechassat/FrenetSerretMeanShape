@@ -1,9 +1,12 @@
 import sys
+import os.path
+sys.path.insert(1, '../Simulations/Sphere')
 from frenet_path import *
 from trajectory import *
 from model_curvatures import *
 from maths_utils import *
-from estimation_algo_utils import *
+from generative_model_spherical_curves import *
+# from estimation_algo_utils import *
 from optimization_utils import opti_loc_poly_traj
 
 import numpy as np
@@ -216,7 +219,7 @@ def pre_process_data_fast(data, t_init, n_resamples, param_loc_poly_deriv, param
     X = Trajectory(data, t_init)
     # Estimation des dérivées et de s(t)
     h_opt = opti_loc_poly_traj(X.data, X.t, param_loc_poly_deriv['h_min'], param_loc_poly_deriv['h_max'], param_loc_poly_deriv['nb_h'])
-    print(h_opt)
+    # print(h_opt)
     X.loc_poly_estimation(X.t, 5, h_opt)
     X.compute_S(scale=scale_ind["ind"])
 
@@ -243,6 +246,7 @@ def add_noise_X_and_preprocess(X0, sigma, t, n_resamples, param_loc_poly_deriv, 
     success = False
     k = 0
     param_TNB = param_loc_poly_TNB.copy()
+    echec_flag = False
     while success==False and k<10:
         # print(param_loc_poly_TNB["h"])
         if sigma!=0:
@@ -258,7 +262,8 @@ def add_noise_X_and_preprocess(X0, sigma, t, n_resamples, param_loc_poly_deriv, 
         k+=1
     if k==10:
         print("ECHEC")
-    return X, Q_LP, Q_GS, theta_extrins
+        echec_flag = True
+    return X, Q_LP, Q_GS, theta_extrins, echec_flag
 
 
 def add_noise_X_and_preprocess_MultipleCurves(PopFrenetPath, sigma, t, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind={"ind":True,"val":1}, locpolyTNB_local=False):
@@ -271,8 +276,10 @@ def add_noise_X_and_preprocess_MultipleCurves(PopFrenetPath, sigma, t, n_resampl
     array_ThetaExtrins = []
     for i in range(N_samples):
         # print(i)
-        X, Q_LP, Q_GS, theta_extrins = add_noise_X_and_preprocess(PopFrenetPath.frenet_paths[i].data_trajectory, sigma, t, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind, locpolyTNB_local)
+        X, Q_LP, Q_GS, theta_extrins, echec_flag = add_noise_X_and_preprocess(PopFrenetPath.frenet_paths[i].data_trajectory, sigma, t, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind, locpolyTNB_local)
         # array_Traj[i], array_ThetaExtrins[i] = X, theta_extrins
+        if echec_flag==True:
+            print('echec')
         array_Traj.append(X)
         PopQ_GS.append(Q_GS)
         PopQ_LP.append(Q_LP)
@@ -337,7 +344,7 @@ def pre_process_data(data, t_init, n_resamples, param_loc_poly_deriv, param_loc_
     X = Trajectory(data, t_init)
     # Estimation des dérivées et de s(t)
     h_opt = opti_loc_poly_traj(X.data, X.t, param_loc_poly_deriv['h_min'], param_loc_poly_deriv['h_max'], param_loc_poly_deriv['nb_h'])
-    print(h_opt)
+    # print(h_opt)
     X.loc_poly_estimation(X.t, 5, h_opt)
     X.compute_S(scale=scale_ind["ind"])
 
@@ -354,6 +361,110 @@ def pre_process_data(data, t_init, n_resamples, param_loc_poly_deriv, param_loc_
 
     return X_new, X, Q_LP, Q_GS, theta_extrins, successLocPoly
 
+
+
+def pre_process_data_sphere(data, t_init, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind={"ind":True,"val":1}, locpolyTNB_local=True):
+
+    X = Trajectory(data, t_init)
+    h_opt = opti_loc_poly_traj(X.data, X.t, param_loc_poly_deriv['h_min'], param_loc_poly_deriv['h_max'], param_loc_poly_deriv['nb_h'])
+    X.loc_poly_estimation(X.t, 5, h_opt)
+    X.compute_S(scale=scale_ind["ind"])
+
+    if scale_ind["ind"]==True:
+        new_grid_S = np.linspace(0,1,n_resamples)
+    else:
+        new_grid_S = np.linspace(0,X.S(X.t)[-1],n_resamples)
+
+    k_geod_extrins = np.zeros(len(t_init))
+    dX1 = X.dX1(t_init)/X.L
+    dX2 = X.dX2(t_init)/X.L
+    gamma = np.cross(X.derivatives[:,0:3]*X.L, dX1)
+    for i in range(len(t_init)):
+        k_geod_extrins[i] = np.inner(dX2[i],gamma[i])
+
+    Q = np.zeros((3, 3, len(t_init)))
+    Q[:,0,:] = np.transpose(X.derivatives[:,0:3]*X.L)
+    Q[:,1,:] = dX1.transpose()
+    Q[:,2,:] = gamma.transpose()
+    NewFrame = FrenetPath(X.S(t_init), X.S(t_init), data=Q)
+
+    """ estimation TNB local poly """
+    success = False
+    k = 0
+    param_TNB = param_loc_poly_TNB.copy()
+    while success==False and k<15:
+        # print(param_TNB['h'])
+        Q_LP, vkappa, Param, Param0, vparam, success = X.TNB_locPolyReg(grid_in=X.S(X.t), grid_out=new_grid_S, h=param_TNB['h'], p=param_TNB['p'], iflag=param_TNB['iflag'],
+         ibound=param_loc_poly_TNB['ibound'], local=locpolyTNB_local)
+        if locpolyTNB_local==False:
+            param_TNB["h"]+=0.01
+        else:
+            param_TNB["h"]+=2
+        k+=1
+    if k==15:
+        print("ECHEC")
+        success = False
+    # print(param_TNB["h"])
+
+    if scale_ind["ind"]==True:
+        alpha = Q_LP.data_trajectory*X.L
+    else:
+        alpha = Q_LP.data_trajectory
+    beta = Q_LP.data[:,0,:]
+    gamma = np.transpose(np.cross(alpha, np.transpose(beta)))
+    Q = np.zeros((3, 3, n_resamples))
+    Q[:,0,:] = np.transpose(alpha)
+    Q[:,1,:] = beta
+    Q[:,2,:] = gamma
+    NewFrame_LP = FrenetPath(new_grid_S, new_grid_S, data=Q)
+
+    return X, NewFrame_LP, NewFrame, k_geod_extrins, success
+
+
+def simul_Frame_sphere(N, nb_S, domain_range, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind, locpolyTNB_local, sigma):
+    """ Generate data """
+    Mu, X_tab, V_tab = generative_model_spherical_curves(N, 20, nb_S, domain_range)
+    t = np.linspace(domain_range[0],domain_range[1],nb_S)
+
+    array_Traj =  []
+    Pop_NewFrame_LP = []
+    Pop_NewFrame = []
+    K_geod_Extrins = []
+    list_L = []
+
+    echec_flag = True
+    for i in range(N):
+        noise = np.random.randn(X_tab[:,:,i].shape[0], X_tab[:,:,i].shape[1])
+        data_X_noisy = np.add(X_tab[:,:,i], sigma*noise)
+        X, NewFrame_LP, NewFrame, k_geod_extrins, successLocPoly = pre_process_data_sphere(data_X_noisy, t, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind, locpolyTNB_local)
+        if successLocPoly==False:
+            echec_flag = False
+        array_Traj.append(X)
+        Pop_NewFrame_LP.append(NewFrame_LP)
+        Pop_NewFrame.append(NewFrame)
+        K_geod_Extrins.append(k_geod_extrins)
+        list_L.append(X.L)
+
+    mean_L = np.mean(list_L)
+    return array_Traj, PopulationFrenetPath(Pop_NewFrame_LP), PopulationFrenetPath(Pop_NewFrame), K_geod_Extrins, mean_L, echec_flag
+
+
+def preprocess_raket(X0, t, n_resamples, param_loc_poly_deriv, param_loc_poly_TNB, scale_ind={"ind":True,"val":1}, locpolyTNB_local=False):
+    success = False
+    k = 0
+    param_TNB = param_loc_poly_TNB.copy()
+    echec_flag = False
+    while success==False and k<10:
+        X_new, X, Q_LP, Q_GS, theta_extrins, success = pre_process_data(X0, t, n_resamples, param_loc_poly_deriv, param_TNB, scale_ind, locpolyTNB_local)
+        if locpolyTNB_local==False:
+            param_TNB["h"]+=0.01
+        else:
+            param_TNB["h"]+=2
+        k+=1
+    if k==10:
+        print("ECHEC")
+        echec_flag = True
+    return X_new, X, Q_LP, echec_flag
 
 """Warpings functions"""
 

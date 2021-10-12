@@ -97,6 +97,7 @@ class Trajectory:
             pr_model.fit(T_poly, self.data, W)
             B = pr_model.coef_
             deriv_estim[i,:] = B.reshape(1,(deg+1)*self.dim, order='F')
+        self.derivatives = deriv_estim
         def dx1(t): return interpolate.griddata(self.t, deriv_estim[:,3:6], t, method='cubic')
         self.dX1 = dx1
         def dx2(t): return interpolate.griddata(self.t, deriv_estim[:,6:9], t, method='cubic')
@@ -306,7 +307,7 @@ class Trajectory:
 
         success = True
         if len(list_error) > 0:
-            print(list_error)
+            # print(list_error)
             success = False
 
         return Q_fin, vkappa, Param, Param0, vparam, success

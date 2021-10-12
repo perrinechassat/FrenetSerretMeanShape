@@ -19,8 +19,38 @@ import geomstats.backend as gs
 from numba.experimental import jitclass
 from numba import int32, float64, cuda, float32, objmode, njit
 import torch
+from skfda.representation.grid import FDataGrid
+from skfda.preprocessing.registration import ElasticRegistration, ShiftRegistration, landmark_registration_warping
+from skfda.preprocessing.registration.elastic import elastic_mean
+from skfda.misc import metrics
+import time
+import multiprocessing
+import functools
+
+np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
+
+
+def with_timeout(timeout):
+    def decorator(decorated):
+        @functools.wraps(decorated)
+        def inner(*args, **kwargs):
+            pool = multiprocessing.pool.ThreadPool(1)
+            async_result = pool.apply_async(decorated, args, kwargs)
+            try:
+                return async_result.get(timeout)
+            except multiprocessing.TimeoutError:
+                return
+        return inner
+    return decorator
 
 """ Set of mathematical functions useful """
+
+def exp_matrix(A):
+    alpha = np.linalg.norm(A,'fro')/np.sqrt(2)
+    if alpha>0:
+        return expm(A)
+    else:
+        return np.eye(len(A))
 
 @njit
 def my_log_M3(R):
@@ -167,6 +197,7 @@ def weighted_mean_vect(f, weights):
                 mfw[i,j] = 0
     return mfw
 
+@with_timeout(5)
 def geodesic_dist(data1,data2):
     """
     Compute the geodesic distance between two rotation matrices
@@ -210,18 +241,19 @@ def L2_dist(X1, X2, grid):
     return l2_dist
 
 
-def FisherRao_dist(X1, X2, grid):
+def FisherRao_dist(X1, X2):
     """
     Compute the Fisher-Rao distance between two curves in R³
     ...
     """
-    #alignement des centres
-    X2 = X2 - fs.curve_functions.calculatecentroid(np.transpose(X2))
-    #rotations
-    X2_new = fs.curve_functions.find_best_rotation(np.transpose(X1), np.transpose(X2))[0]
-    fd_X2 = FDataGrid(X2_new, grid)
-    fd_X1 = FDataGrid(np.transpose(X1), grid)
-    FR_dist = metrics.fisher_rao_distance(fd_X1, fd_X2).mean()
+    # #alignement des centres
+    # X2 = X2 - fs.curve_functions.calculatecentroid(np.transpose(X2))
+    # #rotations
+    # X2_new = fs.curve_functions.find_best_rotation(np.transpose(X1), np.transpose(X2))[0]
+    # fd_X2 = FDataGrid(X2_new, grid)
+    # fd_X1 = FDataGrid(np.transpose(X1), grid)
+    # FR_dist = metrics.fisher_rao_distance(fd_X1, fd_X2).mean()
+    FR_dist = fs.curve_functions.elastic_distance_curve(X1, X2, scale=True)
     return FR_dist
 
 

@@ -99,14 +99,16 @@ def align_vect_curvatures_fPCA(f, time, weights, num_comp=3, cores=-1, smoothdat
 
     eps = np.finfo(np.double).eps
 
-    if smoothdata:
-        f_init = f
-        f_smooth = np.zeros((M, N))
-        for k in range(0, N):
-            spar = time.shape[0] * (.025 * np.fabs(f[:, k]).max()) ** 2
-            tmp_spline = UnivariateSpline(time, f[:, k], s=spar)
-            f_smooth[:, k] = tmp_spline(time)
-        f = f_smooth
+    # smoothdata = True
+    # if smoothdata:
+    #     f_init = f
+    #     f_smooth = np.zeros((n, M, N))
+    #     for j in range(n):
+    #         for k in range(0, N):
+    #             spar = time.shape[0] * (.025 * np.fabs(f[j, :, k]).max()) ** 2
+    #             tmp_spline = UnivariateSpline(time, f[j, :, k], s=spar)
+    #             f_smooth[j, :, k] = tmp_spline(time)
+    # f = f_smooth
 
     f0 = f
     kappa0 = f[0,:,:]
@@ -277,7 +279,7 @@ def align_vect_curvatures_fPCA(f, time, weights, num_comp=3, cores=-1, smoothdat
 
     for k in range(0, N):
         gamf[:, k] = np.interp(time0, time, gamf[:, k])
-
+    #
     # plt.figure()
     # plt.plot(time, mfn[0])
     # plt.show()
