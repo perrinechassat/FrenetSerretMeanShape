@@ -241,18 +241,19 @@ def L2_dist(X1, X2, grid):
     return l2_dist
 
 
-def FisherRao_dist(X1, X2, grid):
+def FisherRao_dist(X1, X2):
     """
     Compute the Fisher-Rao distance between two curves in R³
     ...
     """
-    #alignement des centres
-    X2 = X2 - fs.curve_functions.calculatecentroid(np.transpose(X2))
-    #rotations
-    X2_new = fs.curve_functions.find_best_rotation(np.transpose(X1), np.transpose(X2))[0]
-    fd_X2 = FDataGrid(X2_new, grid)
-    fd_X1 = FDataGrid(np.transpose(X1), grid)
-    FR_dist = metrics.fisher_rao_distance(fd_X1, fd_X2).mean()
+    # #alignement des centres
+    # X2 = X2 - fs.curve_functions.calculatecentroid(np.transpose(X2))
+    # #rotations
+    # X2_new = fs.curve_functions.find_best_rotation(np.transpose(X1), np.transpose(X2))[0]
+    # fd_X2 = FDataGrid(X2_new, grid)
+    # fd_X1 = FDataGrid(np.transpose(X1), grid)
+    # FR_dist = metrics.fisher_rao_distance(fd_X1, fd_X2).mean()
+    FR_dist = fs.curve_functions.elastic_distance_curve(X1, X2, scale=True)
     return FR_dist
 
 
