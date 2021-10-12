@@ -4,7 +4,7 @@ sys.path.insert(1, './FrenetSerretMeanShape')
 from frenet_path import *
 from trajectory import *
 from model_curvatures import *
-from estimation_algo_utils_2 import *
+from estimation_algo_utils import *
 from maths_utils import *
 from simu_utils import *
 from visu_utils import *

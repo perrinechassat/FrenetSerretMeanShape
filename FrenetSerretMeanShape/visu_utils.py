@@ -602,7 +602,7 @@ def plot_3D_res_simu_method(features, X_mean, title, color):
                 z=feat[:,2],
                 mode='lines',
                 opacity=0.6,
-                line=dict(width=1, color=color),
+                line=dict(width=2, color=color),
                 showlegend=False
             )
         )
