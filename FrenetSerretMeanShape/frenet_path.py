@@ -124,7 +124,7 @@ class FrenetPath:
         self.delta = np.squeeze(np.asarray(delta))
 
 
-    @with_timeout(5)
+    # @with_timeout(40)
     def frenet_serret_solve(self, Q0=None, t_span=None, t_eval=None):
         """
         FrenetSerretSolve

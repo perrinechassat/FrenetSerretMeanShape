@@ -85,6 +85,7 @@ def tracking_smoother_i(SingleFrenetPath, Model, lbda, p):
     U, Z, K, P = tracking(Q0, Q, R, M_tilde, B_tilde, SingleFrenetPath.nb_grid_eval-1, p)
     Q_hat = np.moveaxis(Z[:,:p,:],0, -1)
     SmoothFrenetPath = FrenetPath(grid_obs=SingleFrenetPath.grid_eval, grid_eval=SingleFrenetPath.grid_eval, data=Q_hat)
+    return SmoothFrenetPath
 
 
 def tracking_smoother(PopFrenetPath, Model, lbda):
@@ -101,7 +102,7 @@ def tracking_smoother(PopFrenetPath, Model, lbda):
     else:
         data_smoothfrenetpath = []
         for i in range(N_samples):
-            data_smoothfrenetpath.append(tracking_smoother_i(PopFrenetPath.frenet_paths[i], Model, p))
+            data_smoothfrenetpath.append(tracking_smoother_i(PopFrenetPath.frenet_paths[i], Model, lbda, p))
 
         return PopulationFrenetPath(data_smoothfrenetpath)
 

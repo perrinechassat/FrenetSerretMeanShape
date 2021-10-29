@@ -197,7 +197,7 @@ def weighted_mean_vect(f, weights):
                 mfw[i,j] = 0
     return mfw
 
-@with_timeout(5)
+# @with_timeout(20)
 def geodesic_dist(data1,data2):
     """
     Compute the geodesic distance between two rotation matrices
@@ -212,6 +212,18 @@ def geodesic_dist(data1,data2):
     R = estimate_optimal_rotation(data1, data2)
     gdist = SO3.metric.dist(np.matmul(data1,R),data2)
     return np.mean(gdist)
+    
+
+def mean_geodesic_dist(PopFP1, PopFP2):
+    N1 = PopFP1.nb_samples
+    N2 = PopFP2.nb_samples
+    if N1==N2 and N1!=1:
+        out = Parallel(n_jobs=-1)(delayed(geodesic_dist)(PopFP1.frenet_paths[i].data, PopFP2.frenet_paths[i].data) for i in range(N1))
+        return np.mean(out)
+    elif N1==N2 and N1==1:
+        return geodesic_dist(PopFP1.data,PopFP2.data)
+    else:
+        raise Exception('PopFP1 and PopFP2 don\'t have the same number of curves.')
 
 
 def estimate_optimal_rotation(data1,data2):
