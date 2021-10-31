@@ -58,8 +58,7 @@ fil.close()
 
 array_X = dic["array_X"]
 array_Q_GS = dic["array_Q_GS"]
-# N = array_X.shape[0]
-N = 10
+N = array_X.shape[0]
 
 param_bayopt = {"n_splits":  10, "n_calls" : 2, "bounds_h" : (0.001, 0.003), "bounds_lcurv" : (1e-13, 1e-8), "bounds_ltors" :  (1e-13, 1e-8)}
 param_model = {"nb_basis" : 1000, "domain_range": (0.02, 0.98)}
@@ -78,13 +77,10 @@ for i in range(N):
     if array_resOpt[i][1]==True:
         array_SmoothThetaFP[i] = FrenetPath(array_SmoothFP[i].grid_obs, array_SmoothFP[i].grid_obs, init=array_SmoothFP[i].data[:,:,0], curv=array_SmoothFP[i].curv, tors=array_SmoothFP[i].tors, dim=3)
         array_SmoothThetaFP[i].frenet_serret_solve()
-
-
-print('fin')
-filename = "curv_tors_estim_LSFtraj_data"
-dic = {"array_SmoothFP" : array_SmoothFP, "array_resOpt" : array_resOpt, "array_SmoothThetaFP" : array_SmoothThetaFP, "param_bayopt" : param_bayopt, "param_model" : param_model}
-if os.path.isfile(filename):
-    print("Le fichier ", filename, " existe déjà.")
-fil = open(filename,"xb")
-pickle.dump(dic,fil)
-fil.close()
+    filename = "results/curv_tors_estim_LSFtraj_data_"+str(i)
+    dic = {"array_SmoothFP" : array_SmoothFP[i], "array_resOpt" : array_resOpt[i], "array_SmoothThetaFP" : array_SmoothThetaFP[i], "param_bayopt" : param_bayopt, "param_model" : param_model}
+    if os.path.isfile(filename):
+        print("Le fichier ", filename, " existe déjà.")
+    fil = open(filename,"xb")
+    pickle.dump(dic,fil)
+    fil.close()
