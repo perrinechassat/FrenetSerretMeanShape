@@ -69,14 +69,14 @@ array_SmoothFP = np.empty((N), dtype=object)
 array_resOpt = np.empty((N), dtype=object)
 array_SmoothThetaFP = np.empty((N), dtype=object)
 
-# out = Parallel(n_jobs=-1)(delayed(global_estimation)(array_Q_GS[i], param_model, opt=True, param_bayopt=param_bayopt) for i in range(N))
-#
-# for i in range(N):
-#     array_SmoothFP[i] = out[i][0]
-#     array_resOpt[i] = out[i][1]
-#     if array_resOpt[i][1]==True:
-#         array_SmoothThetaFP[i] = FrenetPath(array_SmoothFP[i].grid_obs, array_SmoothFP[i].grid_obs, init=array_SmoothFP[i].data[:,:,0], curv=array_SmoothFP[i].curv, tors=array_SmoothFP[i].tors, dim=3)
-#         array_SmoothThetaFP[i].frenet_serret_solve()
+out = Parallel(n_jobs=-1)(delayed(global_estimation)(array_Q_GS[i], param_model, opt=True, param_bayopt=param_bayopt) for i in range(N))
+
+for i in range(N):
+    array_SmoothFP[i] = out[i][0]
+    array_resOpt[i] = out[i][1]
+    if array_resOpt[i][1]==True:
+        array_SmoothThetaFP[i] = FrenetPath(array_SmoothFP[i].grid_obs, array_SmoothFP[i].grid_obs, init=array_SmoothFP[i].data[:,:,0], curv=array_SmoothFP[i].curv, tors=array_SmoothFP[i].tors, dim=3)
+        array_SmoothThetaFP[i].frenet_serret_solve()
 
 
 print('fin')
