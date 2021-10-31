@@ -60,7 +60,7 @@ array_X = dic["array_X"]
 array_Q_GS = dic["array_Q_GS"]
 N = array_X.shape[0]
 
-param_bayopt = {"n_splits":  10, "n_calls" : 50, "bounds_h" : (0.001, 0.003), "bounds_lcurv" : (1e-13, 1e-8), "bounds_ltors" :  (1e-13, 1e-8)}
+param_bayopt = {"n_splits":  10, "n_calls" : 1, "bounds_h" : (0.001, 0.003), "bounds_lcurv" : (1e-13, 1e-8), "bounds_ltors" :  (1e-13, 1e-8)}
 param_model = {"nb_basis" : 1000, "domain_range": (0.02, 0.98)}
 
 print("Individual estimations...")
