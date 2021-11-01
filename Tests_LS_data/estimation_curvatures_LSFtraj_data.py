@@ -58,10 +58,12 @@ fil.close()
 
 array_X = dic["array_X"]
 array_Q_GS = dic["array_Q_GS"]
-N = array_X.shape[0]
+# N = array_X.shape[0]
+N = 2
 
 param_bayopt = {"n_splits":  10, "n_calls" : 2, "bounds_h" : (0.001, 0.003), "bounds_lcurv" : (1e-13, 1e-8), "bounds_ltors" :  (1e-13, 1e-8)}
 param_model = {"nb_basis" : 1000, "domain_range": (0.02, 0.98)}
+hyperparam = [0.001, 1e-10, 1e-10]
 
 print("Individual estimations...")
 
@@ -69,7 +71,8 @@ array_SmoothFP = np.empty((N), dtype=object)
 array_resOpt = np.empty((N), dtype=object)
 array_SmoothThetaFP = np.empty((N), dtype=object)
 
-out = Parallel(n_jobs=-1)(delayed(global_estimation)(array_Q_GS[i], param_model, opt=True, param_bayopt=param_bayopt) for i in range(N))
+# out = Parallel(n_jobs=-1)(delayed(global_estimation)(array_Q_GS[i], param_model, opt=True, param_bayopt=param_bayopt) for i in range(N))
+out = Parallel(n_jobs=-1)(delayed(global_estimation)(array_Q_GS[i], param_model, opt=False, hyperparam=hyperparam, param_bayopt=param_bayopt) for i in range(N))
 
 for i in range(N):
     array_SmoothFP[i] = out[i][0]
