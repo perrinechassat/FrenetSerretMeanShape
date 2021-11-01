@@ -56,32 +56,34 @@ fil = open(filename,"rb")
 dic = pickle.load(fil)
 fil.close()
 
-array_X = dic["array_X"]
+# array_X = dic["array_X"]
 array_Q_GS = dic["array_Q_GS"]
-# N = array_X.shape[0]
-N = 2
+N = array_Q_GS.shape[0]
+print(N)
 
 param_bayopt = {"n_splits":  10, "n_calls" : 2, "bounds_h" : (0.001, 0.003), "bounds_lcurv" : (1e-13, 1e-8), "bounds_ltors" :  (1e-13, 1e-8)}
 param_model = {"nb_basis" : 1000, "domain_range": (0.02, 0.98)}
 hyperparam = [0.001, 1e-10, 1e-10]
 
 print("Individual estimations...")
-
-array_SmoothFP = np.empty((N), dtype=object)
-array_resOpt = np.empty((N), dtype=object)
-array_SmoothThetaFP = np.empty((N), dtype=object)
+#
+# array_SmoothFP = np.empty((N), dtype=object)
+# array_resOpt = np.empty((N), dtype=object)
+# array_SmoothThetaFP = np.empty((N), dtype=object)
 
 # out = Parallel(n_jobs=-1)(delayed(global_estimation)(array_Q_GS[i], param_model, opt=True, param_bayopt=param_bayopt) for i in range(N))
 out = Parallel(n_jobs=-1)(delayed(global_estimation)(array_Q_GS[i], param_model, opt=False, hyperparam=hyperparam, param_bayopt=param_bayopt) for i in range(N))
 
+print("fin")
+
 for i in range(N):
-    array_SmoothFP[i] = out[i][0]
-    array_resOpt[i] = out[i][1]
-    if array_resOpt[i][1]==True:
-        array_SmoothThetaFP[i] = FrenetPath(array_SmoothFP[i].grid_obs, array_SmoothFP[i].grid_obs, init=array_SmoothFP[i].data[:,:,0], curv=array_SmoothFP[i].curv, tors=array_SmoothFP[i].tors, dim=3)
-        array_SmoothThetaFP[i].frenet_serret_solve()
+    array_SmoothFP = out[i][0]
+    array_resOpt = out[i][1]
+    if array_resOpt[1]==True:
+        array_SmoothThetaFP = FrenetPath(array_SmoothFP.grid_obs, array_SmoothFP.grid_obs, init=array_SmoothFP.data[:,:,0], curv=array_SmoothFP.curv, tors=array_SmoothFP.tors, dim=3)
+        array_SmoothThetaFP.frenet_serret_solve()
     filename = "results/curv_tors_estim_LSFtraj_data_"+str(i)
-    dic = {"array_SmoothFP" : array_SmoothFP[i], "array_resOpt" : array_resOpt[i], "array_SmoothThetaFP" : array_SmoothThetaFP[i], "param_bayopt" : param_bayopt, "param_model" : param_model}
+    dic = {"array_SmoothFP" : array_SmoothFP, "array_resOpt" : array_resOpt, "array_SmoothThetaFP" : array_SmoothThetaFP}
     if os.path.isfile(filename):
         print("Le fichier ", filename, " existe déjà.")
     fil = open(filename,"xb")
