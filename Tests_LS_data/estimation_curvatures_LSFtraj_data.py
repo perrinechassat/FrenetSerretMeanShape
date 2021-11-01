@@ -59,7 +59,7 @@ fil.close()
 # array_X = dic["array_X"]
 array_Q_GS = dic["array_Q_GS"]
 N = array_Q_GS.shape[0]
-N = 10
+# N = 10
 print(N)
 
 param_bayopt = {"n_splits":  10, "n_calls" : 2, "bounds_h" : (0.001, 0.003), "bounds_lcurv" : (1e-13, 1e-8), "bounds_ltors" :  (1e-13, 1e-8)}
@@ -72,19 +72,20 @@ print("Individual estimations...")
 # array_resOpt = np.empty((N), dtype=object)
 # array_SmoothThetaFP = np.empty((N), dtype=object)
 
-# out = Parallel(n_jobs=-1)(delayed(global_estimation)(array_Q_GS[i], param_model, opt=True, param_bayopt=param_bayopt) for i in range(N))
-out = Parallel(n_jobs=-1)(delayed(global_estimation)(array_Q_GS[i], param_model, opt=False, hyperparam=hyperparam, param_bayopt=param_bayopt) for i in range(N))
+out = Parallel(n_jobs=-1)(delayed(global_estimation)(array_Q_GS[i], param_model, opt=True, param_bayopt=param_bayopt) for i in range(N))
+# out = Parallel(n_jobs=-1)(delayed(global_estimation)(array_Q_GS[i], param_model, opt=False, hyperparam=hyperparam, param_bayopt=param_bayopt) for i in range(N))
 
 print("fin")
 
 for i in range(N):
     array_SmoothFP = out[i][0]
     array_resOpt = out[i][1]
-    if array_resOpt[1]==True:
-        array_SmoothThetaFP = FrenetPath(array_SmoothFP.grid_obs, array_SmoothFP.grid_obs, init=array_SmoothFP.data[:,:,0], curv=array_SmoothFP.curv, tors=array_SmoothFP.tors, dim=3)
-        array_SmoothThetaFP.frenet_serret_solve()
+    # if array_resOpt[1]==True:
+    #     array_SmoothThetaFP = FrenetPath(array_SmoothFP.grid_obs, array_SmoothFP.grid_obs, init=array_SmoothFP.data[:,:,0], curv=array_SmoothFP.curv, tors=array_SmoothFP.tors, dim=3)
+        # array_SmoothThetaFP.frenet_serret_solve()
     filename = "results/curv_tors_estim_LSFtraj_data_"+str(i)
-    dic = {"array_SmoothFP" : array_SmoothFP, "array_resOpt" : array_resOpt, "array_SmoothThetaFP" : array_SmoothThetaFP}
+    # dic = {"array_resOpt" : array_resOpt, "array_SmoothThetaFP" : array_SmoothThetaFP}
+    dic = {"array_resOpt" : array_resOpt, "curv" : array_SmoothFP.curv, "tors" : array_SmoothFP.tors}
     if os.path.isfile(filename):
         print("Le fichier ", filename, " existe déjà.")
     fil = open(filename,"xb")
