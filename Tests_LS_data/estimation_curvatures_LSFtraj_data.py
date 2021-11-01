@@ -59,6 +59,7 @@ fil.close()
 # array_X = dic["array_X"]
 array_Q_GS = dic["array_Q_GS"]
 N = array_Q_GS.shape[0]
+N = 10
 print(N)
 
 param_bayopt = {"n_splits":  10, "n_calls" : 2, "bounds_h" : (0.001, 0.003), "bounds_lcurv" : (1e-13, 1e-8), "bounds_ltors" :  (1e-13, 1e-8)}
