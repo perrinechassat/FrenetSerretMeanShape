@@ -323,14 +323,14 @@ def estimation(PopFrenetPath, Model, x, smoothing={"flag":False, "method":"karch
     return SmoothPopFrenetPath, ind_conv
 
 
-def global_estimation(PopFrenetPath, param_model, smoothing={"flag":False, "method":"karcher_mean"}, hyperparam=None, opt=False, param_bayopt=None, alignment=False, lam=0.0):
+def global_estimation(PopFrenetPath, param_model, smoothing={"flag":False, "method":"karcher_mean"}, hyperparam=None, opt=False, param_bayopt=None, alignment=False, lam=0.0, parallel=False):
 
     N_samples = PopFrenetPath.nb_samples
     curv_smoother = BasisSmoother(domain_range=param_model["domain_range"], nb_basis=param_model["nb_basis"])
     tors_smoother = BasisSmoother(domain_range=param_model["domain_range"], nb_basis=param_model["nb_basis"])
 
     if opt==True:
-        Opt_fun = lambda x: objective_function(param_bayopt["n_splits"], PopFrenetPath, curv_smoother, tors_smoother, x, smoothing, alignment, lam)
+        Opt_fun = lambda x: objective_function(param_bayopt["n_splits"], PopFrenetPath, curv_smoother, tors_smoother, x, smoothing, alignment, lam, parallel)
         if smoothing["flag"]==True and smoothing["method"]=="tracking":
             hyperparam_bounds = [param_bayopt["bounds_h"], param_bayopt["bounds_lcurv"], param_bayopt["bounds_ltors"], param_bayopt["bounds_ltrack"]]
         else:
@@ -491,13 +491,12 @@ def step_cross_val(curv_smoother, tors_smoother, test_index, train_index, PopFre
         return 100
 
 
-def objective_function(n_splits, PopFrenetPath, curv_smoother, tors_smoother, hyperparam, smoothing, alignment, lam):
+def objective_function(n_splits, PopFrenetPath, curv_smoother, tors_smoother, hyperparam, smoothing, alignment, lam, parallel):
     """
     Objective function that do the cross validation.
     ...
     """
     print(hyperparam)
-    err = []
     kf = KFold(n_splits=n_splits, shuffle=True, random_state=1)
     # k = 0
     curv_smoother.reinitialize()
@@ -521,19 +520,29 @@ def objective_function(n_splits, PopFrenetPath, curv_smoother, tors_smoother, hy
         # grid_split = PopFrenetPath.frenet_paths[0].grid_obs[1:-1]
         grid_split = PopFrenetPath.frenet_paths[0].grid_obs
 
-    for train_index, test_index in kf.split(grid_split):
-        # print('------- step ', k, ' cross validation --------')
-        # train_index = train_index+1
-        # test_index = test_index+1
-        # train_index = np.concatenate((np.array([0]), train_index, np.array([len(grid_split)+1])))
+    if parallel==True:
+        err = Parallel(n_jobs=10)(delayed(step_cross_val)(curv_smoother, tors_smoother, test_index, train_index, PopFrenetPath, hyperparam, smoothing, alignment, lam, gam)
+                for train_index, test_index in kf.split(grid_split))
+        for i in range(len(err)):
+            if np.isnan(err[i]):
+                print('Error NaN value in cross validation')
+                err[i] = 100
 
-        dist = step_cross_val(curv_smoother, tors_smoother, test_index, train_index, PopFrenetPath, hyperparam, smoothing, alignment, lam, gam)
+    else:
+        err = []
+        for train_index, test_index in kf.split(grid_split):
+            # print('------- step ', k, ' cross validation --------')
+            # train_index = train_index+1
+            # test_index = test_index+1
+            # train_index = np.concatenate((np.array([0]), train_index, np.array([len(grid_split)+1])))
 
-        if np.isnan(dist):
-            print('Error NaN value in cross validation')
-            return 100
-        else:
-            err.append(dist)
+            dist = step_cross_val(curv_smoother, tors_smoother, test_index, train_index, PopFrenetPath, hyperparam, smoothing, alignment, lam, gam)
+
+            if np.isnan(dist):
+                print('Error NaN value in cross validation')
+                return 100
+            else:
+                err.append(dist)
         # k += 1
 
     # duration = timer() - start

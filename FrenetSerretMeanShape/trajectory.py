@@ -109,11 +109,13 @@ class Trajectory:
         def Sdot_fun(t): return np.linalg.norm(self.dX1(t), axis=1)
         self.Sdot = Sdot_fun
         def S_fun(t): return cumtrapz(self.Sdot(t), t, initial=0)
+        # S_fun = interpolate.interp1d(self.t, cumtrapz(self.Sdot(self.t), self.t, initial=0))
         self.L = S_fun(self.t)[-1]
         # print(self.L)
         if scale==True:
             self.scale = True
             def S_fun_scale(t): return cumtrapz(self.Sdot(t), t, initial=0)/self.L
+            # S_fun_scale = interpolate.interp1d(self.t, cumtrapz(self.Sdot(self.t), self.t, initial=0)/self.L)
             self.S = S_fun_scale
             self.data = self.data/self.L
         else:
