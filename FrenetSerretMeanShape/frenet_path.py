@@ -124,7 +124,7 @@ class FrenetPath:
         self.delta = np.squeeze(np.asarray(delta))
 
 
-    # @with_timeout(300)
+    @with_timeout(60)
     def frenet_serret_solve(self, Q0=None, t_span=None, t_eval=None):
         """
         FrenetSerretSolve
@@ -158,7 +158,7 @@ class FrenetPath:
         X0  = [0,0,0]
         Z0  = np.concatenate((X0, Q0[:,0], Q0[:,1], Q0[:,2]))
         ode_func = lambda t,z: np.matmul(Az(t),z)
-        sol = solve_ivp(ode_func, t_span=t_span, y0=Z0, t_eval=t_eval)
+        sol = solve_ivp(ode_func, t_span=t_span, y0=Z0, t_eval=t_eval, method='Radau')
         Z = sol.y
         X = Z[0:p,:] # Integration of tangent X(t)=X0+int_0^t T(s)ds
         self.data_trajectory = np.transpose(X)
