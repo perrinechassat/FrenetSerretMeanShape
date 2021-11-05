@@ -62,6 +62,47 @@ class BasisSmoother:
         return np.squeeze(self.coefficients) #différent de GPR peut être changer ca
 
 
+class WaveletSmoother:
+
+    """
+    A class used to define a Wavelet smoother
+
+    ...
+
+    Attributes
+    ----------
+    wavelet : Wavelet basis representation
+    function : the smoothed function, initialized to 0
+    threshold : float, parameter for the denoising
+    coefficients : estimated coefficients after the smoothing
+
+    Methods
+    -------
+    reinitialize():
+        put the argument function to 0.
+
+    smoothing(self, grid_pts, data_pts, threshold):
+        do a Wavelet smoothing of the "data_pts".
+    """
+
+    def __init__(self, wavelet='db8', domain_range=None):
+        self.wavelet = wavelet
+        def f_init(x): return 0
+        self.function = f_init
+
+    def reinitialize(self):
+        def f_init(x): return 0
+        self.function = f_init
+
+    def smoothing(self, grid_pts, data_pts, threshold):
+        self.threshold = threshold*np.nanmax(data_pts)
+        self.coefficients = pywt.wavedec(data_pts, self.wavelet, mode="per")
+        self.coefficients[1:] = (pywt.threshold(i, value=self.threshold, mode="soft") for i in self.coefficients[1:])
+        reconstructed_signal = pywt.waverec(self.coefficients, self.wavelet, mode="per")
+        def f(x): return interpolate.interp1d(grid_pts, reconstructed_signal[:-1])
+        self.function = f
+        return np.squeeze(self.coefficients) #différent de GPR peut être changer ca
+
 # def mykernel(x,y):
 #     Kern = lambda x: (3/4)*(1-np.power(x,2))
 
