@@ -205,7 +205,7 @@ for i in range(N):
     #     print('ok for',j)
 
     out = Parallel(n_jobs=-1)(delayed(global_estimation)(array_Q_GS[i][j], param_model={"nb_basis" : int(len(array_Q_GS[i][j].grid_obs)/2), "domain_range": (array_Q_GS[i][j].grid_obs[0], array_Q_GS[i][j].grid_obs[-1])},
-                        opt=True, param_bayopt={"n_splits":  10, "n_calls" : 3, "bounds_h" : (0.0015, 0.0025), "bounds_lcurv" : (1e-40, 1e-30), "bounds_ltors" :  (1e-40, 1e-30)}) for j in range(n))
+                        opt=True, param_bayopt={"n_splits":  10, "n_calls" : 20, "bounds_h" : (0.0015, 0.0025), "bounds_lcurv" : (1e-40, 1e-30), "bounds_ltors" :  (1e-40, 1e-30)}) for j in range(n))
 
     array_resOpt = np.empty((n), dtype=object)
     array_curv = np.empty((n), dtype=object)
