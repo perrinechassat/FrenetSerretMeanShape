@@ -14,9 +14,9 @@ import numpy as np
 from pickle import *
 import dill as pickle
 
-path_dir = r"/home/pchassat/Documents/data/LSFtraj/"
-files = os.listdir(path_dir)
-N = len(files)
+# path_dir = r"/home/pchassat/Documents/data/LSFtraj/"
+# files = os.listdir(path_dir)
+# N = len(files)
 
 # array_X = np.empty((N), dtype=object)
 # array_Q_GS = np.empty((N), dtype=object)
@@ -142,55 +142,89 @@ N = len(files)
 #     return X, parts, list_Q_GS
 #
 #
-def preprocess_regular_parts(file):
-    hand_barycentre = barycenter_from_3ptsHand(path_dir+file, plot=False)
-    data_traj = take_numpy_subset(hand_barycentre, 0, len(hand_barycentre.index))
-    t = np.linspace(0,1,len(data_traj))
-    ind_t = np.intersect1d(np.where(t>=0.05), np.where(t<=0.95))
-    data_traj = data_traj[ind_t,:]
-    t = np.linspace(0,1,len(data_traj))
+# def preprocess_regular_parts(file):
+#     hand_barycentre = barycenter_from_3ptsHand(path_dir+file, plot=False)
+#     data_traj = take_numpy_subset(hand_barycentre, 0, len(hand_barycentre.index))
+#     t = np.linspace(0,1,len(data_traj))
+#     ind_t = np.intersect1d(np.where(t>=0.05), np.where(t<=0.95))
+#     data_traj = data_traj[ind_t,:]
+#     t = np.linspace(0,1,len(data_traj))
+#
+#     # Estimation des dérivées, de s(t) et de Q(t)
+#     X = Trajectory(data_traj, t)
+#     h_opt = opti_loc_poly_traj(X.data, X.t, 5*(1/len(data_traj)), 10*(1/len(data_traj)), 50)
+#     X.loc_poly_estimation(X.t, 5, h_opt)
+#     X.compute_S(scale=True)
+#
+#     # parts_t = cut_regular_parts(t, 200)
+#     parts = cut_regular_parts(data_traj, 200)
+#
+#     Q_GS = X.TNB_GramSchmidt(np.linspace(0, 1, 3*len(data_traj)))
+#     data = Q_GS.data.transpose()
+#     parts_Q = cut_regular_parts(data, 600)
+#     parts_grid = cut_regular_parts(Q_GS.grid_obs, 600)
+#     nb_parts = len(parts_grid)
+#     list_Q_GS = []
+#     for i in range(nb_parts):
+#         list_Q_GS.append(FrenetPath(grid_obs=parts_grid[i], grid_eval=parts_grid[i], data=parts_Q[i].transpose()))
+#     return X, parts, list_Q_GS
 
-    # Estimation des dérivées, de s(t) et de Q(t)
-    X = Trajectory(data_traj, t)
-    h_opt = opti_loc_poly_traj(X.data, X.t, 5*(1/len(data_traj)), 10*(1/len(data_traj)), 50)
-    X.loc_poly_estimation(X.t, 5, h_opt)
-    X.compute_S(scale=True)
-
-    # parts_t = cut_regular_parts(t, 200)
-    parts = cut_regular_parts(data_traj, 200)
-
-    Q_GS = X.TNB_GramSchmidt(np.linspace(0, 1, 3*len(data_traj)))
-    data = Q_GS.data.transpose()
-    parts_Q = cut_regular_parts(data, 600)
-    parts_grid = cut_regular_parts(Q_GS.grid_obs, 600)
-    nb_parts = len(parts_grid)
-    list_Q_GS = []
-    for i in range(nb_parts):
-        list_Q_GS.append(FrenetPath(grid_obs=parts_grid[i], grid_eval=parts_grid[i], data=parts_Q[i].transpose()))
-    return X, parts, list_Q_GS
+#
+# array_X = np.empty((N), dtype=object)
+# array_parts = np.empty((N), dtype=object)
+# array_Q_GS = np.empty((N), dtype=object)
+#
+# out = Parallel(n_jobs=-1)(delayed(preprocess_regular_parts)(files[i]) for i in range(N))
+#
+# for i in range(N):
+#     array_X[i] = out[i][0]
+#     array_parts[i] = out[i][1]
+#     array_Q_GS[i] = out[i][2]
 
 
-array_X = np.empty((N), dtype=object)
-array_parts = np.empty((N), dtype=object)
-array_Q_GS = np.empty((N), dtype=object)
+filename = "LSFtraj_data_preprocess_parts_regular_2"
+fil = open(filename,"rb")
+dic = pickle.load(fil)
+fil.close()
 
-out = Parallel(n_jobs=-1)(delayed(preprocess_regular_parts)(files[i]) for i in range(N))
+array_Q_GS = dic["array_Q_GS"]
+N = array_Q_GS.shape[0]
+
+
+def estim_file(list_Q_GS, param_bayopt):
+    n = len(list_Q_GS)
+
+    array_resOpt = np.empty((n), dtype=object)
+    array_curv = np.empty((n), dtype=object)
+    array_tors = np.empty((n), dtype=object)
+
+    for j in range(n):
+        out, array_resOpt[j] = global_estimation(list_Q_GS[j], param_model={"nb_basis" : int(len(list_Q_GS[j].grid_obs)/2), "domain_range": (list_Q_GS[j].grid_obs[0], list_Q_GS[j].grid_obs[-1])},
+                            opt=True, param_bayopt=param_bayopt)
+        array_curv[j] = out.curv
+        array_tors[j] = out.tors
+
+    return array_resOpt, array_curv, array_tors
+
+
+param_bayopt={"n_splits":  10, "n_calls" : 40, "bounds_h" : (0.0015, 0.0025), "bounds_lcurv" : (1e-40, 1e-10), "bounds_ltors" :  (1e-40, 1e-10)}
+
+out = Parallel(n_jobs=-1)(delayed(estim_file)(array_Q_GS[i], param_bayopt) for i in range(N))
+
 
 for i in range(N):
-    array_X[i] = out[i][0]
-    array_parts[i] = out[i][1]
-    array_Q_GS[i] = out[i][2]
+    print('Save file', i)
+    filename = "results/curv_tors_estim_LSFtraj_data_cut_"+str(i)
+    # dic = {"array_resOpt" : array_resOpt, "array_SmoothThetaFP" : array_SmoothThetaFP, "list_Q_GS" : list_Q_GS, "X" : X, "parts" : parts}
+    dic = {"array_resOpt" : out[i][0], "array_curv" : out[i][1], "array_tors" : out[i][2]}
+    if os.path.isfile(filename):
+        print("Le fichier ", filename, " existe déjà.")
+    fil = open(filename,"xb")
+    pickle.dump(dic,fil)
+    fil.close()
 
-
-# filename = "LSFtraj_data_preprocess_parts_regular"
-# fil = open(filename,"rb")
-# dic = pickle.load(fil)
-# fil.close()
 #
-# array_Q_GS = dic["array_Q_GS"]
-# N = array_Q_GS.shape[0]
-
-# for i in range(10,N):
+# for i in range(N):
 #     print('---------------------------------------------------- estimation file',i,'----------------------------------------------------------------')
 #     # array_X[i], array_parts[i], array_Q_GS[i] = preprocess_regular_parts(files[i])
 #     n = len(array_Q_GS[i])
@@ -262,11 +296,11 @@ for i in range(N):
     #     print('ok for',j)
 
 
-filename = "LSFtraj_data_preprocess_parts_regular_2"
-dic = {"array_X" : array_X, "array_Q_GS" : array_Q_GS, "array_parts" : array_parts}
-# dic = {"array_resOpt" : array_resOpt, "curv" : array_SmoothFP.curv, "tors" : array_SmoothFP.tors}
-if os.path.isfile(filename):
-    print("Le fichier ", filename, " existe déjà.")
-fil = open(filename,"xb")
-pickle.dump(dic,fil)
-fil.close()
+# filename = "LSFtraj_data_preprocess_parts_regular_2"
+# dic = {"array_X" : array_X, "array_Q_GS" : array_Q_GS, "array_parts" : array_parts}
+# # dic = {"array_resOpt" : array_resOpt, "curv" : array_SmoothFP.curv, "tors" : array_SmoothFP.tors}
+# if os.path.isfile(filename):
+#     print("Le fichier ", filename, " existe déjà.")
+# fil = open(filename,"xb")
+# pickle.dump(dic,fil)
+# fil.close()
