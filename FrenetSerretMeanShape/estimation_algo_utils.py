@@ -121,9 +121,11 @@ def compute_raw_curvatures_without_alignement(PopulationFrenetPath, h, Populatio
         Omega, S, Kappa, Tau = [], [], [], []
         for q in range(PopulationFrenetPath.nb_grid_eval):
             if q==0:
-                s = np.zeros(len(PopulationFrenetPath.neighbor_obs[q]))
+                # s = np.zeros(len(PopulationFrenetPath.neighbor_obs[q]))
+                s = PopulationFrenetPath.grid_obs[0]*np.ones(len(PopulationFrenetPath.neighbor_obs[q]))
             elif q==PopulationFrenetPath.nb_grid_eval-1:
-                s = PopulationFrenetPath.length*np.ones(len(PopulationFrenetPath.neighbor_obs[q]))
+                # s = PopulationFrenetPath.length*np.ones(len(PopulationFrenetPath.neighbor_obs[q]))
+                s = PopulationFrenetPath.grid_obs[-1]*np.ones(len(PopulationFrenetPath.neighbor_obs[q]))
             else:
                 s = PopulationFrenetPath.grid_double[q]
             S += list(s)
@@ -275,14 +277,19 @@ def estimation(PopFrenetPath, Model, x, smoothing={"flag":False, "method":"karch
         SmoothPopFrenetPath0 = frenet_path_smoother(PopFrenetPath, Model, x, smoothing["method"])
     else:
         SmoothPopFrenetPath0 = PopFrenetPath
-        # SmoothPopFrenetPath0 = frenet_path_smoother(PopFrenetPath, Model, x, "karcher_mean")
 
     mKappa, mTau, mS, mOmega, gam, ind_conv = compute_raw_curvatures(PopFrenetPath, x[0], SmoothPopFrenetPath0, alignment, lam, gam)
     # mean_kappa = np.mean(mKappa)
     # print(mean_kappa)
     # Model_theta.curv.function = lambda s: s*0 + mean_kappa
-    theta_curv = Model.curv.smoothing(mS, mKappa, mOmega, x[1])
-    theta_torsion = Model.tors.smoothing(mS, mTau, mOmega, x[2])
+    try:
+        theta_curv = Model.curv.smoothing(mS, mKappa, mOmega, x[1])
+        theta_torsion = Model.tors.smoothing(mS, mTau, mOmega, x[2])
+    except:
+        Model.curv.reinitialize()
+        Model.tors.reinitialize()
+        ind_conv = False
+
     # plt.figure()
     # plt.plot(mS, Model.curv.function(mS))
     # plt.show()
@@ -302,8 +309,14 @@ def estimation(PopFrenetPath, Model, x, smoothing={"flag":False, "method":"karch
             SmoothPopFrenetPath = frenet_path_smoother(PopFrenetPath, Model, x, smoothing["method"])
 
             mKappa, mTau, mS, mOmega, gam, ind_conv = compute_raw_curvatures(PopFrenetPath, x[0], SmoothPopFrenetPath, alignment, lam, gam)
-            theta_curv = Model.curv.smoothing(mS, mKappa, mOmega, x[1])
-            theta_torsion = Model.tors.smoothing(mS, mTau, mOmega, x[2])
+
+            try:
+                theta_curv = Model.curv.smoothing(mS, mKappa, mOmega, x[1])
+                theta_torsion = Model.tors.smoothing(mS, mTau, mOmega, x[2])
+            except:
+                Model.curv.reinitialize()
+                Model.tors.reinitialize()
+                ind_conv = False
 
             thetakm1 = theta
             theta = np.concatenate((theta_curv, theta_torsion))
@@ -314,7 +327,7 @@ def estimation(PopFrenetPath, Model, x, smoothing={"flag":False, "method":"karch
             ind_conv=False
     else:
         SmoothPopFrenetPath = SmoothPopFrenetPath0
-        ind_conv = True
+        # ind_conv = True
 
     SmoothPopFrenetPath.set_estimate_theta(Model.curv.function, Model.tors.function)
     if N_samples!=1 and alignment==True:

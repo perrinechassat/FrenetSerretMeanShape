@@ -41,6 +41,7 @@ class BasisSmoother:
     def __init__(self, basis_type='bspline', domain_range=None, nb_basis=None, order=4, knots=None):
         if basis_type=='bspline':
             self.basis = BSpline(domain_range=domain_range, n_basis=nb_basis, order=order, knots=knots)
+            # self.basis = BSpline(domain_range=domain_range, order=order)
         else:
             raise ValueError("basis type does not exist")
         def f_init(x): return 0
@@ -54,7 +55,7 @@ class BasisSmoother:
         self.variances = weights
         self.smoothing_parameter = smoothing_parameter
         fd = FDataGrid(data_matrix=data_pts, grid_points=grid_pts, extrapolation="bounds")
-        self.smoother = preprocessing.smoothing.BasisSmoother(self.basis, smoothing_parameter=self.smoothing_parameter, regularization=TikhonovRegularization(LinearDifferentialOperator(2)), weights=np.diag(self.variances), return_basis=True, method='Matrix')
+        self.smoother = preprocessing.smoothing.BasisSmoother(self.basis, smoothing_parameter=self.smoothing_parameter, regularization=TikhonovRegularization(LinearDifferentialOperator(2)), weights=np.diag(self.variances), return_basis=True, method='cholesky')
         self.fd_basis = self.smoother.fit_transform(fd)
         self.coefficients = self.fd_basis.coefficients
         def f(x): return np.squeeze(self.fd_basis.evaluate(x))

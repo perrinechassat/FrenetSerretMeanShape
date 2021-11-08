@@ -153,14 +153,29 @@ def cut_at_peaks(data_traj, nb_peaks):
 
 def cut_regular_parts(data_traj, n_pts):
     n = data_traj.shape[0]
+    # print(n)
     n_pts_inter = int(n_pts/4)
+    # print(n_pts_inter)
     if n<n_pts or n_pts<4:
         return [data_traj]
+    # else:
+    #     parts = []
+    #     q = n//(n_pts-n_pts_inter)
+    #     r = n%(n_pts-n_pts_inter)
+    #     print(q)
+    #     for i in range(q-1):
+    #         print(i*(n_pts-n_pts_inter),i*(n_pts-n_pts_inter)+n_pts)
+    #         parts.append(data_traj[i*(n_pts-n_pts_inter):i*(n_pts-n_pts_inter)+n_pts])
+    #     print(q*(n_pts-n_pts_inter),n)
+    #     parts.append(data_traj[q*(n_pts-n_pts_inter):])
+    #     return parts
     else:
         parts = []
-        q = n//(n_pts-n_pts_inter)
+        q = int(np.around(n/(n_pts-n_pts_inter),0))
         # print(q)
-        for i in range(q):
+        for i in range(q-1):
+            # print(i*(n_pts-n_pts_inter),i*(n_pts-n_pts_inter)+n_pts)
             parts.append(data_traj[i*(n_pts-n_pts_inter):i*(n_pts-n_pts_inter)+n_pts])
-        parts.append(data_traj[q*(n_pts-n_pts_inter):])
+        # print((q-1)*(n_pts-n_pts_inter),n)
+        parts.append(data_traj[(q-1)*(n_pts-n_pts_inter):])
         return parts

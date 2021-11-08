@@ -35,7 +35,7 @@ def plot_2array_2D(x, array_y, legend={"index":False}):
     fig = go.Figure(layout=layout)
     N = array_y.shape[0]
     for i in range(N):
-        fig.add_trace(go.Scatter(x=x[i], y=array_y[i,:], mode='lines', line=dict(width=2, color=color_list[(i-9)%9])))
+        fig.add_trace(go.Scatter(x=x[i], y=array_y[i,:], mode='lines', line=dict(width=1, color=color_list[(i-9)%9])))
     if legend['index']==True:
         fig.update_layout(
         title=legend["title"],
