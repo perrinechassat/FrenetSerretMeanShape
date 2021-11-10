@@ -157,32 +157,32 @@ import dill as pickle
 #     X.compute_S(scale=True)
 #
 #     # parts_t = cut_regular_parts(t, 200)
-#     parts = cut_regular_parts(data_traj, 200)
+#     parts = cut_regular_parts(data_traj, 100)
 #
 #     Q_GS = X.TNB_GramSchmidt(np.linspace(0, 1, 3*len(data_traj)))
 #     data = Q_GS.data.transpose()
-#     parts_Q = cut_regular_parts(data, 600)
-#     parts_grid = cut_regular_parts(Q_GS.grid_obs, 600)
+#     parts_Q = cut_regular_parts(data, 300)
+#     parts_grid = cut_regular_parts(Q_GS.grid_obs, 300)
 #     nb_parts = len(parts_grid)
 #     list_Q_GS = []
 #     for i in range(nb_parts):
 #         list_Q_GS.append(FrenetPath(grid_obs=parts_grid[i], grid_eval=parts_grid[i], data=parts_Q[i].transpose()))
 #     return X, parts, list_Q_GS
-
+#
 #
 # array_X = np.empty((N), dtype=object)
 # array_parts = np.empty((N), dtype=object)
 # array_Q_GS = np.empty((N), dtype=object)
-#
+# #
 # out = Parallel(n_jobs=-1)(delayed(preprocess_regular_parts)(files[i]) for i in range(N))
-#
+# #
 # for i in range(N):
 #     array_X[i] = out[i][0]
 #     array_parts[i] = out[i][1]
 #     array_Q_GS[i] = out[i][2]
 
 
-filename = "LSFtraj_data_preprocess_parts_regular_2"
+filename = "LSFtraj_data_preprocess_parts_regular_100"
 fil = open(filename,"rb")
 dic = pickle.load(fil)
 fil.close()
@@ -190,38 +190,41 @@ fil.close()
 array_Q_GS = dic["array_Q_GS"]
 N = array_Q_GS.shape[0]
 
-
 def estim_file(list_Q_GS, param_bayopt):
     n = len(list_Q_GS)
 
     array_resOpt = np.empty((n), dtype=object)
-    array_curv = np.empty((n), dtype=object)
-    array_tors = np.empty((n), dtype=object)
+    array_SmoothFP = np.empty((n), dtype=object)
 
     for j in range(n):
-        out, array_resOpt[j] = global_estimation(list_Q_GS[j], param_model={"nb_basis" : int(len(list_Q_GS[j].grid_obs)/2), "domain_range": (list_Q_GS[j].grid_obs[0], list_Q_GS[j].grid_obs[-1])},
+        array_SmoothFP[i], array_resOpt[j] = global_estimation(list_Q_GS[j], param_model={"nb_basis" : int(len(list_Q_GS[j].grid_obs)/2), "domain_range": (list_Q_GS[j].grid_obs[0], list_Q_GS[j].grid_obs[-1])},
                             opt=True, param_bayopt=param_bayopt)
-        array_curv[j] = out.curv
-        array_tors[j] = out.tors
 
-    return array_resOpt, array_curv, array_tors
+    return array_SmoothFP, array_resOpt
 
 
-param_bayopt={"n_splits":  10, "n_calls" : 40, "bounds_h" : (0.0015, 0.0025), "bounds_lcurv" : (1e-40, 1e-10), "bounds_ltors" :  (1e-40, 1e-10)}
+array_SmoothFPIndiv = np.empty((N), dtype=object)
+array_resOptIndiv = np.empty((N), dtype=object)
+
+
+param_bayopt={"n_splits":  10, "n_calls" : 2, "bounds_h" : (0.0015, 0.0025), "bounds_lcurv" : (1e-40, 1e-10), "bounds_ltors" :  (1e-40, 1e-10)}
 
 out = Parallel(n_jobs=-1)(delayed(estim_file)(array_Q_GS[i], param_bayopt) for i in range(N))
 
 
 for i in range(N):
-    print('Save file', i)
-    filename = "results/curv_tors_estim_LSFtraj_data_cut_"+str(i)
-    # dic = {"array_resOpt" : array_resOpt, "array_SmoothThetaFP" : array_SmoothThetaFP, "list_Q_GS" : list_Q_GS, "X" : X, "parts" : parts}
-    dic = {"array_resOpt" : out[i][0], "array_curv" : out[i][1], "array_tors" : out[i][2]}
-    if os.path.isfile(filename):
-        print("Le fichier ", filename, " existe déjà.")
-    fil = open(filename,"xb")
-    pickle.dump(dic,fil)
-    fil.close()
+    array_SmoothFPIndiv[i] = out[i][0]
+    array_resOptIndiv[i] = out[i][1]
+
+print('Save file')
+filename = "results/curv_tors_estim_LSFtraj_data_cut_regular_100_n_calls_"+str(param_bayopt["n_calls"])
+dic = {"array_resOpt" : array_resOptIndiv, "array_SmoothFP" : array_SmoothFPIndiv}
+# dic = {"array_resOpt" : out[i][0], "array_curv" : out[i][1], "array_tors" : out[i][2]}
+if os.path.isfile(filename):
+    print("Le fichier ", filename, " existe déjà.")
+fil = open(filename,"xb")
+pickle.dump(dic,fil)
+fil.close()
 
 #
 # for i in range(N):
@@ -296,7 +299,7 @@ for i in range(N):
     #     print('ok for',j)
 
 
-# filename = "LSFtraj_data_preprocess_parts_regular_2"
+# filename = "LSFtraj_data_preprocess_parts_regular_100"
 # dic = {"array_X" : array_X, "array_Q_GS" : array_Q_GS, "array_parts" : array_parts}
 # # dic = {"array_resOpt" : array_resOpt, "curv" : array_SmoothFP.curv, "tors" : array_SmoothFP.tors}
 # if os.path.isfile(filename):
