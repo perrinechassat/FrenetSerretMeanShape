@@ -63,6 +63,47 @@ class BasisSmoother:
         return np.squeeze(self.coefficients) #différent de GPR peut être changer ca
 
 
+class BasisSmoother_scipy:
+
+    """
+    A class used to define a Bspline smoother
+
+    ...
+
+    Attributes
+    ----------
+    basis : Bspline basis representation initialized with an order, a num of basis functions, a number of knots and the range of the domain
+    function : the smoothed function, initialized to 0
+    variances : array, weights for the smoothing
+    smoothing_parameter : float, parameter for the penalization
+    fd_basis : estimated basis after the smoothing
+    coefficients : estimated coefficients after the smoothing
+
+    Methods
+    -------
+    reinitialize():
+        put the argument function to 0.
+
+    smoothing(self, grid_pts, data_pts, weights, smoothing_parameter):
+        do a Bspline basis smoothing of the "data_pts".
+    """
+
+    def __init__(self, domain_range=None, nb_basis=None, order=4, knots=None):
+        def f_init(x): return 0*x
+        self.function = f_init
+        self.order = order
+
+    def reinitialize(self):
+        def f_init(x): return 0*x
+        self.function = f_init
+
+    def smoothing(self, grid_pts, data_pts, weights, smoothing_parameter):
+        self.variances = weights
+        self.smoothing_parameter = smoothing_parameter
+        self.function = UnivariateSpline(grid_pts, data_pts, w=self.variances, k=self.order, s=self.smoothing_parameter, check_finite=True)
+        return self.function.get_coeffs() #différent de GPR peut être changer ca
+
+
 class WaveletSmoother:
 
     """

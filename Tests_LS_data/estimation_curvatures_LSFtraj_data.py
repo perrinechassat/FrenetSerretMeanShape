@@ -208,7 +208,7 @@ array_resOptIndiv = np.empty((N), dtype=object)
 
 
 param_bayopt={"n_splits":  10, "n_calls" : 2, "bounds_h" : (0.0015, 0.0025), "bounds_lcurv" : (1e-40, 1e-10), "bounds_ltors" :  (1e-40, 1e-10)}
-hyperparam = [0.002, 1e-20, 1e-20]
+hyperparam = [5, 0.001, 0.001]
 
 out = Parallel(n_jobs=-1)(delayed(estim_file)(array_Q_GS[i], param_bayopt, hyperparam) for i in range(N))
 

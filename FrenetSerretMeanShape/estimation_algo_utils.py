@@ -339,8 +339,10 @@ def estimation(PopFrenetPath, Model, x, smoothing={"flag":False, "method":"karch
 def global_estimation(PopFrenetPath, param_model, smoothing={"flag":False, "method":"karcher_mean"}, hyperparam=None, opt=False, param_bayopt=None, alignment=False, lam=0.0, parallel=False):
 
     N_samples = PopFrenetPath.nb_samples
-    curv_smoother = BasisSmoother(domain_range=param_model["domain_range"], nb_basis=param_model["nb_basis"])
-    tors_smoother = BasisSmoother(domain_range=param_model["domain_range"], nb_basis=param_model["nb_basis"])
+    # curv_smoother = BasisSmoother(domain_range=param_model["domain_range"], nb_basis=param_model["nb_basis"])
+    # tors_smoother = BasisSmoother(domain_range=param_model["domain_range"], nb_basis=param_model["nb_basis"])
+    curv_smoother = BasisSmoother_scipy()
+    tors_smoother = BasisSmoother_scipy()
 
     if opt==True:
         Opt_fun = lambda x: objective_function(param_bayopt["n_splits"], PopFrenetPath, curv_smoother, tors_smoother, x, smoothing, alignment, lam, parallel)
@@ -486,9 +488,14 @@ def step_cross_val(curv_smoother, tors_smoother, test_index, train_index, PopFre
     if ind_conv==True:
         if N_samples==1:
             temp_FrenetPath_Q0 = FrenetPath(PopFrenetPath.grid_obs, PopFrenetPath.grid_eval, init=pred_PopFP.data[:,:,0], curv=pred_PopFP.curv, tors=pred_PopFP.tors)
-            temp_FrenetPath_Q0.frenet_serret_solve()
+            try:
+                temp_FrenetPath_Q0.frenet_serret_solve()
+                dist = geodesic_dist(np.rollaxis(PopFrenetPath.data[:,:,test_index], 2), np.rollaxis(temp_FrenetPath_Q0.data[:,:,test_index], 2))
+            except:
+                ind_conv = False
+                dist = 100
             # print(temp_FrenetPath_Q0.data)
-            dist = geodesic_dist(np.rollaxis(PopFrenetPath.data[:,:,test_index], 2), np.rollaxis(temp_FrenetPath_Q0.data[:,:,test_index], 2))
+
             return dist
 
         else:
