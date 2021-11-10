@@ -465,8 +465,8 @@ def step_cross_val(curv_smoother, tors_smoother, test_index, train_index, PopFre
         # if smoothing["flag"]==True and smoothing["method"]=='tracking':
         #     t_eval = t_train
         # else:
-        #     t_eval = PopFrenetPath.grid_obs
-        train_PopFP = FrenetPath(t_train, t_train, data=data_train)
+        t_eval = PopFrenetPath.grid_obs
+        train_PopFP = FrenetPath(t_train, t_eval, data=data_train)
     else:
         train_PopFP_data = []
         for i in range(N_samples):
