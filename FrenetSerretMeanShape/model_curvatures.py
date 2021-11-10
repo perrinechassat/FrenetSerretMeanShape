@@ -49,7 +49,7 @@ class BasisSmoother:
 
     def reinitialize(self):
         def f_init(x): return 0*x
-        self.function = f_init
+        self.function = lambda x: 0*x
 
     def smoothing(self, grid_pts, data_pts, weights, smoothing_parameter):
         self.variances = weights
