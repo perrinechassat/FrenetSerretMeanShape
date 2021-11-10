@@ -190,7 +190,7 @@ fil.close()
 array_Q_GS = dic["array_Q_GS"]
 N = array_Q_GS.shape[0]
 
-def estim_file(list_Q_GS, param_bayopt):
+def estim_file(list_Q_GS, param_bayopt, hyperparam):
     n = len(list_Q_GS)
 
     array_resOpt = np.empty((n), dtype=object)
@@ -198,7 +198,7 @@ def estim_file(list_Q_GS, param_bayopt):
 
     for j in range(n):
         array_SmoothFP[j], array_resOpt[j] = global_estimation(list_Q_GS[j], param_model={"nb_basis" : int(len(list_Q_GS[j].grid_obs)/2), "domain_range": (list_Q_GS[j].grid_obs[0], list_Q_GS[j].grid_obs[-1])},
-                            opt=True, param_bayopt=param_bayopt)
+                            opt=False, param_bayopt=param_bayopt, hyperparam=hyperparam)
 
     return array_SmoothFP, array_resOpt
 
@@ -208,8 +208,9 @@ array_resOptIndiv = np.empty((N), dtype=object)
 
 
 param_bayopt={"n_splits":  10, "n_calls" : 2, "bounds_h" : (0.0015, 0.0025), "bounds_lcurv" : (1e-40, 1e-10), "bounds_ltors" :  (1e-40, 1e-10)}
+hyperparam = [0.002, 1e-20, 1e-20]
 
-out = Parallel(n_jobs=-1)(delayed(estim_file)(array_Q_GS[i], param_bayopt) for i in range(N))
+out = Parallel(n_jobs=-1)(delayed(estim_file)(array_Q_GS[i], param_bayopt, hyperparam) for i in range(N))
 
 
 for i in range(N):

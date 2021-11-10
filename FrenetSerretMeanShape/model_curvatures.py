@@ -44,11 +44,11 @@ class BasisSmoother:
             # self.basis = BSpline(domain_range=domain_range, order=order)
         else:
             raise ValueError("basis type does not exist")
-        def f_init(x): return 0
+        def f_init(x): return 0*x
         self.function = f_init
 
     def reinitialize(self):
-        def f_init(x): return 0
+        def f_init(x): return 0*x
         self.function = f_init
 
     def smoothing(self, grid_pts, data_pts, weights, smoothing_parameter):
