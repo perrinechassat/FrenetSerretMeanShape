@@ -550,11 +550,11 @@ def objective_function(n_splits, PopFrenetPath, curv_smoother, tors_smoother, hy
 
     else:
         err = []
-        for train_index, test_index in kf.split(grid_split):
+        for train_index, test_index in kf.split(grid_split[1:-1]):
             # print('------- step ', k, ' cross validation --------')
-            # train_index = train_index+1
-            # test_index = test_index+1
-            # train_index = np.concatenate((np.array([0]), train_index, np.array([len(grid_split)+1])))
+            train_index = train_index+1
+            test_index = test_index+1
+            train_index = np.concatenate((np.array([0]), train_index, np.array([len(grid_split)+1])))
 
             dist = step_cross_val(curv_smoother, tors_smoother, test_index, train_index, PopFrenetPath, hyperparam, smoothing, alignment, lam, gam)
 

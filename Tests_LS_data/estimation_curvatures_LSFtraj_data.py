@@ -207,7 +207,7 @@ array_SmoothFPIndiv = np.empty((N), dtype=object)
 array_resOptIndiv = np.empty((N), dtype=object)
 
 
-param_bayopt={"n_splits":  10, "n_calls" : 2, "bounds_h" : (int(3), int(9)), "bounds_lcurv" : (0.00001,0.1), "bounds_ltors" :  (0.00001,0.1)}
+param_bayopt={"n_splits":  10, "n_calls" : 40, "bounds_h" : (int(3), int(9)), "bounds_lcurv" : (0.00001,0.1), "bounds_ltors" :  (0.00001,0.1)}
 hyperparam = [5, 0.001, 0.001]
 
 out = Parallel(n_jobs=-1)(delayed(estim_file)(array_Q_GS[i], param_bayopt, hyperparam) for i in range(N))
