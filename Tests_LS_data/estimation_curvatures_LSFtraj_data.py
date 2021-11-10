@@ -197,7 +197,7 @@ def estim_file(list_Q_GS, param_bayopt):
     array_SmoothFP = np.empty((n), dtype=object)
 
     for j in range(n):
-        array_SmoothFP[i], array_resOpt[j] = global_estimation(list_Q_GS[j], param_model={"nb_basis" : int(len(list_Q_GS[j].grid_obs)/2), "domain_range": (list_Q_GS[j].grid_obs[0], list_Q_GS[j].grid_obs[-1])},
+        array_SmoothFP[j], array_resOpt[j] = global_estimation(list_Q_GS[j], param_model={"nb_basis" : int(len(list_Q_GS[j].grid_obs)/2), "domain_range": (list_Q_GS[j].grid_obs[0], list_Q_GS[j].grid_obs[-1])},
                             opt=True, param_bayopt=param_bayopt)
 
     return array_SmoothFP, array_resOpt
