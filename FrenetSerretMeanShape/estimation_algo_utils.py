@@ -534,8 +534,8 @@ def objective_function(n_splits, PopFrenetPath, curv_smoother, tors_smoother, hy
         gam = {"flag" : False, "value" : None}
 
     if N_samples==1:
-        # grid_split = PopFrenetPath.grid_obs[1:-1]
-        grid_split = PopFrenetPath.grid_obs
+        grid_split = PopFrenetPath.grid_obs[1:-1]
+        # grid_split = PopFrenetPath.grid_obs
     else:
         # grid_split = PopFrenetPath.frenet_paths[0].grid_obs[1:-1]
         grid_split = PopFrenetPath.frenet_paths[0].grid_obs
@@ -550,7 +550,7 @@ def objective_function(n_splits, PopFrenetPath, curv_smoother, tors_smoother, hy
 
     else:
         err = []
-        for train_index, test_index in kf.split(grid_split[1:-1]):
+        for train_index, test_index in kf.split(grid_split):
             # print('------- step ', k, ' cross validation --------')
             train_index = train_index+1
             test_index = test_index+1
