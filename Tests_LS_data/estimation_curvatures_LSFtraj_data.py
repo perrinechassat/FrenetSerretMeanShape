@@ -193,7 +193,7 @@ import dill as pickle
 # fil.close()
 
 
-filename = "LSFtraj_Rosetta_data_preprocess_parts_regular_100"
+filename = "LSFtraj_Rosetta_data_preprocess_parts_regular_100_2"
 fil = open(filename,"rb")
 dic = pickle.load(fil)
 fil.close()
@@ -225,15 +225,15 @@ out = Parallel(n_jobs=-1)(delayed(estim_file)(array_Q_GS[i], param_bayopt, hyper
 for i in range(N):
     array_ModelIndiv[i] = out[i][0]
     array_resOptIndiv[i] = out[i][1]
-#
-# print('Save file')
-# filename = "results/curv_tors_estim_LSFtraj_Rosetta_data_cut_regular_100_n_calls_"+str(param_bayopt["n_calls"])
-# dic = {"array_resOpt" : array_resOptIndiv, "array_Model" : array_ModelIndiv}
-# if os.path.isfile(filename):
-#     print("Le fichier ", filename, " existe déjà.")
-# fil = open(filename,"xb")
-# pickle.dump(dic,fil)
-# fil.close()
+
+print('Save file')
+filename = "results/curv_tors_estim_LSFtraj_Rosetta_data_cut_regular_100_n_calls_"+str(param_bayopt["n_calls"])
+dic = {"array_resOpt" : array_resOptIndiv, "array_Model" : array_ModelIndiv}
+if os.path.isfile(filename):
+    print("Le fichier ", filename, " existe déjà.")
+fil = open(filename,"xb")
+pickle.dump(dic,fil)
+fil.close()
 
 
 # Debug
