@@ -493,8 +493,6 @@ def step_cross_val(curv_smoother, tors_smoother, test_index, train_index, PopFre
             except:
                 ind_conv = False
                 dist = 100
-            # print(temp_FrenetPath_Q0.data)
-
             return dist
 
         else:

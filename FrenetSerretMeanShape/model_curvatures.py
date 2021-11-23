@@ -113,7 +113,8 @@ class BasisSmoother_scipy:
         self.tck = tck
         skfda_bspline = BSpline._from_scipy_bspline(interpolate.BSpline(tck[0], tck[1], tck[2]))
         self.fd_basis = FDataBasis(skfda_bspline[0], skfda_bspline[1][:-(tck[2]+1)])
-        def f(x): return np.squeeze(self.fd_basis.evaluate(x))
+        # def f(x): return np.squeeze(self.fd_basis.evaluate(x))
+        def f(x): return splev(x, self.tck)
         self.function = f
         # skfda_bspline = BSpline._from_scipy_bspline(interpolate.BSpline(self.tck[0], self.tck[1], self.tck[2]))
         # self.fd_basis = FDataBasis(skfda_bspline[0], skfda_bspline[1][:-(self.tck[2]+1)])
