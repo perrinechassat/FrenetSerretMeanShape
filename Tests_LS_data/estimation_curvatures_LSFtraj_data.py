@@ -146,10 +146,10 @@ import dill as pickle
 # def preprocess_regular_parts(file):
 #     print('File :', file)
 #     hand_barycentre = barycenter_from_3ptsHand(path_dir+file, plot=False)
-#     data_traj = take_numpy_subset(hand_barycentre, 0, len(hand_barycentre.index))
-#     t = np.linspace(0,1,len(data_traj))
-#     ind_t = np.intersect1d(np.where(t>=0.05), np.where(t<=0.95))
-#     data_traj = data_traj[ind_t,:]
+#     data_traj = take_numpy_subset(hand_barycentre, 0, len(hand_barycentre.index))[100:-150,:]
+#     # t = np.linspace(0,1,len(data_traj))
+#     # ind_t = np.intersect1d(np.where(t>=0.05), np.where(t<=0.95))
+#     # data_traj = data_traj[ind_t,:]
 #     t = np.linspace(0,1,len(data_traj))
 #
 #     # Estimation des dérivées, de s(t) et de Q(t)
@@ -183,7 +183,7 @@ import dill as pickle
 #     array_parts[i] = out[i][1]
 #     array_Q_GS[i] = out[i][2]
 #
-# filename = "LSFtraj_Rosetta_data_preprocess_parts_regular_100"
+# filename = "LSFtraj_Rosetta_data_preprocess_parts_regular_100_2"
 # dic = {"array_X" : array_X, "array_Q_GS" : array_Q_GS, "array_parts" : array_parts}
 # # dic = {"array_resOpt" : array_resOpt, "curv" : array_SmoothFP.curv, "tors" : array_SmoothFP.tors}
 # if os.path.isfile(filename):
@@ -225,15 +225,28 @@ out = Parallel(n_jobs=-1)(delayed(estim_file)(array_Q_GS[i], param_bayopt, hyper
 for i in range(N):
     array_ModelIndiv[i] = out[i][0]
     array_resOptIndiv[i] = out[i][1]
+#
+# print('Save file')
+# filename = "results/curv_tors_estim_LSFtraj_Rosetta_data_cut_regular_100_n_calls_"+str(param_bayopt["n_calls"])
+# dic = {"array_resOpt" : array_resOptIndiv, "array_Model" : array_ModelIndiv}
+# if os.path.isfile(filename):
+#     print("Le fichier ", filename, " existe déjà.")
+# fil = open(filename,"xb")
+# pickle.dump(dic,fil)
+# fil.close()
 
-print('Save file')
-filename = "results/curv_tors_estim_LSFtraj_Rosetta_data_cut_regular_100_n_calls_"+str(param_bayopt["n_calls"])
-dic = {"array_resOpt" : array_resOptIndiv, "array_Model" : array_ModelIndiv}
-if os.path.isfile(filename):
-    print("Le fichier ", filename, " existe déjà.")
-fil = open(filename,"xb")
-pickle.dump(dic,fil)
-fil.close()
+
+# Debug
+# parts = dic["array_parts"]
+# X = dic["array_X"]
+#
+# for i in range(10):
+#     L_reconst = []
+#     for j in range(len(array_Q_GS[i])):
+#         L_reconst.append(np.transpose(cumtrapz(array_Q_GS[i][j].data[:,0,:], array_Q_GS[i][j].grid_obs, initial=0))*X[i].L+parts[i][j][0,:])
+#     plot_3D_means([X[i].data.squeeze()]+parts[i]+L_reconst, [], " ", "")
+#     # array_Model, array_resOpt = estim_file(array_Q_GS[i], param_bayopt, hyperparam)
+
 
 
 # for i in range(N):
