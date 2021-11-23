@@ -329,11 +329,10 @@ def estimation(PopFrenetPath, Model, x, smoothing={"flag":False, "method":"karch
         SmoothPopFrenetPath = SmoothPopFrenetPath0
         # ind_conv = True
 
-    SmoothPopFrenetPath.set_estimate_theta(Model.curv.function, Model.tors.function)
     if N_samples!=1 and alignment==True:
-        SmoothPopFrenetPath.set_gam_functions(gam["value"])
+        Model.set_gam_functions(gam["value"])
 
-    return SmoothPopFrenetPath, ind_conv
+    return SmoothPopFrenetPath, Model, ind_conv
 
 
 def global_estimation(PopFrenetPath, param_model, smoothing={"flag":False, "method":"karcher_mean"}, hyperparam=None, opt=False, param_bayopt=None, alignment=False, lam=0.0, parallel=False):
@@ -357,98 +356,98 @@ def global_estimation(PopFrenetPath, param_model, smoothing={"flag":False, "meth
         x = hyperparam
 
     Model_theta = Model(curv_smoother, tors_smoother)
-    SmoothPopFrenetPath_fin, ind_conv = estimation(PopFrenetPath, Model_theta, x, smoothing, alignment, lam)
+    SmoothPopFrenetPath_fin, Model_fin, ind_conv = estimation(PopFrenetPath, Model_theta, x, smoothing, alignment, lam)
 
-    return SmoothPopFrenetPath_fin, [x, ind_conv]
-
-
-""" Estimate and compute dist """
-
-def eval_estimation(true_model, PopFrenetPath, Model, x, smoothing={"flag":False, "method":"karcher_mean"}, alignment=False, lam=0.0, gam={"flag" : False, "value" : None}):
-
-    s0 = true_model["s0"]
-    list_error_Q = [mean_geodesic_dist(true_model["PopFP"], PopFrenetPath)]
-    list_error_kappa = [(np.linalg.norm((Model.curv.function(s0) - true_model["curv"](s0)))**2)/len(s0)]
-    list_error_tau = [(np.linalg.norm((Model.curv.function(s0) - true_model["tors"](s0)))**2)/len(s0)]
-
-    N_samples = PopFrenetPath.nb_samples
-    PopFrenetPath.compute_neighbors(x[0])
-
-    if smoothing["flag"]==True:
-        SmoothPopFrenetPath0 = frenet_path_smoother(PopFrenetPath, Model, x, smoothing["method"])
-    else:
-        SmoothPopFrenetPath0 = PopFrenetPath
-
-    mKappa, mTau, mS, mOmega, gam, ind_conv = compute_raw_curvatures(PopFrenetPath, x[0], SmoothPopFrenetPath0, alignment, lam, gam)
-    # mean_kappa = np.mean(mKappa)
-    # print(mean_kappa)
-    # Model_theta.curv.function = lambda s: s*0 + mean_kappa
-    theta_curv = Model.curv.smoothing(mS, mKappa, mOmega, x[1])
-    theta_torsion = Model.tors.smoothing(mS, mTau, mOmega, x[2])
-
-    list_error_Q.append(mean_geodesic_dist(true_model["PopFP"], SmoothPopFrenetPath0))
-    list_error_kappa.append((np.linalg.norm((Model.curv.function(s0) - true_model["curv"](s0)))**2)/len(s0))
-    list_error_tau.append((np.linalg.norm((Model.curv.function(s0) - true_model["tors"](s0)))**2)/len(s0))
-
-    if smoothing["flag"]==True:
-        epsilon = 10e-3
-        theta0 = np.concatenate((theta_curv, theta_torsion))
-        theta  = theta0
-        Dtheta = theta
-        k=0
-        # Resmooth data with model information
-        while np.linalg.norm(Dtheta)>=epsilon*np.linalg.norm(theta) and k<31:
-
-            SmoothPopFrenetPath = frenet_path_smoother(PopFrenetPath, Model, x, smoothing["method"])
-
-            mKappa, mTau, mS, mOmega, gam, ind_conv = compute_raw_curvatures(PopFrenetPath, x[0], SmoothPopFrenetPath, alignment, lam, gam)
-            theta_curv = Model.curv.smoothing(mS, mKappa, mOmega, x[1])
-            theta_torsion = Model.tors.smoothing(mS, mTau, mOmega, x[2])
-
-            list_error_Q.append(mean_geodesic_dist(true_model["PopFP"], SmoothPopFrenetPath))
-            list_error_kappa.append((np.linalg.norm((Model.curv.function(s0) - true_model["curv"](s0)))**2)/len(s0))
-            list_error_tau.append((np.linalg.norm((Model.curv.function(s0) - true_model["tors"](s0)))**2)/len(s0))
-
-            thetakm1 = theta
-            theta = np.concatenate((theta_curv, theta_torsion))
-            Dtheta = theta - thetakm1
-            k += 1
-
-        if k==31:
-            ind_conv=False
-    else:
-        SmoothPopFrenetPath = SmoothPopFrenetPath0
-        ind_conv = True
-
-    SmoothPopFrenetPath.set_estimate_theta(Model.curv.function, Model.tors.function)
-    if N_samples!=1 and alignment==True:
-        SmoothPopFrenetPath.set_gam_functions(gam["value"])
-
-    return SmoothPopFrenetPath, ind_conv, list_error_Q, list_error_kappa, list_error_tau
+    return SmoothPopFrenetPath_fin, Model_fin, [x, ind_conv]
 
 
-def eval_global_estimation(true_model, PopFrenetPath, param_model, smoothing={"flag":False, "method":"karcher_mean"}, hyperparam=None, opt=False, param_bayopt=None, alignment=False, lam=0.0):
-
-    N_samples = PopFrenetPath.nb_samples
-    curv_smoother = BasisSmoother(domain_range=param_model["domain_range"], nb_basis=param_model["nb_basis"])
-    tors_smoother = BasisSmoother(domain_range=param_model["domain_range"], nb_basis=param_model["nb_basis"])
-
-    if opt==True:
-        Opt_fun = lambda x: objective_function(param_bayopt["n_splits"], PopFrenetPath, curv_smoother, tors_smoother, x, smoothing, alignment, lam)
-        if smoothing["flag"]==True and smoothing["method"]=="tracking":
-            hyperparam_bounds = [param_bayopt["bounds_h"], param_bayopt["bounds_lcurv"], param_bayopt["bounds_ltors"], param_bayopt["bounds_ltrack"]]
-        else:
-            hyperparam_bounds = [param_bayopt["bounds_h"], param_bayopt["bounds_lcurv"], param_bayopt["bounds_ltors"]]
-        x = bayesian_optimisation(Opt_fun, param_bayopt["n_calls"], hyperparam_bounds)
-        curv_smoother.reinitialize()
-        tors_smoother.reinitialize()
-    else:
-        x = hyperparam
-
-    Model_theta = Model(curv_smoother, tors_smoother)
-    SmoothPopFrenetPath_fin, ind_conv, list_error_Q, list_error_kappa, list_error_tau = eval_estimation(true_model, PopFrenetPath, Model_theta, x, smoothing, alignment, lam)
-
-    return SmoothPopFrenetPath_fin, [x, ind_conv], list_error_Q, list_error_kappa, list_error_tau
+# """ Estimate and compute dist """
+#
+# def eval_estimation(true_model, PopFrenetPath, Model, x, smoothing={"flag":False, "method":"karcher_mean"}, alignment=False, lam=0.0, gam={"flag" : False, "value" : None}):
+#
+#     s0 = true_model["s0"]
+#     list_error_Q = [mean_geodesic_dist(true_model["PopFP"], PopFrenetPath)]
+#     list_error_kappa = [(np.linalg.norm((Model.curv.function(s0) - true_model["curv"](s0)))**2)/len(s0)]
+#     list_error_tau = [(np.linalg.norm((Model.curv.function(s0) - true_model["tors"](s0)))**2)/len(s0)]
+#
+#     N_samples = PopFrenetPath.nb_samples
+#     PopFrenetPath.compute_neighbors(x[0])
+#
+#     if smoothing["flag"]==True:
+#         SmoothPopFrenetPath0 = frenet_path_smoother(PopFrenetPath, Model, x, smoothing["method"])
+#     else:
+#         SmoothPopFrenetPath0 = PopFrenetPath
+#
+#     mKappa, mTau, mS, mOmega, gam, ind_conv = compute_raw_curvatures(PopFrenetPath, x[0], SmoothPopFrenetPath0, alignment, lam, gam)
+#     # mean_kappa = np.mean(mKappa)
+#     # print(mean_kappa)
+#     # Model_theta.curv.function = lambda s: s*0 + mean_kappa
+#     theta_curv = Model.curv.smoothing(mS, mKappa, mOmega, x[1])
+#     theta_torsion = Model.tors.smoothing(mS, mTau, mOmega, x[2])
+#
+#     list_error_Q.append(mean_geodesic_dist(true_model["PopFP"], SmoothPopFrenetPath0))
+#     list_error_kappa.append((np.linalg.norm((Model.curv.function(s0) - true_model["curv"](s0)))**2)/len(s0))
+#     list_error_tau.append((np.linalg.norm((Model.curv.function(s0) - true_model["tors"](s0)))**2)/len(s0))
+#
+#     if smoothing["flag"]==True:
+#         epsilon = 10e-3
+#         theta0 = np.concatenate((theta_curv, theta_torsion))
+#         theta  = theta0
+#         Dtheta = theta
+#         k=0
+#         # Resmooth data with model information
+#         while np.linalg.norm(Dtheta)>=epsilon*np.linalg.norm(theta) and k<31:
+#
+#             SmoothPopFrenetPath = frenet_path_smoother(PopFrenetPath, Model, x, smoothing["method"])
+#
+#             mKappa, mTau, mS, mOmega, gam, ind_conv = compute_raw_curvatures(PopFrenetPath, x[0], SmoothPopFrenetPath, alignment, lam, gam)
+#             theta_curv = Model.curv.smoothing(mS, mKappa, mOmega, x[1])
+#             theta_torsion = Model.tors.smoothing(mS, mTau, mOmega, x[2])
+#
+#             list_error_Q.append(mean_geodesic_dist(true_model["PopFP"], SmoothPopFrenetPath))
+#             list_error_kappa.append((np.linalg.norm((Model.curv.function(s0) - true_model["curv"](s0)))**2)/len(s0))
+#             list_error_tau.append((np.linalg.norm((Model.curv.function(s0) - true_model["tors"](s0)))**2)/len(s0))
+#
+#             thetakm1 = theta
+#             theta = np.concatenate((theta_curv, theta_torsion))
+#             Dtheta = theta - thetakm1
+#             k += 1
+#
+#         if k==31:
+#             ind_conv=False
+#     else:
+#         SmoothPopFrenetPath = SmoothPopFrenetPath0
+#         ind_conv = True
+#
+#     SmoothPopFrenetPath.set_estimate_theta(Model.curv.function, Model.tors.function)
+#     if N_samples!=1 and alignment==True:
+#         SmoothPopFrenetPath.set_gam_functions(gam["value"])
+#
+#     return SmoothPopFrenetPath, ind_conv, list_error_Q, list_error_kappa, list_error_tau
+#
+#
+# def eval_global_estimation(true_model, PopFrenetPath, param_model, smoothing={"flag":False, "method":"karcher_mean"}, hyperparam=None, opt=False, param_bayopt=None, alignment=False, lam=0.0):
+#
+#     N_samples = PopFrenetPath.nb_samples
+#     curv_smoother = BasisSmoother(domain_range=param_model["domain_range"], nb_basis=param_model["nb_basis"])
+#     tors_smoother = BasisSmoother(domain_range=param_model["domain_range"], nb_basis=param_model["nb_basis"])
+#
+#     if opt==True:
+#         Opt_fun = lambda x: objective_function(param_bayopt["n_splits"], PopFrenetPath, curv_smoother, tors_smoother, x, smoothing, alignment, lam)
+#         if smoothing["flag"]==True and smoothing["method"]=="tracking":
+#             hyperparam_bounds = [param_bayopt["bounds_h"], param_bayopt["bounds_lcurv"], param_bayopt["bounds_ltors"], param_bayopt["bounds_ltrack"]]
+#         else:
+#             hyperparam_bounds = [param_bayopt["bounds_h"], param_bayopt["bounds_lcurv"], param_bayopt["bounds_ltors"]]
+#         x = bayesian_optimisation(Opt_fun, param_bayopt["n_calls"], hyperparam_bounds)
+#         curv_smoother.reinitialize()
+#         tors_smoother.reinitialize()
+#     else:
+#         x = hyperparam
+#
+#     Model_theta = Model(curv_smoother, tors_smoother)
+#     SmoothPopFrenetPath_fin, ind_conv, list_error_Q, list_error_kappa, list_error_tau = eval_estimation(true_model, PopFrenetPath, Model_theta, x, smoothing, alignment, lam)
+#
+#     return SmoothPopFrenetPath_fin, [x, ind_conv], list_error_Q, list_error_kappa, list_error_tau
 
 
 """ Functions for the optimization of hyperparameters """
@@ -483,11 +482,11 @@ def step_cross_val(curv_smoother, tors_smoother, test_index, train_index, PopFre
     tors_smoother.reinitialize()
 
     Model_test = Model(curv_smoother, tors_smoother)
-    pred_PopFP, ind_conv = estimation(train_PopFP, Model_test, hyperparam, smoothing, alignment, lam, gam)
+    pred_PopFP, pred_Model, ind_conv = estimation(train_PopFP, Model_test, hyperparam, smoothing, alignment, lam, gam)
 
     if ind_conv==True:
         if N_samples==1:
-            temp_FrenetPath_Q0 = FrenetPath(PopFrenetPath.grid_obs, PopFrenetPath.grid_eval, init=pred_PopFP.data[:,:,0], curv=pred_PopFP.curv, tors=pred_PopFP.tors)
+            temp_FrenetPath_Q0 = FrenetPath(PopFrenetPath.grid_obs, PopFrenetPath.grid_eval, init=pred_PopFP.data[:,:,0], curv=pred_Model.curv.function, tors=pred_Model.tors.function)
             try:
                 temp_FrenetPath_Q0.frenet_serret_solve()
                 dist = geodesic_dist(np.rollaxis(PopFrenetPath.data[:,:,test_index], 2), np.rollaxis(temp_FrenetPath_Q0.data[:,:,test_index], 2))
@@ -500,7 +499,7 @@ def step_cross_val(curv_smoother, tors_smoother, test_index, train_index, PopFre
 
         else:
             Q0 = mean_Q0(pred_PopFP)
-            temp_FrenetPath_Q0 = FrenetPath(PopFrenetPath.grids_obs[0], PopFrenetPath.grids_obs[0], init=Q0, curv=pred_PopFP.mean_curv, tors=pred_PopFP.mean_tors)
+            temp_FrenetPath_Q0 = FrenetPath(PopFrenetPath.grids_obs[0], PopFrenetPath.grids_obs[0], init=Q0, curv=pred_Model.curv.function, tors=pred_Model.tors.function)
             temp_FrenetPath_Q0.frenet_serret_solve()
             dist = np.zeros(N_samples)
             for i in range(N_samples):
@@ -526,8 +525,8 @@ def objective_function(n_splits, PopFrenetPath, curv_smoother, tors_smoother, hy
     # start = timer()
     if alignment==True:
         Model_theta = Model(curv_smoother, tors_smoother)
-        pred_PopFP, ind_conv = estimation(PopFrenetPath, Model_theta, hyperparam, {"flag":False}, alignment, lam)
-        gam = {"flag" : True, "value" : pred_PopFP.gam}
+        pred_PopFP, pred_Model, ind_conv = estimation(PopFrenetPath, Model_theta, hyperparam, {"flag":False}, alignment, lam)
+        gam = {"flag" : True, "value" : pred_Model.gam}
         if ind_conv==False:
             return 100
     else:

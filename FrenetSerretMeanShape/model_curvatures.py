@@ -4,6 +4,7 @@ from scipy import interpolate
 from scipy.interpolate import UnivariateSpline, splev, splrep
 from scipy.optimize import minimize
 from skfda.representation.grid import FDataGrid
+from skfda.representation import FDataBasis
 from skfda.representation.basis import BSpline
 from skfda import preprocessing
 from skfda.misc.regularization import L2Regularization
@@ -100,8 +101,25 @@ class BasisSmoother_scipy:
     def smoothing(self, grid_pts, data_pts, weights, smoothing_parameter):
         self.variances = weights
         self.smoothing_parameter = smoothing_parameter
-        self.function = UnivariateSpline(grid_pts, data_pts, w=self.variances, k=self.order, s=self.smoothing_parameter, check_finite=True)
-        return self.function.get_coeffs() #différent de GPR peut être changer ca
+        # self.function = UnivariateSpline(grid_pts, data_pts, w=self.variances, k=self.order, s=self.smoothing_parameter, check_finite=True)
+        # return self.function.get_coeffs() #différent de GPR peut être changer ca
+
+        # self.tck = splrep(x=grid_pts, y=data_pts, w=self.variances, k=self.order, s=self.smoothing_parameter)
+        # def f(x): return splev(x, self.tck)
+        # self.function = f
+        # return self.tck[1]
+
+        tck = splrep(x=grid_pts, y=data_pts, w=self.variances, k=self.order-1, s=self.smoothing_parameter)
+        self.tck = tck
+        skfda_bspline = BSpline._from_scipy_bspline(interpolate.BSpline(tck[0], tck[1], tck[2]))
+        self.fd_basis = FDataBasis(skfda_bspline[0], skfda_bspline[1][:-(tck[2]+1)])
+        def f(x): return np.squeeze(self.fd_basis.evaluate(x))
+        self.function = f
+        # skfda_bspline = BSpline._from_scipy_bspline(interpolate.BSpline(self.tck[0], self.tck[1], self.tck[2]))
+        # self.fd_basis = FDataBasis(skfda_bspline[0], skfda_bspline[1][:-(self.tck[2]+1)])
+        return np.squeeze(self.fd_basis.coefficients)
+
+
 
 
 class WaveletSmoother:
@@ -212,3 +230,6 @@ class Model:
     def __init__(self, curv_basis_smoother, tors_basis_smoother):
         self.curv = curv_basis_smoother
         self.tors = tors_basis_smoother
+
+    def set_gam_functions(self, gam):
+        self.gam = gam

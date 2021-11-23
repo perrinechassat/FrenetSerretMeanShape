@@ -59,3 +59,42 @@ def bayesian_optimisation(func, n_call, hyperparam_bounds, plot=True):
         # figure.show()
     print('the optimal hyperparameters selected are: ', x)
     return x
+
+
+def gridsearch_optimisation(func, hyperparam_list):
+
+    grid = create_hyperparam_grid(hyperparam_list)
+    n_grid = grid.shape[0]
+
+    print('Begin grid search optimisation with', n_grid, 'combinations of parameters...')
+
+    # out = []
+    # for i in range(n_grid):
+    #     print('Iteration :', i, 'with parameters ', grid[i])
+    #     out.append(func(grid[i]))
+    #     print('Cross validation score :', out[i])
+
+    def parallel_func(f, param, i):
+        print('Iteration :', i, 'with parameters ', param)
+        cv = f(param)
+        print('Cross validation score :', cv)
+        return cv
+
+    out = Parallel(n_jobs=-1)(delayed(parallel_func)(func, grid[i], i) for i in range(n_grid))
+
+    ind = np.where([out[i]==np.min(out, axis=0) for i in range(n_grid)])[0]
+    if len(ind)!=1:
+        ind = ind[0]
+
+    res = grid[ind].squeeze()
+    print('End of grid search optimisation. The optimal parameters are :', res)
+
+    return res
+
+
+def create_hyperparam_grid(hyperparam_list):
+
+    n_param = len(hyperparam_list)
+    grid = np.array(np.meshgrid(*hyperparam_list)).T.reshape(-1,n_param)
+
+    return grid

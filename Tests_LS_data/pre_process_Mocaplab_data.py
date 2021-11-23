@@ -15,53 +15,7 @@ from visu_utils import *
 from signal_utils import *
 from pickle import *
 import dill as pickle
-
-# path = r"C:\Users\Perrine\Documents\Thèse\Data\LSFtraj\LSFtraj\RO1_X0020.Titres1.csv"
-
-# def barycenter_from_3ptsHand(pathFile, plot=True):
-
-#     csvFile = pd.read_csv(pathFile,sep=';')
-#     # print(csvFile)
-#     objDic = {}
-#     for col in csvFile.columns:
-#         # print(col)
-#         if not col.startswith('Unnamed'):
-#             objName = col
-#             objDic[objName] = {}
-#         mkrtest = csvFile[col][0]
-#         # print(mkrtest)
-#         axe = csvFile[col][1]
-#         # print(axe)
-#         if isinstance(mkrtest, str):
-#             # print('ici')
-#             mkr = mkrtest
-#             objDic[objName][mkr] = pd.DataFrame(columns=[axe])
-#             # objDic[mkr] = pd.DataFrame(columns=[axe])
-
-#         objDic[objName][mkr][axe] = [float(i) for i in csvFile[col][2:]]
-#         # objDic[mkr][axe] = [float(i) for i in csvFile[col][2:]]
-
-#     a = objDic[objName]['Rwrist']
-#     b = objDic[objName]['Rindex0']
-#     c = objDic[objName]['Rring0']
-#     # a = objDic['Rwrist']
-#     # b = objDic['Rindex0']
-#     # c = objDic['Rring0']
-
-#     barycentre = a
-#     barycentre['x'] = (a['x'] + b['x'] + c['x'])/3
-#     barycentre['y'] = (a['y'] + b['y'] + c['y'])/3
-#     barycentre['z'] = (a['z'] + b['z'] + c['z'])/3
-
-#     if plot==True:
-#         fig = plt.figure()
-#         ax1 = fig.add_subplot(1, 2, 1,  projection='3d')
-#         ax1.plot(barycentre['x'].values, barycentre['y'].values, barycentre['z'].values, color='blue')
-#         plt.show()
-
-#     return barycentre
-
-
+from scipy.interpolate import UnivariateSpline
 
 def barycenter_from_3ptsHand(pathFile, plot=True, hand='Right'):
 
@@ -158,17 +112,6 @@ def cut_regular_parts(data_traj, n_pts):
     # print(n_pts_inter)
     if n<n_pts or n_pts<4:
         return [data_traj]
-    # else:
-    #     parts = []
-    #     q = n//(n_pts-n_pts_inter)
-    #     r = n%(n_pts-n_pts_inter)
-    #     print(q)
-    #     for i in range(q-1):
-    #         print(i*(n_pts-n_pts_inter),i*(n_pts-n_pts_inter)+n_pts)
-    #         parts.append(data_traj[i*(n_pts-n_pts_inter):i*(n_pts-n_pts_inter)+n_pts])
-    #     print(q*(n_pts-n_pts_inter),n)
-    #     parts.append(data_traj[q*(n_pts-n_pts_inter):])
-    #     return parts
     else:
         parts = []
         q = int(np.around(n/(n_pts-n_pts_inter),0))
@@ -179,3 +122,25 @@ def cut_regular_parts(data_traj, n_pts):
         # print((q-1)*(n_pts-n_pts_inter),n)
         parts.append(data_traj[(q-1)*(n_pts-n_pts_inter):])
         return parts
+
+
+def join_parts(array_Q):
+    n_parts = array_Q.shape[0]
+
+    knots_curv = array_Q[0].curv._eval_args[0]
+    coeffs_curv = array_Q[0].curv._eval_args[1]
+    knots_tors = array_Q[0].tors._eval_args[0]
+    coeffs_tors = array_Q[0].tors._eval_args[1]
+
+    for i in range(1,n_parts):
+        knots_curv = np.concatenate((knots_curv, array_Q[i].curv._eval_args[0]))
+        coeffs_curv = np.concatenate((coeffs_curv, array_Q[i].curv._eval_args[1]))
+        knots_tors = np.concatenate((knots_tors, array_Q[i].tors._eval_args[0]))
+        coeffs_tors = np.concatenate((coeffs_tors, array_Q[i].tors._eval_args[1]))
+
+    tck_curv = (knots_curv, coeffs_curv, 4)
+    tck_tors = (knots_tors, coeffs_tors, 4)
+    spl_curv = UnivariateSpline._from_tck(tck_curv)
+    spl_tors = UnivariateSpline._from_tck(tck_tors)
+
+    return spl_curv, spl_tors

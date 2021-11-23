@@ -14,9 +14,10 @@ import numpy as np
 from pickle import *
 import dill as pickle
 
-# path_dir = r"/home/pchassat/Documents/data/LSFtraj/"
+# path_dir = r"/home/pchassat/Documents/data/LSFtraj_Rosetta/"
 # files = os.listdir(path_dir)
 # N = len(files)
+# print(N)
 
 # array_X = np.empty((N), dtype=object)
 # array_Q_GS = np.empty((N), dtype=object)
@@ -140,9 +141,10 @@ import dill as pickle
 #         list_Q_GS.append(X.TNB_GramSchmidt(np.linspace(list_t[i][0], list_t[i][-1], 3*n_i)))
 #
 #     return X, parts, list_Q_GS
-#
-#
+
+
 # def preprocess_regular_parts(file):
+#     print('File :', file)
 #     hand_barycentre = barycenter_from_3ptsHand(path_dir+file, plot=False)
 #     data_traj = take_numpy_subset(hand_barycentre, 0, len(hand_barycentre.index))
 #     t = np.linspace(0,1,len(data_traj))
@@ -173,16 +175,25 @@ import dill as pickle
 # array_X = np.empty((N), dtype=object)
 # array_parts = np.empty((N), dtype=object)
 # array_Q_GS = np.empty((N), dtype=object)
-# #
+#
 # out = Parallel(n_jobs=-1)(delayed(preprocess_regular_parts)(files[i]) for i in range(N))
-# #
+#
 # for i in range(N):
 #     array_X[i] = out[i][0]
 #     array_parts[i] = out[i][1]
 #     array_Q_GS[i] = out[i][2]
+#
+# filename = "LSFtraj_Rosetta_data_preprocess_parts_regular_100"
+# dic = {"array_X" : array_X, "array_Q_GS" : array_Q_GS, "array_parts" : array_parts}
+# # dic = {"array_resOpt" : array_resOpt, "curv" : array_SmoothFP.curv, "tors" : array_SmoothFP.tors}
+# if os.path.isfile(filename):
+#     print("Le fichier ", filename, " existe déjà.")
+# fil = open(filename,"xb")
+# pickle.dump(dic,fil)
+# fil.close()
 
 
-filename = "LSFtraj_data_preprocess_parts_regular_100"
+filename = "LSFtraj_Rosetta_data_preprocess_parts_regular_100"
 fil = open(filename,"rb")
 dic = pickle.load(fil)
 fil.close()
@@ -194,40 +205,37 @@ def estim_file(list_Q_GS, param_bayopt, hyperparam):
     n = len(list_Q_GS)
 
     array_resOpt = np.empty((n), dtype=object)
-    array_SmoothFP = np.empty((n), dtype=object)
+    array_Model = np.empty((n), dtype=object)
 
     for j in range(n):
-        array_SmoothFP[j], array_resOpt[j] = global_estimation(list_Q_GS[j], param_model={"nb_basis" : int(len(list_Q_GS[j].grid_obs)/2), "domain_range": (list_Q_GS[j].grid_obs[0], list_Q_GS[j].grid_obs[-1])},
+        SmoothFP, array_Model[j], array_resOpt[j] = global_estimation(list_Q_GS[j], param_model={"nb_basis" : int(len(list_Q_GS[j].grid_obs)/2), "domain_range": (list_Q_GS[j].grid_obs[0], list_Q_GS[j].grid_obs[-1])},
                             opt=True, param_bayopt=param_bayopt)
 
-    return array_SmoothFP, array_resOpt
+    return array_Model, array_resOpt
 
 
-array_SmoothFPIndiv = np.empty((N), dtype=object)
+array_ModelIndiv = np.empty((N), dtype=object)
 array_resOptIndiv = np.empty((N), dtype=object)
 
-
-param_bayopt={"n_splits":  10, "n_calls" : 40, "bounds_h" : (int(3), int(9)), "bounds_lcurv" : (0.00001,0.1), "bounds_ltors" :  (0.00001,0.1)}
+param_bayopt={"n_splits":  10, "n_calls" : 50, "bounds_h" : (int(3), int(9)), "bounds_lcurv" : (0.00001,0.1), "bounds_ltors" :  (0.00001,0.1)}
 hyperparam = [5, 0.001, 0.001]
 
 out = Parallel(n_jobs=-1)(delayed(estim_file)(array_Q_GS[i], param_bayopt, hyperparam) for i in range(N))
 
-
 for i in range(N):
-    array_SmoothFPIndiv[i] = out[i][0]
+    array_ModelIndiv[i] = out[i][0]
     array_resOptIndiv[i] = out[i][1]
 
 print('Save file')
-filename = "results/curv_tors_estim_LSFtraj_data_cut_regular_100_n_calls_"+str(param_bayopt["n_calls"])
-dic = {"array_resOpt" : array_resOptIndiv, "array_SmoothFP" : array_SmoothFPIndiv}
-# dic = {"array_resOpt" : out[i][0], "array_curv" : out[i][1], "array_tors" : out[i][2]}
+filename = "results/curv_tors_estim_LSFtraj_Rosetta_data_cut_regular_100_n_calls_"+str(param_bayopt["n_calls"])
+dic = {"array_resOpt" : array_resOptIndiv, "array_Model" : array_ModelIndiv}
 if os.path.isfile(filename):
     print("Le fichier ", filename, " existe déjà.")
 fil = open(filename,"xb")
 pickle.dump(dic,fil)
 fil.close()
 
-#
+
 # for i in range(N):
 #     print('---------------------------------------------------- estimation file',i,'----------------------------------------------------------------')
 #     # array_X[i], array_parts[i], array_Q_GS[i] = preprocess_regular_parts(files[i])
@@ -298,13 +306,3 @@ fil.close()
     #         array_SmoothThetaFP[j] = FrenetPath(out[j][0].grid_obs, out[j][0].grid_obs, init=out[j][0].data[:,:,0], curv=out[j][0].curv, tors=out[j][0].tors, dim=3)
     #         array_SmoothThetaFP[j].frenet_serret_solve()
     #     print('ok for',j)
-
-
-# filename = "LSFtraj_data_preprocess_parts_regular_100"
-# dic = {"array_X" : array_X, "array_Q_GS" : array_Q_GS, "array_parts" : array_parts}
-# # dic = {"array_resOpt" : array_resOpt, "curv" : array_SmoothFP.curv, "tors" : array_SmoothFP.tors}
-# if os.path.isfile(filename):
-#     print("Le fichier ", filename, " existe déjà.")
-# fil = open(filename,"xb")
-# pickle.dump(dic,fil)
-# fil.close()

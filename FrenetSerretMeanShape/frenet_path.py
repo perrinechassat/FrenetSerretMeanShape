@@ -241,6 +241,3 @@ class PopulationFrenetPath:
     def set_estimate_theta(self, mean_curv, mean_tors):
         self.mean_curv = mean_curv
         self.mean_tors = mean_tors
-
-    def set_gam_functions(self, gam):
-        self.gam = gam
