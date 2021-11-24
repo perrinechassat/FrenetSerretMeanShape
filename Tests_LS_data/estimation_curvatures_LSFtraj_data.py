@@ -205,16 +205,16 @@ def estim_file(list_Q_GS, param_bayopt, hyperparam):
     n = len(list_Q_GS)
 
     array_resOpt = np.empty((n), dtype=object)
-    array_Model = np.empty((n), dtype=object)
+    # array_Model = np.empty((n), dtype=object)
 
     for j in range(n):
-        SmoothFP, array_Model[j], array_resOpt[j] = global_estimation(list_Q_GS[j], param_model={"nb_basis" : int(len(list_Q_GS[j].grid_obs)/2), "domain_range": (list_Q_GS[j].grid_obs[0], list_Q_GS[j].grid_obs[-1])},
+        SmoothFP, Model, array_resOpt[j] = global_estimation(list_Q_GS[j], param_model={"nb_basis" : int(len(list_Q_GS[j].grid_obs)/2), "domain_range": (list_Q_GS[j].grid_obs[0], list_Q_GS[j].grid_obs[-1])},
                             opt=True, param_bayopt=param_bayopt)
 
-    return array_Model, array_resOpt
+    # return array_Model, array_resOpt
+    return array_resOpt
 
-
-array_ModelIndiv = np.empty((N), dtype=object)
+# array_ModelIndiv = np.empty((N), dtype=object)
 array_resOptIndiv = np.empty((N), dtype=object)
 
 param_bayopt={"n_splits":  10, "n_calls" : 50, "bounds_h" : (int(3), int(9)), "bounds_lcurv" : (0.00001,0.1), "bounds_ltors" :  (0.00001,0.1)}
@@ -223,12 +223,13 @@ hyperparam = [5, 0.001, 0.001]
 out = Parallel(n_jobs=-1)(delayed(estim_file)(array_Q_GS[i], param_bayopt, hyperparam) for i in range(N))
 
 for i in range(N):
-    array_ModelIndiv[i] = out[i][0]
-    array_resOptIndiv[i] = out[i][1]
+    # array_ModelIndiv[i] = out[i][0]
+    # array_resOptIndiv[i] = out[i][1]
+    array_resOptIndiv[i] = out[i]
 
 print('Save file')
-filename = "results/curv_tors_estim_LSFtraj_Rosetta_data_cut_regular_100_n_calls_"+str(param_bayopt["n_calls"])
-dic = {"array_resOpt" : array_resOptIndiv, "array_Model" : array_ModelIndiv}
+filename = "results/opti_curv_tors_estim_LSFtraj_Rosetta_cut_regular_100_n_calls_"+str(param_bayopt["n_calls"])
+dic = {"array_resOpt" : array_resOptIndiv} #, "array_Model" : array_ModelIndiv}
 if os.path.isfile(filename):
     print("Le fichier ", filename, " existe déjà.")
 fil = open(filename,"xb")
