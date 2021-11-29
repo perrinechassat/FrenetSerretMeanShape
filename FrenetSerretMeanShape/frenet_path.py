@@ -150,7 +150,7 @@ class FrenetPath:
         self.delta = np.squeeze(np.asarray(delta))
 
 
-    @with_timeout(40)
+    # @with_timeout(40)
     def frenet_serret_solve(self, Q0=None, t_span=None, t_eval=None):
         """
         FrenetSerretSolve
@@ -171,7 +171,7 @@ class FrenetPath:
         if self.curv==None or self.tors==None:
             raise ValueError("Set first the function curv and torsion.")
 
-        SO3 = SpecialOrthogonal(3)
+        # SO3 = SpecialOrthogonal(3)
 
         h = lambda t: [self.curv(t), self.tors(t)]
         F = lambda t: np.diag(h(t),1) - np.diag(h(t),-1)
@@ -191,7 +191,6 @@ class FrenetPath:
         self.data[:,0,:] = Z[p:2*p,:]   # Tangent
         self.data[:,1,:] = Z[2*p:3*p,:] # Normal
         self.data[:,2,:] = Z[3*p:4*p,:] # Binormal
-
 
 
 class PopulationFrenetPath:

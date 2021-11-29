@@ -14,44 +14,46 @@ import numpy as np
 from pickle import *
 import dill as pickle
 
-# path_dir = r"/home/pchassat/Documents/data/LSFtraj_Rosetta/"
-# files = os.listdir(path_dir)
-# N = len(files)
-# print(N)
+path_dir = r"/home/pchassat/data/LSFtraj_Rosetta/LSFtraj_Rosetta/"
+files = os.listdir(path_dir)
+N = len(files)
+print(N)
 
-# array_X = np.empty((N), dtype=object)
-# array_Q_GS = np.empty((N), dtype=object)
-#
-# def preprocess(file):
-#     hand_barycentre = barycenter_from_3ptsHand(path_dir+file, plot=False)
-#     data_traj = take_numpy_subset(hand_barycentre, 0, len(hand_barycentre.index))
-#     t = np.linspace(0,1,len(data_traj))
-#
-#     # Estimation des dérivées, de s(t) et de Q(t)
-#     t_new = np.linspace(0,1,3000)
-#     X = Trajectory(data_traj, t)
-#     h_opt = opti_loc_poly_traj(X.data, X.t, 0.005, 0.02, 50)
-#     X.loc_poly_estimation(X.t, 5, h_opt)
-#     X.compute_S(scale=True)
-#     s_lim = [0.02, 0.98]
-#     ind_bornes = np.intersect1d(np.where(X.S(t_new)>s_lim[0]), np.where(X.S(t_new)<s_lim[1]))
-#     Q_GS = X.TNB_GramSchmidt(t_new[ind_bornes])
-#
-#     return X, Q_GS
-#
-# out = Parallel(n_jobs=-1)(delayed(preprocess)(files[i]) for i in range(N))
-#
+array_X = np.empty((N), dtype=object)
+array_Q_GS = np.empty((N), dtype=object)
+
+def preprocess(file):
+    hand_barycentre = barycenter_from_3ptsHand(path_dir+file, plot=False)
+    data_traj = take_numpy_subset(hand_barycentre, 0, len(hand_barycentre.index))[100:-150]
+    t = np.linspace(0,0.01*(len(data_traj)-1),len(data_traj))
+
+    # Estimation des dérivées, de s(t) et de Q(t)
+    X = Trajectory(data_traj, t)
+    h_opt = opti_loc_poly_traj(X.data, X.t,  3*0.01, 10*0.01, 50)
+    X.loc_poly_estimation(X.t, 5, h_opt)
+    X.compute_S(scale=False)
+    Q_GS = X.TNB_GramSchmidt(t)
+
+    return X, Q_GS
+
+out = Parallel(n_jobs=-1)(delayed(preprocess)(files[i]) for i in range(N))
+
+for i in range(N):
+    array_X[i] = out[i][0]
+    array_Q_GS[i] = out[i][1]
+
 # for i in range(N):
-#     array_X[i] = out[i][0]
-#     array_Q_GS[i] = out[i][1]
-#
-# filename = "LSFtraj_data_preprocess"
-# dic = {"array_X" : array_X, "array_Q_GS" : array_Q_GS}
-# if os.path.isfile(filename):
-#     print("Le fichier ", filename, " existe déjà.")
-# fil = open(filename,"xb")
-# pickle.dump(dic,fil)
-# fil.close()
+#     print(files[i])
+#     array_X[i], array_Q_GS[i] = preprocess(files[i])
+
+
+filename = "results/LSFtraj_Rosetta_data_preprocess_without_scaling"
+dic = {"array_X" : array_X, "array_Q_GS" : array_Q_GS}
+if os.path.isfile(filename):
+    print("Le fichier ", filename, " existe déjà.")
+fil = open(filename,"xb")
+pickle.dump(dic,fil)
+fil.close()
 
 # filename = "LSFtraj_data_preprocess"
 # fil = open(filename,"rb")
@@ -64,35 +66,33 @@ import dill as pickle
 # N = 2
 # print(N)
 
-# param_bayopt = {"n_splits":  10, "n_calls" : 2, "bounds_h" : (0.001, 0.003), "bounds_lcurv" : (1e-13, 1e-8), "bounds_ltors" :  (1e-13, 1e-8)}
-# param_model = {"nb_basis" : 1000, "domain_range": (0.02, 0.98)}
-# hyperparam = [0.001, 1e-10, 1e-10]
-#
-# print("Individual estimations...")
-# #
-# # array_SmoothFP = np.empty((N), dtype=object)
-# # array_resOpt = np.empty((N), dtype=object)
-# # array_SmoothThetaFP = np.empty((N), dtype=object)
-#
-# out = Parallel(n_jobs=-1)(delayed(global_estimation)(array_Q_GS[i], param_model, opt=True, param_bayopt=param_bayopt) for i in range(N))
-# # out = Parallel(n_jobs=-1)(delayed(global_estimation)(array_Q_GS[i], param_model, opt=False, hyperparam=hyperparam, param_bayopt=param_bayopt) for i in range(N))
-#
-# print("fin")
-#
+param_bayopt = {"n_splits":  10, "n_calls" : 50, "bounds_h" : (5, 7), "bounds_lcurv" : (0.01, 5), "bounds_ltors" :  (0.01, 5)}
+
+print("Individual estimations...")
+
+array_Model = np.empty((N), dtype=object)
+array_resOpt = np.empty((N), dtype=object)
+
+out = Parallel(n_jobs=-1)(delayed(global_estimation)(array_Q_GS[i], param_model={"domain_range": (np.round(array_Q_GS[i].grid_obs[0], decimals=8), np.round(array_Q_GS[i].grid_obs[-1], decimals=8))}, opt=True, param_bayopt=param_bayopt) for i in range(N))
+
 # for i in range(N):
-#     array_SmoothFP = out[i][0]
-#     array_resOpt = out[i][1]
-#     # if array_resOpt[1]==True:
-#     #     array_SmoothThetaFP = FrenetPath(array_SmoothFP.grid_obs, array_SmoothFP.grid_obs, init=array_SmoothFP.data[:,:,0], curv=array_SmoothFP.curv, tors=array_SmoothFP.tors, dim=3)
-#         # array_SmoothThetaFP.frenet_serret_solve()
-#     filename = "results/curv_tors_estim_LSFtraj_data_"+str(i)
-#     # dic = {"array_resOpt" : array_resOpt, "array_SmoothThetaFP" : array_SmoothThetaFP}
-#     dic = {"array_resOpt" : array_resOpt, "curv" : array_SmoothFP.curv, "tors" : array_SmoothFP.tors}
-#     if os.path.isfile(filename):
-#         print("Le fichier ", filename, " existe déjà.")
-#     fil = open(filename,"xb")
-#     pickle.dump(dic,fil)
-#     fil.close()
+#     sFp, array_Model[i], array_resOpt[i] = global_estimation(array_Q_GS[i], param_model={"domain_range": (np.round(array_Q_GS[i].grid_obs[0], decimals=8), np.round(array_Q_GS[i].grid_obs[-1], decimals=8))}, opt=True, param_bayopt=param_bayopt)
+
+print("fin")
+
+for i in range(N):
+    array_Model[i] = out[i][1]
+    array_resOpt[i] = out[i][2]
+
+filename = "results/opti_curv_tors_estim_LSFtraj_Rosetta_data_full_without_scaling_n_calls_"+str(param_bayopt["n_calls"])
+# filename = "testtt"
+# dic = {"array_resOpt" : array_resOpt, "array_SmoothThetaFP" : array_SmoothThetaFP}
+dic = {"array_resOpt" : array_resOpt, "array_Model" : array_Model}
+if os.path.isfile(filename):
+    print("Le fichier ", filename, " existe déjà.")
+fil = open(filename,"xb")
+pickle.dump(dic,fil)
+fil.close()
 
 
 # array_X = np.empty((N), dtype=object)
@@ -193,48 +193,48 @@ import dill as pickle
 # fil.close()
 
 
-filename = "LSFtraj_Rosetta_data_preprocess_parts_regular_100_2"
-fil = open(filename,"rb")
-dic = pickle.load(fil)
-fil.close()
-
-array_Q_GS = dic["array_Q_GS"]
-N = array_Q_GS.shape[0]
-
-def estim_file(list_Q_GS, param_bayopt, hyperparam):
-    n = len(list_Q_GS)
-
-    array_resOpt = np.empty((n), dtype=object)
-    # array_Model = np.empty((n), dtype=object)
-
-    for j in range(n):
-        SmoothFP, Model, array_resOpt[j] = global_estimation(list_Q_GS[j], param_model={"nb_basis" : int(len(list_Q_GS[j].grid_obs)/2), "domain_range": (list_Q_GS[j].grid_obs[0], list_Q_GS[j].grid_obs[-1])},
-                            opt=True, param_bayopt=param_bayopt)
-
-    # return array_Model, array_resOpt
-    return array_resOpt
-
-# array_ModelIndiv = np.empty((N), dtype=object)
-array_resOptIndiv = np.empty((N), dtype=object)
-
-param_bayopt={"n_splits":  10, "n_calls" : 50, "bounds_h" : (int(3), int(9)), "bounds_lcurv" : (0.00001,0.1), "bounds_ltors" :  (0.00001,0.1)}
-hyperparam = [5, 0.001, 0.001]
-
-out = Parallel(n_jobs=-1)(delayed(estim_file)(array_Q_GS[i], param_bayopt, hyperparam) for i in range(N))
-
-for i in range(N):
-    # array_ModelIndiv[i] = out[i][0]
-    # array_resOptIndiv[i] = out[i][1]
-    array_resOptIndiv[i] = out[i]
-
-print('Save file')
-filename = "results/opti_curv_tors_estim_LSFtraj_Rosetta_cut_regular_100_n_calls_"+str(param_bayopt["n_calls"])
-dic = {"array_resOpt" : array_resOptIndiv} #, "array_Model" : array_ModelIndiv}
-if os.path.isfile(filename):
-    print("Le fichier ", filename, " existe déjà.")
-fil = open(filename,"xb")
-pickle.dump(dic,fil)
-fil.close()
+# filename = "LSFtraj_Rosetta_data_preprocess_parts_regular_100_2"
+# fil = open(filename,"rb")
+# dic = pickle.load(fil)
+# fil.close()
+#
+# array_Q_GS = dic["array_Q_GS"]
+# N = array_Q_GS.shape[0]
+#
+# def estim_file(list_Q_GS, param_bayopt, hyperparam):
+#     n = len(list_Q_GS)
+#
+#     array_resOpt = np.empty((n), dtype=object)
+#     # array_Model = np.empty((n), dtype=object)
+#
+#     for j in range(n):
+#         SmoothFP, Model, array_resOpt[j] = global_estimation(list_Q_GS[j], param_model={"nb_basis" : int(len(list_Q_GS[j].grid_obs)/2), "domain_range": (list_Q_GS[j].grid_obs[0], list_Q_GS[j].grid_obs[-1])},
+#                             opt=True, param_bayopt=param_bayopt)
+#
+#     # return array_Model, array_resOpt
+#     return array_resOpt
+#
+# # array_ModelIndiv = np.empty((N), dtype=object)
+# array_resOptIndiv = np.empty((N), dtype=object)
+#
+# param_bayopt={"n_splits":  10, "n_calls" : 50, "bounds_h" : (int(3), int(9)), "bounds_lcurv" : (0.00001,0.1), "bounds_ltors" :  (0.00001,0.1)}
+# hyperparam = [5, 0.001, 0.001]
+#
+# out = Parallel(n_jobs=-1)(delayed(estim_file)(array_Q_GS[i], param_bayopt, hyperparam) for i in range(N))
+#
+# for i in range(N):
+#     # array_ModelIndiv[i] = out[i][0]
+#     # array_resOptIndiv[i] = out[i][1]
+#     array_resOptIndiv[i] = out[i]
+#
+# print('Save file')
+# filename = "results/opti_curv_tors_estim_LSFtraj_Rosetta_cut_regular_100_n_calls_"+str(param_bayopt["n_calls"])
+# dic = {"array_resOpt" : array_resOptIndiv} #, "array_Model" : array_ModelIndiv}
+# if os.path.isfile(filename):
+#     print("Le fichier ", filename, " existe déjà.")
+# fil = open(filename,"xb")
+# pickle.dump(dic,fil)
+# fil.close()
 
 
 # Debug

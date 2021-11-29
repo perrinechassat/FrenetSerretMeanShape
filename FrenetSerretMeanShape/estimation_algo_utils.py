@@ -7,6 +7,7 @@ from optimization_utils import *
 from alignment_utils import *
 from tracking_utils import *
 from smoothing_frenet_path import *
+from visu_utils import *
 
 import numpy as np
 from scipy.linalg import expm, polar, logm
@@ -261,6 +262,9 @@ def compute_raw_curvatures(PopFrenetPath, h, SmoothPopFrenetPath, alignment=Fals
         # plt.figure()
         # plt.plot(S, weighted_mean_tau)
         # plt.show()
+        # plot_2D(S, weighted_mean_kappa)
+        # plot_2D(S, weighted_mean_tau)
+
         gam_res = {"flag" : False, "value" : None}
         ind_conv = True
     return weighted_mean_kappa, weighted_mean_tau, S, sum_omega, gam_res, ind_conv
@@ -282,13 +286,13 @@ def estimation(PopFrenetPath, Model, x, smoothing={"flag":False, "method":"karch
     # mean_kappa = np.mean(mKappa)
     # print(mean_kappa)
     # Model_theta.curv.function = lambda s: s*0 + mean_kappa
-    try:
-        theta_curv = Model.curv.smoothing(mS, mKappa, mOmega, x[1])
-        theta_torsion = Model.tors.smoothing(mS, mTau, mOmega, x[2])
-    except:
-        Model.curv.reinitialize()
-        Model.tors.reinitialize()
-        ind_conv = False
+    # try:
+    theta_curv = Model.curv.smoothing(mS, mKappa, mOmega, x[1])
+    theta_torsion = Model.tors.smoothing(mS, mTau, mOmega, x[2])
+    # except:
+    #     Model.curv.reinitialize()
+    #     Model.tors.reinitialize()
+    #     ind_conv = False
 
     # plt.figure()
     # plt.plot(mS, Model.curv.function(mS))
@@ -296,6 +300,9 @@ def estimation(PopFrenetPath, Model, x, smoothing={"flag":False, "method":"karch
     # plt.figure()
     # plt.plot(mS, Model.tors.function(mS))
     # plt.show()
+    # plot_2D(mS, Model.curv.function(mS))
+    # plot_2D(mS, Model.tors.function(mS))
+
 
     if smoothing["flag"]==True:
         epsilon = 10e-3
@@ -340,8 +347,10 @@ def global_estimation(PopFrenetPath, param_model, smoothing={"flag":False, "meth
     N_samples = PopFrenetPath.nb_samples
     # curv_smoother = BasisSmoother(domain_range=param_model["domain_range"], nb_basis=param_model["nb_basis"])
     # tors_smoother = BasisSmoother(domain_range=param_model["domain_range"], nb_basis=param_model["nb_basis"])
-    curv_smoother = BasisSmoother_scipy()
-    tors_smoother = BasisSmoother_scipy()
+    # curv_smoother = BasisSmoother_scipy()
+    # tors_smoother = BasisSmoother_scipy()
+    curv_smoother = BasisSmoother(domain_range=param_model["domain_range"])
+    tors_smoother = BasisSmoother(domain_range=param_model["domain_range"])
 
     if opt==True:
         Opt_fun = lambda x: objective_function(param_bayopt["n_splits"], PopFrenetPath, curv_smoother, tors_smoother, x, smoothing, alignment, lam, parallel)
@@ -484,12 +493,17 @@ def step_cross_val(curv_smoother, tors_smoother, test_index, train_index, PopFre
     Model_test = Model(curv_smoother, tors_smoother)
     pred_PopFP, pred_Model, ind_conv = estimation(train_PopFP, Model_test, hyperparam, smoothing, alignment, lam, gam)
 
+
     if ind_conv==True:
         if N_samples==1:
-            temp_FrenetPath_Q0 = FrenetPath(PopFrenetPath.grid_obs, PopFrenetPath.grid_eval, init=pred_PopFP.data[:,:,0], curv=pred_Model.curv.function, tors=pred_Model.tors.function)
+
+            # temp_FrenetPath_Q0 = FrenetPath(PopFrenetPath.grid_obs, PopFrenetPath.grid_eval, init=pred_PopFP.data[:,:,0], curv=pred_Model.curv.function, tors=pred_Model.tors.function)
+            temp_FrenetPath_Q0 = FrenetPath(t_test, t_test, init=PopFrenetPath.data[:,:,test_index[0]], curv=pred_Model.curv.function, tors=pred_Model.tors.function)
             try:
                 temp_FrenetPath_Q0.frenet_serret_solve()
-                dist = geodesic_dist(np.rollaxis(PopFrenetPath.data[:,:,test_index], 2), np.rollaxis(temp_FrenetPath_Q0.data[:,:,test_index], 2))
+                # dist = geodesic_dist(np.rollaxis(PopFrenetPath.data[:,:,test_index], 2), np.rollaxis(temp_FrenetPath_Q0.data[:,:,test_index], 2))
+                dist = geodesic_dist(np.rollaxis(PopFrenetPath.data[:,:,test_index], 2), np.rollaxis(temp_FrenetPath_Q0.data, 2))
+
             except:
                 ind_conv = False
                 dist = 100
@@ -514,10 +528,13 @@ def objective_function(n_splits, PopFrenetPath, curv_smoother, tors_smoother, hy
     ...
     """
     print(hyperparam)
-    kf = KFold(n_splits=n_splits, shuffle=True, random_state=1)
+    # kf = KFold(n_splits=n_splits, shuffle=True, random_state=1)
+    kf = KFold(n_splits=n_splits, shuffle=False)
+
     # k = 0
     curv_smoother.reinitialize()
     tors_smoother.reinitialize()
+
     N_samples = PopFrenetPath.nb_samples
     # print('begin parallel cross val')
     # start = timer()
@@ -529,6 +546,8 @@ def objective_function(n_splits, PopFrenetPath, curv_smoother, tors_smoother, hy
             return 100
     else:
         gam = {"flag" : False, "value" : None}
+        Model_theta = Model(curv_smoother, tors_smoother)
+        pred_PopFP, pred_Model, ind_conv = estimation(PopFrenetPath, Model_theta, hyperparam)
 
     if N_samples==1:
         grid_split = PopFrenetPath.grid_obs[1:-1]
@@ -547,6 +566,7 @@ def objective_function(n_splits, PopFrenetPath, curv_smoother, tors_smoother, hy
 
     else:
         err = []
+        # k=0
         for train_index, test_index in kf.split(grid_split):
             # print('------- step ', k, ' cross validation --------')
             train_index = train_index+1
@@ -560,7 +580,7 @@ def objective_function(n_splits, PopFrenetPath, curv_smoother, tors_smoother, hy
                 return 100
             else:
                 err.append(dist)
-        # k += 1
+            # k += 1
 
     # duration = timer() - start
     # print('cross val', duration)

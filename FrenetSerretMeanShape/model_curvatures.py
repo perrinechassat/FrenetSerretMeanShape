@@ -14,6 +14,57 @@ from skfda.misc.regularization import TikhonovRegularization
 from skfda.misc.operators import LinearDifferentialOperator
 
 
+# class BasisSmoother:
+#
+#     """
+#     A class used to define a Bspline smoother
+#
+#     ...
+#
+#     Attributes
+#     ----------
+#     basis : Bspline basis representation initialized with an order, a num of basis functions, a number of knots and the range of the domain
+#     function : the smoothed function, initialized to 0
+#     variances : array, weights for the smoothing
+#     smoothing_parameter : float, parameter for the penalization
+#     fd_basis : estimated basis after the smoothing
+#     coefficients : estimated coefficients after the smoothing
+#
+#     Methods
+#     -------
+#     reinitialize():
+#         put the argument function to 0.
+#
+#     smoothing(self, grid_pts, data_pts, weights, smoothing_parameter):
+#         do a Bspline basis smoothing of the "data_pts".
+#     """
+#
+#     def __init__(self, basis_type='bspline', domain_range=None, nb_basis=None, order=4, knots=None):
+#         if basis_type=='bspline':
+#             self.basis = BSpline(domain_range=domain_range, n_basis=nb_basis, order=order, knots=knots)
+#             # self.basis = BSpline(domain_range=domain_range, order=order)
+#         else:
+#             raise ValueError("basis type does not exist")
+#         def f_init(x): return 0*x
+#         self.function = f_init
+#
+#     def reinitialize(self):
+#         def f_init(x): return 0*x
+#         self.function = lambda x: 0*x
+#
+#     def smoothing(self, grid_pts, data_pts, weights, smoothing_parameter):
+#         self.variances = weights
+#         self.smoothing_parameter = smoothing_parameter
+#         fd = FDataGrid(data_matrix=data_pts, grid_points=grid_pts, extrapolation="bounds")
+#         self.smoother = preprocessing.smoothing.BasisSmoother(self.basis, smoothing_parameter=self.smoothing_parameter, regularization=TikhonovRegularization(LinearDifferentialOperator(2)), weights=np.diag(self.variances), return_basis=True, method='cholesky')
+#         self.fd_basis = self.smoother.fit_transform(fd)
+#         self.coefficients = self.fd_basis.coefficients
+#         def f(x): return np.squeeze(self.fd_basis.evaluate(x))
+#         self.function = f
+#         return np.squeeze(self.coefficients) #différent de GPR peut être changer ca
+
+
+
 class BasisSmoother:
 
     """
@@ -40,28 +91,50 @@ class BasisSmoother:
     """
 
     def __init__(self, basis_type='bspline', domain_range=None, nb_basis=None, order=4, knots=None):
-        if basis_type=='bspline':
-            self.basis = BSpline(domain_range=domain_range, n_basis=nb_basis, order=order, knots=knots)
-            # self.basis = BSpline(domain_range=domain_range, order=order)
-        else:
+        self.basis_type = basis_type
+        self.domain_range = domain_range
+        self.nb_basis = nb_basis
+        self.order = order
+        self.knots = knots
+
+        if basis_type!='bspline':
             raise ValueError("basis type does not exist")
+
         def f_init(x): return 0*x
         self.function = f_init
 
-    def reinitialize(self):
+    def reinitialize(self): #, knots=None, nb_basis=None):
         def f_init(x): return 0*x
-        self.function = lambda x: 0*x
+        self.function = f_init
+        # self.knots = knots
+        # self.nb_basis = nb_basis
 
     def smoothing(self, grid_pts, data_pts, weights, smoothing_parameter):
         self.variances = weights
         self.smoothing_parameter = smoothing_parameter
+
+        if (self.knots is None) and (self.nb_basis is None):
+            tck = splrep(x=grid_pts, y=data_pts, w=self.variances, k=self.order-1, s=self.smoothing_parameter)
+            self.knots = tck[0][tck[2]:-tck[2]]
+
+            basis = BSpline(domain_range=self.domain_range, order=self.order, knots=self.knots)
+            self.nb_basis = basis.n_basis
+        else:
+            basis = BSpline(domain_range=self.domain_range, n_basis=self.nb_basis, order=self.order, knots=self.knots)
+            self.nb_basis = basis.n_basis
+            self.knots = basis.knots
+
         fd = FDataGrid(data_matrix=data_pts, grid_points=grid_pts, extrapolation="bounds")
-        self.smoother = preprocessing.smoothing.BasisSmoother(self.basis, smoothing_parameter=self.smoothing_parameter, regularization=TikhonovRegularization(LinearDifferentialOperator(2)), weights=np.diag(self.variances), return_basis=True, method='cholesky')
-        self.fd_basis = self.smoother.fit_transform(fd)
-        self.coefficients = self.fd_basis.coefficients
-        def f(x): return np.squeeze(self.fd_basis.evaluate(x))
+        smoother = preprocessing.smoothing.BasisSmoother(basis, smoothing_parameter=self.smoothing_parameter, regularization=TikhonovRegularization(LinearDifferentialOperator(2)), weights=np.diag(self.variances), return_basis=True, method='cholesky')
+        fd_basis = smoother.fit_transform(fd)
+        self.coefficients = fd_basis.coefficients
+        def f(x):
+            return BSpline(domain_range=self.domain_range, n_basis=self.nb_basis, knots=self.knots, order=self.order)._to_scipy_bspline(self.coefficients.squeeze())(x)
+            # fd_b = FDataBasis(basis=BSpline(domain_range=self.domain_range, n_basis=self.nb_basis, knots=self.knots, order=self.order), coefficients=self.coefficients)
+            # return np.squeeze(fd_b.evaluate(x))
         self.function = f
         return np.squeeze(self.coefficients) #différent de GPR peut être changer ca
+
 
 
 class BasisSmoother_scipy:
@@ -118,6 +191,7 @@ class BasisSmoother_scipy:
         self.function = f
         # skfda_bspline = BSpline._from_scipy_bspline(interpolate.BSpline(self.tck[0], self.tck[1], self.tck[2]))
         # self.fd_basis = FDataBasis(skfda_bspline[0], skfda_bspline[1][:-(self.tck[2]+1)])
+
         return np.squeeze(self.fd_basis.coefficients)
 
 
