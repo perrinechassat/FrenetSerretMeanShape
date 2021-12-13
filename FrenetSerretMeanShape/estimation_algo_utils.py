@@ -256,6 +256,7 @@ def compute_raw_curvatures(PopFrenetPath, h, SmoothPopFrenetPath, alignment=Fals
         weighted_mean_kappa, weighted_mean_tau, S, sum_omega, gam_res, ind_conv = compute_raw_curvatures_alignement(PopFrenetPath, h, SmoothPopFrenetPath, lam,  gam)
     else:
         weighted_mean_kappa, weighted_mean_tau, S, sum_omega = compute_raw_curvatures_without_alignement(PopFrenetPath, h, SmoothPopFrenetPath)
+
         # plt.figure()
         # plt.plot(S, weighted_mean_kappa)
         # plt.show()
@@ -286,13 +287,13 @@ def estimation(PopFrenetPath, Model, x, smoothing={"flag":False, "method":"karch
     # mean_kappa = np.mean(mKappa)
     # print(mean_kappa)
     # Model_theta.curv.function = lambda s: s*0 + mean_kappa
-    # try:
-    theta_curv = Model.curv.smoothing(mS, mKappa, mOmega, x[1])
-    theta_torsion = Model.tors.smoothing(mS, mTau, mOmega, x[2])
-    # except:
-    #     Model.curv.reinitialize()
-    #     Model.tors.reinitialize()
-    #     ind_conv = False
+    try:
+        theta_curv = Model.curv.smoothing(mS, mKappa, mOmega, x[1])
+        theta_torsion = Model.tors.smoothing(mS, mTau, mOmega, x[2])
+    except:
+        Model.curv.reinitialize()
+        Model.tors.reinitialize()
+        ind_conv = False
 
     # plt.figure()
     # plt.plot(mS, Model.curv.function(mS))
@@ -302,7 +303,6 @@ def estimation(PopFrenetPath, Model, x, smoothing={"flag":False, "method":"karch
     # plt.show()
     # plot_2D(mS, Model.curv.function(mS))
     # plot_2D(mS, Model.tors.function(mS))
-
 
     if smoothing["flag"]==True:
         epsilon = 10e-3
@@ -345,12 +345,13 @@ def estimation(PopFrenetPath, Model, x, smoothing={"flag":False, "method":"karch
 def global_estimation(PopFrenetPath, param_model, smoothing={"flag":False, "method":"karcher_mean"}, hyperparam=None, opt=False, param_bayopt=None, alignment=False, lam=0.0, parallel=False):
 
     N_samples = PopFrenetPath.nb_samples
-    # curv_smoother = BasisSmoother(domain_range=param_model["domain_range"], nb_basis=param_model["nb_basis"])
-    # tors_smoother = BasisSmoother(domain_range=param_model["domain_range"], nb_basis=param_model["nb_basis"])
+    curv_smoother = BasisSmoother(domain_range=param_model["domain_range"], nb_basis=param_model["nb_basis"])
+    tors_smoother = BasisSmoother(domain_range=param_model["domain_range"], nb_basis=param_model["nb_basis"])
+
     # curv_smoother = BasisSmoother_scipy()
     # tors_smoother = BasisSmoother_scipy()
-    curv_smoother = BasisSmoother(domain_range=param_model["domain_range"])
-    tors_smoother = BasisSmoother(domain_range=param_model["domain_range"])
+    # curv_smoother = BasisSmoother(domain_range=param_model["domain_range"])
+    # tors_smoother = BasisSmoother(domain_range=param_model["domain_range"])
 
     if opt==True:
         Opt_fun = lambda x: objective_function(param_bayopt["n_splits"], PopFrenetPath, curv_smoother, tors_smoother, x, smoothing, alignment, lam, parallel)

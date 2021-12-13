@@ -80,70 +80,58 @@ class FrenetPath:
         self.curv = curv
         self.tors = tors
 
-    # def compute_neighbors(self, h):
-    #     Kern = lambda x: (3/4)*(1-np.power(x,2))
-    #
-    #     neighbor_obs = []
-    #     weight = []
-    #     grid_double = []
-    #     delta = []
-    #     val_min = np.min(self.grid_obs)
-    #     val_max = np.max(self.grid_obs)
-    #     for q in range(self.nb_grid_eval):
-    #         t_q = self.grid_eval[q]
-    #         if t_q-val_min < h and q!=0:
-    #             h_bis = np.abs(t_q-val_min) + 10e-10
-    #             neighbor_obs.append(np.where(abs(self.grid_obs - t_q) <= h_bis)[0])
-    #             weight.append((1/h)*Kern((t_q - self.grid_obs[neighbor_obs[q]])/h))
-    #             grid_double.append((t_q + self.grid_obs[neighbor_obs[q]])/2) # (t_q+s_j)/2
-    #             delta.append(t_q - self.grid_obs[neighbor_obs[q]])
-    #         elif val_max-t_q < h and q!=self.nb_grid_eval-1:
-    #             h_bis = np.abs(val_max-t_q) + 10e-10
-    #             neighbor_obs.append(np.where(abs(self.grid_obs - t_q) <= h_bis)[0])
-    #             weight.append((1/h)*Kern((t_q - self.grid_obs[neighbor_obs[q]])/h))
-    #             grid_double.append((t_q + self.grid_obs[neighbor_obs[q]])/2) # (t_q+s_j)/2
-    #             delta.append(t_q - self.grid_obs[neighbor_obs[q]])
-    #         elif q==0:
-    #             neighbor_obs.append(np.array([0,1]))
-    #             weight.append((1/h)*Kern((t_q - self.grid_obs[neighbor_obs[q]])/h))
-    #             grid_double.append((t_q + self.grid_obs[neighbor_obs[q]])/2) # (t_q+s_j)/2
-    #             delta.append(t_q - self.grid_obs[neighbor_obs[q]])
-    #         elif q==self.nb_grid_eval-1:
-    #             neighbor_obs.append(np.array([len(self.grid_obs)-2,len(self.grid_obs)-1]))
-    #             weight.append((1/h)*Kern((t_q - self.grid_obs[neighbor_obs[q]])/h))
-    #             grid_double.append((t_q + self.grid_obs[neighbor_obs[q]])/2) # (t_q+s_j)/2
-    #             delta.append(t_q - self.grid_obs[neighbor_obs[q]])
-    #         else:
-    #             neighbor_obs.append(np.where(abs(self.grid_obs - t_q) <= h)[0]) # index of observations in the neighborhood of t_q
-    #             weight.append((1/h)*Kern((t_q - self.grid_obs[neighbor_obs[q]])/h)) # K_h(t_q-s_j)
-    #             grid_double.append((t_q + self.grid_obs[neighbor_obs[q]])/2) # (t_q+s_j)/2
-    #             delta.append(t_q - self.grid_obs[neighbor_obs[q]])  # t_q-s_j
-    #     self.neighbor_obs = np.squeeze(neighbor_obs)
-    #     self.weight = np.squeeze(np.asarray(weight))
-    #     self.grid_double = np.squeeze(np.asarray(grid_double))
-    #     self.delta = np.squeeze(np.asarray(delta))
-
-
-    def compute_neighbors(self, k):
-
-        Kern = lambda x,delta: np.power((1 - np.power((np.abs(x)/delta),3)), 3)
+    def compute_neighbors(self, h, adaptive=False):
 
         neighbor_obs = []
         weight = []
         grid_double = []
         delta = []
 
-        # val_min = np.min(self.grid_obs)
-        # val_max = np.max(self.grid_obs)
+        if adaptive==False:
+            Kern = lambda x: (3/4)*(1-np.power(x,2))
+            val_min = np.min(self.grid_obs)
+            val_max = np.max(self.grid_obs)
+            for q in range(self.nb_grid_eval):
+                t_q = self.grid_eval[q]
+                if t_q-val_min < h and q!=0:
+                    h_bis = np.abs(t_q-val_min) + 10e-10
+                    neighbor_obs.append(np.where(abs(self.grid_obs - t_q) <= h_bis)[0])
+                    weight.append((1/h)*Kern((t_q - self.grid_obs[neighbor_obs[q]])/h))
+                    grid_double.append((t_q + self.grid_obs[neighbor_obs[q]])/2) # (t_q+s_j)/2
+                    delta.append(t_q - self.grid_obs[neighbor_obs[q]])
+                elif val_max-t_q < h and q!=self.nb_grid_eval-1:
+                    h_bis = np.abs(val_max-t_q) + 10e-10
+                    neighbor_obs.append(np.where(abs(self.grid_obs - t_q) <= h_bis)[0])
+                    weight.append((1/h)*Kern((t_q - self.grid_obs[neighbor_obs[q]])/h))
+                    grid_double.append((t_q + self.grid_obs[neighbor_obs[q]])/2) # (t_q+s_j)/2
+                    delta.append(t_q - self.grid_obs[neighbor_obs[q]])
+                elif q==0:
+                    neighbor_obs.append(np.array([0,1]))
+                    weight.append((1/h)*Kern((t_q - self.grid_obs[neighbor_obs[q]])/h))
+                    grid_double.append((t_q + self.grid_obs[neighbor_obs[q]])/2) # (t_q+s_j)/2
+                    delta.append(t_q - self.grid_obs[neighbor_obs[q]])
+                elif q==self.nb_grid_eval-1:
+                    neighbor_obs.append(np.array([len(self.grid_obs)-2,len(self.grid_obs)-1]))
+                    weight.append((1/h)*Kern((t_q - self.grid_obs[neighbor_obs[q]])/h))
+                    grid_double.append((t_q + self.grid_obs[neighbor_obs[q]])/2) # (t_q+s_j)/2
+                    delta.append(t_q - self.grid_obs[neighbor_obs[q]])
+                else:
+                    neighbor_obs.append(np.where(abs(self.grid_obs - t_q) <= h)[0]) # index of observations in the neighborhood of t_q
+                    weight.append((1/h)*Kern((t_q - self.grid_obs[neighbor_obs[q]])/h)) # K_h(t_q-s_j)
+                    grid_double.append((t_q + self.grid_obs[neighbor_obs[q]])/2) # (t_q+s_j)/2
+                    delta.append(t_q - self.grid_obs[neighbor_obs[q]])  # t_q-s_j
 
-        for q in range(self.nb_grid_eval):
-            t_q = self.grid_eval[q]
-            delta_s = abs(self.grid_obs-t_q)
-            D = 1.0001*np.sort(delta_s)[k-1]
-            neighbor_obs.append(np.argsort(delta_s)[:k]) # index of observations in the neighborhood of t_q
-            weight.append((1/D)*Kern((t_q - self.grid_obs[neighbor_obs[q]]), D)) # K_h(t_q-s_j, D)
-            grid_double.append((t_q + self.grid_obs[neighbor_obs[q]])/2) # (t_q+s_j)/2
-            delta.append(t_q - self.grid_obs[neighbor_obs[q]])  # t_q-s_j
+        else:
+            Kern = lambda x,delta: np.power((1 - np.power((np.abs(x)/delta),3)), 3)
+            for q in range(self.nb_grid_eval):
+                t_q = self.grid_eval[q]
+                delta_s = abs(self.grid_obs-t_q)
+                D = 1.0001*np.sort(delta_s)[k-1]
+                neighbor_obs.append(np.argsort(delta_s)[:k]) # index of observations in the neighborhood of t_q
+                weight.append((1/D)*Kern((t_q - self.grid_obs[neighbor_obs[q]]), D)) # K_h(t_q-s_j, D)
+                grid_double.append((t_q + self.grid_obs[neighbor_obs[q]])/2) # (t_q+s_j)/2
+                delta.append(t_q - self.grid_obs[neighbor_obs[q]])  # t_q-s_j
+
         self.neighbor_obs = np.squeeze(neighbor_obs)
         self.weight = np.squeeze(np.asarray(weight))
         self.grid_double = np.squeeze(np.asarray(grid_double))

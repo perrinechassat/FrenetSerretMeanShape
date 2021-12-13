@@ -72,6 +72,7 @@ for k in range(n_MC):
 print("Individual estimations from TNB...")
 
 array_SmoothFPIndiv_TNB = np.empty((n_MC, n_curves), dtype=object)
+array_ModelIndiv_TNB = np.empty((n_MC, n_curves), dtype=object)
 array_resOptIndiv_TNB = np.empty((n_MC, n_curves), dtype=object)
 array_SmoothThetaFPIndiv_TNB = np.empty((n_MC, n_curves), dtype=object)
 
@@ -81,9 +82,10 @@ for n in range(n_curves):
                                 for i in range(n_MC))
     for i in range(n_MC):
         array_SmoothFPIndiv_TNB[i,n] = out[i][0]
-        array_resOptIndiv_TNB[i,n] = out[i][1]
+        array_ModelIndiv_TNB[i,n] = out[i][1]
+        array_resOptIndiv_TNB[i,n] = out[i][2]
         if array_resOptIndiv_TNB[i,n][1]==True:
-            array_SmoothThetaFPIndiv_TNB[i,n] = FrenetPath(array_SmoothFPIndiv_TNB[i,n].grid_obs, array_SmoothFPIndiv_TNB[i,n].grid_obs, init=array_SmoothFPIndiv_TNB[i,n].data[:,:,0], curv=array_SmoothFPIndiv_TNB[i,n].curv, tors=array_SmoothFPIndiv_TNB[i,n].tors, dim=3)
+            array_SmoothThetaFPIndiv_TNB[i,n] = FrenetPath(array_SmoothFPIndiv_TNB[i,n].grid_obs, array_SmoothFPIndiv_TNB[i,n].grid_obs, init=array_SmoothFPIndiv_TNB[i,n].data[:,:,0], curv=array_ModelIndiv_TNB[i,n].curv, tors=array_ModelIndiv_TNB[i,n].tors, dim=3)
             array_SmoothThetaFPIndiv_TNB[i,n].frenet_serret_solve()
 
 
@@ -91,6 +93,7 @@ for n in range(n_curves):
 print("Estimations of mean parameters from TNB...")
 
 array_SmoothPopFP_TNB = np.empty((n_MC), dtype=object)
+array_ModelPop_TNB = np.empty((n_MC), dtype=object)
 array_SmoothThetaFP_TNB = np.empty((n_MC), dtype=object)
 array_resOpt_TNB = np.empty((n_MC), dtype=object)
 
@@ -99,9 +102,10 @@ out = Parallel(n_jobs=-1)(delayed(global_estimation)(array_TruePopFP_Noisy[i], p
 
 for k in range(n_MC):
     array_SmoothPopFP_TNB[k] = out[k][0]
-    array_resOpt_TNB[k] = out[k][1]
+    array_ModelPop_TNB[k] = out[k][1]
+    array_resOpt_TNB[k] = out[k][2]
     if array_resOpt_TNB[k][1]==True:
-        array_SmoothThetaFP_TNB[k] = FrenetPath(s0, s0, init=mean_Q0(array_SmoothPopFP_TNB[k]), curv=array_SmoothPopFP_TNB[k].mean_curv, tors=array_SmoothPopFP_TNB[k].mean_tors, dim=3)
+        array_SmoothThetaFP_TNB[k] = FrenetPath(s0, s0, init=mean_Q0(array_SmoothPopFP_TNB[k]), curv=array_ModelPop_TNB[k].curv, tors=array_ModelPop_TNB[k].tors, dim=3)
         array_SmoothThetaFP_TNB[k].frenet_serret_solve()
 
 
@@ -125,6 +129,7 @@ for k in range(n_MC):
 """ Individual estimations of the parameters from X data """
 print("Individual estimations from X...")
 
+array_ModelIndiv_X = np.empty((n_MC, n_curves), dtype=object)
 array_SmoothFPIndiv_X = np.empty((n_MC, n_curves), dtype=object)
 array_resOptIndiv_X = np.empty((n_MC, n_curves), dtype=object)
 array_SmoothThetaFPIndiv_X = np.empty((n_MC, n_curves), dtype=object)
@@ -135,15 +140,17 @@ for n in range(n_curves):
                                 for i in range(n_MC))
     for i in range(n_MC):
         array_SmoothFPIndiv_X[i,n] = out[i][0]
-        array_resOptIndiv_X[i,n] = out[i][1]
+        array_ModelIndiv_X[i,n] = out[i][1]
+        array_resOptIndiv_X[i,n] = out[i][2]
         if array_resOptIndiv_X[i,n][1]==True:
-            array_SmoothThetaFPIndiv_X[i,n] = FrenetPath(array_SmoothFPIndiv_X[i,n].grid_obs, array_SmoothFPIndiv_X[i,n].grid_obs, init=array_SmoothFPIndiv_X[i,n].data[:,:,0], curv=array_SmoothFPIndiv_X[i,n].curv, tors=array_SmoothFPIndiv_X[i,n].tors, dim=3)
+            array_SmoothThetaFPIndiv_X[i,n] = FrenetPath(array_SmoothFPIndiv_X[i,n].grid_obs, array_SmoothFPIndiv_X[i,n].grid_obs, init=array_SmoothFPIndiv_X[i,n].data[:,:,0], curv=array_ModelIndiv_X[i,n].curv, tors=array_ModelIndiv_X[i,n].tors, dim=3)
             array_SmoothThetaFPIndiv_X[i,n].frenet_serret_solve()
 
 
 """ Estimations of the mean parameters from X data """
 print("Estimations of mean parameters from X...")
 
+array_ModelPop_X = np.empty((n_MC), dtype=object)
 array_SmoothPopFP_X = np.empty((n_MC), dtype=object)
 array_SmoothThetaFP_X = np.empty((n_MC), dtype=object)
 array_resOpt_X = np.empty((n_MC), dtype=object)
@@ -153,9 +160,10 @@ out = Parallel(n_jobs=-1)(delayed(global_estimation)(array_PopFP_LP[i],  param_m
 
 for k in range(n_MC):
     array_SmoothPopFP_X[k] = out[k][0]
-    array_resOpt_X[k] = out[k][1]
+    array_ModelPop_X[k] = out[k][1]
+    array_resOpt_X[k] = out[k][2]
     if array_resOpt_X[k][1]==True:
-        array_SmoothThetaFP_X[k] = FrenetPath(s0, s0, init=mean_Q0(array_SmoothPopFP_X[k]), curv=array_SmoothPopFP_X[k].mean_curv, tors=array_SmoothPopFP_X[k].mean_tors, dim=3)
+        array_SmoothThetaFP_X[k] = FrenetPath(s0, s0, init=mean_Q0(array_SmoothPopFP_X[k]), curv=array_ModelPop_X[k].curv, tors=array_ModelPop_X[k].tors, dim=3)
         array_SmoothThetaFP_X[k].frenet_serret_solve()
 
 
@@ -186,10 +194,10 @@ dic = {"N_curves": n_curves, "X0" : X0, "Q0" : Q0, "true_curv0" : true_curv0, "t
 "n_MC" : n_MC, "param_shape_warp" : param_shape_warp, "param_model" : param_model, "smoothing" : smoothing, "param_loc_poly_deriv" : param_loc_poly_deriv,
 "param_loc_poly_TNB" : param_loc_poly_TNB, "sigma" : sigma_e, "TruePopFP" : array_TruePopFP, "TruePopFP_Noisy" : array_TruePopFP_Noisy,
 "PopFP_LP" : array_PopFP_LP, "PopFP_GS" : array_PopFP_GS, "PopTraj" : array_PopTraj, "ThetaExtrins" : array_ThetaExtrins,
-"SmoothFPIndiv_TNB" : array_SmoothFPIndiv_TNB, "resOptIndiv_TNB" : array_resOptIndiv_TNB, "SmoothThetaFPIndiv_TNB" : array_SmoothThetaFPIndiv_TNB,
-"resOpt_TNB" : array_resOpt_TNB, "SmoothPopFP_TNB" : array_SmoothPopFP_TNB, "SmoothThetaFP_TNB" : array_SmoothThetaFP_TNB,
-"SmoothFPIndiv_X" : array_SmoothFPIndiv_X, "resOptIndiv_X" : array_resOptIndiv_X, "SmoothThetaFPIndiv_X" : array_SmoothThetaFPIndiv_X,
-"resOpt_X" : array_resOpt_X, "SmoothPopFP_X" : array_SmoothPopFP_X, "SmoothThetaFP_X" : array_SmoothThetaFP_X,
+"ModelIndiv_TNB" : array_ModelIndiv_TNB, "SmoothFPIndiv_TNB" : array_SmoothFPIndiv_TNB, "resOptIndiv_TNB" : array_resOptIndiv_TNB, "SmoothThetaFPIndiv_TNB" : array_SmoothThetaFPIndiv_TNB,
+"ModelPop_TNB" : array_ModelPop_TNB, "resOpt_TNB" : array_resOpt_TNB, "SmoothPopFP_TNB" : array_SmoothPopFP_TNB, "SmoothThetaFP_TNB" : array_SmoothThetaFP_TNB,
+"ModelIndiv_X" : array_ModelIndiv_X, "SmoothFPIndiv_X" : array_SmoothFPIndiv_X, "resOptIndiv_X" : array_resOptIndiv_X, "SmoothThetaFPIndiv_X" : array_SmoothThetaFPIndiv_X,
+"ModelPop_X" : array_ModelPop_X, "resOpt_X" : array_resOpt_X, "SmoothPopFP_X" : array_SmoothPopFP_X, "SmoothThetaFP_X" : array_SmoothThetaFP_X,
 "SRVF_mean" :array_SRVF_mean, "SRVF_gam" : array_SRVF_gam, "Arithmetic_mean" : array_Arithmetic_mean}
 
 if os.path.isfile(filename):
