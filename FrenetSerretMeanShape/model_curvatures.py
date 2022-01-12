@@ -2,6 +2,7 @@ import numpy as np
 from scipy.linalg import expm
 from scipy import interpolate
 from scipy.interpolate import UnivariateSpline, splev, splrep
+from scipy.interpolate import BSpline as SciBSpline
 from scipy.optimize import minimize
 from skfda.representation.grid import FDataGrid
 from skfda.representation import FDataBasis
@@ -64,6 +65,16 @@ from skfda.misc.operators import LinearDifferentialOperator
 #         return np.squeeze(self.coefficients) #différent de GPR peut être changer ca
 
 
+def skfda_to_scipy_bspline(knots_skfda, order_skfda, coefs):
+
+    knots = np.concatenate((
+        np.repeat(knots_skfda[0], order_skfda - 1),
+        knots_skfda,
+        np.repeat(knots_skfda[-1], order_skfda - 1),
+    ))
+
+    return SciBSpline(knots, coefs, order_skfda - 1)
+
 
 class BasisSmoother:
 
@@ -112,6 +123,8 @@ class BasisSmoother:
     def smoothing(self, grid_pts, data_pts, weights, smoothing_parameter):
         self.variances = weights
         self.smoothing_parameter = smoothing_parameter
+        self.raw_data = data_pts
+        self.raw_grid = grid_pts
 
         if (self.knots is None) and (self.nb_basis is None):
             tck = splrep(x=grid_pts, y=data_pts, w=self.variances, k=self.order-1, s=self.smoothing_parameter)
@@ -129,7 +142,9 @@ class BasisSmoother:
         fd_basis = smoother.fit_transform(fd)
         self.coefficients = fd_basis.coefficients
         def f(x):
-            return BSpline(domain_range=self.domain_range, n_basis=self.nb_basis, knots=self.knots, order=self.order)._to_scipy_bspline(self.coefficients.squeeze())(x)
+            # return BSpline(domain_range=self.domain_range, n_basis=self.nb_basis, knots=self.knots, order=self.order)._to_scipy_bspline(self.coefficients.squeeze())(x)
+            return skfda_to_scipy_bspline(self.knots, self.order, self.coefficients.squeeze())(x)
+
             # fd_b = FDataBasis(basis=BSpline(domain_range=self.domain_range, n_basis=self.nb_basis, knots=self.knots, order=self.order), coefficients=self.coefficients)
             # return np.squeeze(fd_b.evaluate(x))
         self.function = f

@@ -80,7 +80,7 @@ class Trajectory:
         self.dim = data.shape[1]
         self.t0 = np.min(t)
         self.tmax = np.max(t)
-        self.scale = False
+        self.scale_ind = False
 
     def loc_poly_estimation(self, t_out, deg, h):
         pre_process = PolynomialFeatures(degree=deg)
@@ -105,27 +105,30 @@ class Trajectory:
         def dx3(t): return interpolate.griddata(self.t, deriv_estim[:,9:12], t, method='cubic')
         self.dX3 = dx3
 
-    def compute_S(self, scale=False):
+    def compute_S(self, scale=False, factor=1):
         def Sdot_fun(t): return np.linalg.norm(self.dX1(t), axis=1)
         self.Sdot = Sdot_fun
         def S_fun(t): return cumtrapz(self.Sdot(t), t, initial=0)
+        self.S = S_fun
         # S_fun = interpolate.interp1d(self.t, cumtrapz(self.Sdot(self.t), self.t, initial=0))
         self.L = S_fun(self.t)[-1]
-        # print(self.L)
-        if scale==True:
-            self.scale = True
-            def S_fun_scale(t): return cumtrapz(self.Sdot(t), t, initial=0)/self.L
-            # S_fun_scale = interpolate.interp1d(self.t, cumtrapz(self.Sdot(self.t), self.t, initial=0)/self.L)
-            self.S = S_fun_scale
-            self.data = self.data/self.L
-        else:
-            self.S = S_fun
 
-    def scale(self):
-        self.scale = True
-        def S_fun_scale(t): return cumtrapz(self.Sdot(t), t, initial=0)/self.L
-        self.S = S_fun_scale
-        self.data = self.data/self.L
+        if scale==True:
+            self.scale(factor)
+
+    def scale(self, factor=1):
+        self.scale_ind = True
+        self.scale_factor = factor
+        def Sdot_fun_scale(t): return np.linalg.norm(self.dX1(t), axis=1)*(self.scale_factor/self.L)
+        self.Sdot = Sdot_fun_scale
+        self.data = (self.data/self.L)*self.scale_factor
+
+    def rescale(self):
+        self.scale_ind = False
+        def Sdot_fun(t): return np.linalg.norm(self.dX1(t), axis=1)
+        self.Sdot = Sdot_fun
+        self.data = (self.data*self.L)/self.scale_factor
+        self.scale_factor = self.L
 
 
     def TNB_GramSchmidt(self, t_grid):
@@ -343,7 +346,6 @@ class Trajectory:
                Param - estimates with constraints
                Param0 - estimates without constraints
                --------
-               < outputs from OrthoNormCon.m >
                vparam  - [la, mu, vla, vmu] tuning parameters: nout x 6
                          [la, mu]: optimal values amongst vla, and vmu
         '''

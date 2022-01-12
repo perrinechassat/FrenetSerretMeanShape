@@ -20,8 +20,7 @@ from numba.experimental import jitclass
 from numba import int32, float64, cuda, float32, objmode, njit
 import torch
 from skfda.representation.grid import FDataGrid
-from skfda.preprocessing.registration import ElasticRegistration, ShiftRegistration, landmark_registration_warping
-from skfda.preprocessing.registration.elastic import elastic_mean
+from skfda.preprocessing.registration import ElasticRegistration, ShiftRegistration
 from skfda.misc import metrics
 import time
 import multiprocessing
@@ -161,7 +160,7 @@ def simulate_populationGP(Npop, range_intvl, n_interp, param_kern):
         F.append(f)
     return np.squeeze(F)
 
-@njit
+# @njit
 def weighted_mean(f, weights):
     """
     Compute the weighted mean of set of functions
@@ -178,7 +177,7 @@ def weighted_mean(f, weights):
             mfw[j] = 0
     return mfw
 
-@njit
+# @njit
 def weighted_mean_vect(f, weights):
     """
     Compute the weighted mean of a vector of functions
@@ -212,7 +211,7 @@ def geodesic_dist(data1,data2):
     R = estimate_optimal_rotation(data1, data2)
     gdist = SO3.metric.dist(np.matmul(data1,R),data2)
     return np.mean(gdist)
-    
+
 
 def mean_geodesic_dist(PopFP1, PopFP2):
     N1 = PopFP1.nb_samples
@@ -277,6 +276,15 @@ def centering_and_rotate(X1, X2):
     X2 = X2 - fs.curve_functions.calculatecentroid(np.transpose(X2))
     X2_new = fs.curve_functions.find_best_rotation(np.transpose(X1), np.transpose(X2))[0]
     return X2_new.transpose()
+
+
+def centering_set(X_arr):
+    X_ref = X_arr[0]
+    c = fs.curve_functions.calculatecentroid(np.transpose(X_ref))
+    X_arr_align = np.copy(X_arr)
+    for i in range(1,len(X_arr)):
+        X_arr_align[i] = X_arr[i] - fs.curve_functions.calculatecentroid(np.transpose(X_arr[i])) + c
+    return X_arr_align
 
 
 def mean_Q0(PopFrenetPath):

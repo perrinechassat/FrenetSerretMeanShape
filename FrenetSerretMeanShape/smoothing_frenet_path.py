@@ -23,8 +23,7 @@ from sklearn.model_selection import KFold
 from skopt import gp_minimize
 from skopt.plots import plot_convergence
 from skfda.representation.grid import FDataGrid
-from skfda.preprocessing.registration import ElasticRegistration, ShiftRegistration, landmark_registration_warping
-from skfda.preprocessing.registration.elastic import elastic_mean
+from skfda.preprocessing.registration import ElasticRegistration, ShiftRegistration
 from skfda.misc import metrics
 import fdasrsf as fs
 from joblib import Parallel, delayed

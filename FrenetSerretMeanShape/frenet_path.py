@@ -126,8 +126,8 @@ class FrenetPath:
             for q in range(self.nb_grid_eval):
                 t_q = self.grid_eval[q]
                 delta_s = abs(self.grid_obs-t_q)
-                D = 1.0001*np.sort(delta_s)[k-1]
-                neighbor_obs.append(np.argsort(delta_s)[:k]) # index of observations in the neighborhood of t_q
+                D = 1.0001*np.sort(delta_s)[h-1]
+                neighbor_obs.append(np.argsort(delta_s)[:h]) # index of observations in the neighborhood of t_q
                 weight.append((1/D)*Kern((t_q - self.grid_obs[neighbor_obs[q]]), D)) # K_h(t_q-s_j, D)
                 grid_double.append((t_q + self.grid_obs[neighbor_obs[q]])/2) # (t_q+s_j)/2
                 delta.append(t_q - self.grid_obs[neighbor_obs[q]])  # t_q-s_j
@@ -221,9 +221,9 @@ class PopulationFrenetPath:
         self.grids_eval = grids_eval
         self.dim = popFrenetPaths[0].dim
 
-    def compute_neighbors(self, h):
+    def compute_neighbors(self, h, adaptive=False):
         for i in range(self.nb_samples):
-            self.frenet_paths[i].compute_neighbors(h)
+            self.frenet_paths[i].compute_neighbors(h, adaptive)
 
     def set_estimate_theta(self, mean_curv, mean_tors):
         self.mean_curv = mean_curv

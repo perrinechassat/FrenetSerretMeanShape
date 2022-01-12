@@ -26,8 +26,7 @@ from sklearn.model_selection import KFold
 from skopt import gp_minimize
 from skopt.plots import plot_convergence
 from skfda.representation.grid import FDataGrid
-from skfda.preprocessing.registration import ElasticRegistration, ShiftRegistration, landmark_registration_warping
-from skfda.preprocessing.registration.elastic import elastic_mean
+from skfda.preprocessing.registration import ElasticRegistration, ShiftRegistration
 from skfda.misc import metrics
 from joblib import Parallel, delayed
 from timeit import default_timer as timer
@@ -355,8 +354,8 @@ def pre_process_data(data, t_init, n_resamples, param_loc_poly_deriv, param_loc_
     Q_LP, vkappa, Param, Param0, vparam, successLocPoly = X.TNB_locPolyReg(grid_in=X.S(X.t), grid_out=new_grid_S, h=param_loc_poly_TNB['h'], p=param_loc_poly_TNB['p'], iflag=param_loc_poly_TNB['iflag'],
      ibound=param_loc_poly_TNB['ibound'], local=locpolyTNB_local)
 
-    Q_GS = X.TNB_GramSchmidt(t_new)
-    curv_extrins, tors_extrins = X.theta_extrinsic_formula(t_new)
+    Q_GS = X.TNB_GramSchmidt(X.t)
+    curv_extrins, tors_extrins = X.theta_extrinsic_formula(X.t)
     theta_extrins = [curv_extrins, tors_extrins]
 
     return X_new, X, Q_LP, Q_GS, theta_extrins, successLocPoly

@@ -14,6 +14,7 @@ import optimum_reparamN2_C as orN2_C
 import sys
 from maths_utils import *
 from frenet_path import *
+from visu_utils import *
 
 """ Set of functions for the alignment of curvature and torsion """
 
@@ -292,6 +293,9 @@ def align_vect_curvatures_fPCA(f, time, weights, num_comp=3, cores=-1, smoothdat
     #     plt.plot(time, gamf[:, i])
     # plt.show()
     #
+    # plot_array_2D(time, fn[0].T, '')
+    # plot_array_2D(time, fn[1].T, '')
+
     # plt.figure()
     # for i in range(N):
     #     plt.plot(time, fn[0, :, i])
@@ -364,6 +368,32 @@ def warp_curvatures(theta, gam_fct, time, weights):
 
 
 
+def warp_curvatures_bis(theta, gam, time):
+    """
+    Apply warping on curvatures: theta_align = theta(gam_fct(time))*grad(gam_fct)(time)
+    and compute the weighted mean of the aligned functions
+    ...
+
+    Param:
+        theta: array of curvatures or torsions (M,N)
+        gam_fct: functions, array of N warping functions
+        time: array of time points (M)
+        weights: array of weights (M)
+
+    Return:
+        theta align: array of functions theta aligned
+        weighted_mean_theta: weighted mean of the aligned functions (M)
+
+    """
+    M = theta.shape[0]
+    N = theta.shape[1]
+    theta_align = np.zeros(theta.shape)
+    for n in range(N):
+        time0 = (time[-1] - time[0]) * gam[:, n] + time[0]
+        theta_align[:,n] = np.interp(time0, time, theta[:,n]) * np.gradient(gam[:, n], 1 / float(M - 1))
+    weighted_mean_theta = np.mean(theta_align, axis=1)
+
+    return theta_align, weighted_mean_theta
 
 
 def align_and_center(gam, mf, f, itr, time):
@@ -415,3 +445,8 @@ def compute_deformation(list_Q0, thetai, gami, mthetai, S):
             Qij.frenet_serret_solve()
             Xij[:,:,j,i] = Qij.data_trajectory
     return Xij, mXi
+
+
+def invertGamma_fct(gam, t):
+    gam_inv = interp1d(gam(t), t)
+    return gam_inv

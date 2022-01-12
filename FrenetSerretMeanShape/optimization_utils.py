@@ -14,14 +14,14 @@ from joblib import Parallel, delayed
 from timeit import default_timer as timer
 
 
-def opti_loc_poly_traj(data_traj, t, minh, maxh, nb_h):
+def opti_loc_poly_traj(data_traj, t, minh, maxh, nb_h, n_splits=10):
     """
     Find the optimal parameter h to estimate the derivatives with local polynomial regression
     ...
     """
     HH = np.linspace(minh,maxh,nb_h)
     err_h = np.zeros(len(HH))
-    kf = KFold(n_splits=10, shuffle=False)
+    kf = KFold(n_splits=n_splits, shuffle=False)
     for j in range(len(HH)):
         err = []
         for train_index, test_index in kf.split(t):

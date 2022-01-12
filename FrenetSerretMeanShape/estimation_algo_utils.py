@@ -25,8 +25,7 @@ from sklearn.model_selection import KFold
 from skopt import gp_minimize
 from skopt.plots import plot_convergence
 from skfda.representation.grid import FDataGrid
-from skfda.preprocessing.registration import ElasticRegistration, ShiftRegistration, landmark_registration_warping
-from skfda.preprocessing.registration.elastic import elastic_mean
+from skfda.preprocessing.registration import ElasticRegistration, ShiftRegistration
 from skfda.misc import metrics
 import fdasrsf as fs
 from joblib import Parallel, delayed
@@ -109,7 +108,7 @@ def compute_Rq(q, FrenetPath, SmoothFrenetPath):
     return omega_q.tolist(), kappa.tolist(), tau.tolist()
 
 
-def compute_raw_curvatures_without_alignement(PopulationFrenetPath, h, PopulationSmoothFrenetPath):
+def compute_raw_curvatures_without_alignement(PopulationFrenetPath, h, PopulationSmoothFrenetPath, adaptive_h):
     """
     Compute the weighted instantaneous rate of change of the Frenet frames without alignment between samples.
     They are noisy and often needs to be smoothed by splines
@@ -117,7 +116,7 @@ def compute_raw_curvatures_without_alignement(PopulationFrenetPath, h, Populatio
     """
 
     N_samples = PopulationFrenetPath.nb_samples
-    PopulationFrenetPath.compute_neighbors(h)
+    PopulationFrenetPath.compute_neighbors(h, adaptive=adaptive_h)
     if N_samples==1:
         Omega, S, Kappa, Tau = [], [], [], []
         for q in range(PopulationFrenetPath.nb_grid_eval):
@@ -164,36 +163,53 @@ def compute_raw_curvatures_without_alignement(PopulationFrenetPath, h, Populatio
 
 
 def compute_raw_curvatures_i(SingleFrenetPath, SmoothFrenetPath):
-    omega_i = []
-    kappa_i = []
-    s_i = []
-    tau_i = []
+    Omega, S, Kappa, Tau = [], [], [], []
     for q in range(SingleFrenetPath.nb_grid_eval):
         if q==0:
-            s = np.zeros(len(SingleFrenetPath.neighbor_obs[q]))
+            s = SingleFrenetPath.grid_obs[0]*np.ones(len(SingleFrenetPath.neighbor_obs[q]))
         elif q==SingleFrenetPath.nb_grid_eval-1:
-            s = SingleFrenetPath.length*np.ones(len(SingleFrenetPath.neighbor_obs[q]))
+            s = SingleFrenetPath.grid_obs[-1]*np.ones(len(SingleFrenetPath.neighbor_obs[q]))
         else:
             s = SingleFrenetPath.grid_double[q]
-        s_i = np.append(s_i, s.tolist())
-
+        S += list(s)
         omega_q, kappa, tau = compute_Rq(q, SingleFrenetPath, SmoothFrenetPath)
-        omega_i = np.append(omega_i, omega_q)
-        kappa_i = np.append(kappa_i, kappa)
-        tau_i = np.append(tau_i, tau)
+        Omega = np.append(Omega, omega_q)
+        Kappa = np.append(Kappa, kappa)
+        Tau = np.append(Tau, tau)
 
-    Ms_i, Momega_i, Mkappa_i, Mtau_i = compute_sort_unique_val(np.around(s_i, 5), omega_i, kappa_i, tau_i)
-    return Ms_i, Momega_i, Mkappa_i, Mtau_i
+    Ms, Momega, Mkappa, Mtau = compute_sort_unique_val(np.around(S, 8), Omega, Kappa, Tau)
+
+    # omega_i = []
+    # kappa_i = []
+    # s_i = []
+    # tau_i = []
+    # for q in range(SingleFrenetPath.nb_grid_eval):
+    #     if q==0:
+    #         s = np.zeros(len(SingleFrenetPath.neighbor_obs[q]))
+    #     elif q==SingleFrenetPath.nb_grid_eval-1:
+    #         s = SingleFrenetPath.length*np.ones(len(SingleFrenetPath.neighbor_obs[q]))
+    #     else:
+    #         s = SingleFrenetPath.grid_double[q]
+    #     s_i = np.append(s_i, s.tolist())
+    #
+    #     omega_q, kappa, tau = compute_Rq(q, SingleFrenetPath, SmoothFrenetPath)
+    #     omega_i = np.append(omega_i, omega_q)
+    #     kappa_i = np.append(kappa_i, kappa)
+    #     tau_i = np.append(tau_i, tau)
+    #
+    # Ms_i, Momega_i, Mkappa_i, Mtau_i = compute_sort_unique_val(np.around(s_i, 5), omega_i, kappa_i, tau_i)
+    # return Ms_i, Momega_i, Mkappa_i, Mtau_i
+    return Ms, Momega, Mkappa, Mtau
 
 
-def compute_raw_curvatures_alignement(PopulationFrenetPath, h, PopulationSmoothFrenetPath, lam=0.0,  gam={"flag" : False, "value" : None}):
+def compute_raw_curvatures_alignement(PopulationFrenetPath, h, PopulationSmoothFrenetPath, lam=0.0,  gam={"flag" : False, "value" : None}, adaptive_h=False):
     """
     Compute the weighted instantaneous rate of change of the Frenet frames with alignment between samples.
     They are noisy and often needs to be smoothed by splines.
     ...
     """
     N_samples = PopulationFrenetPath.nb_samples
-    PopulationFrenetPath.compute_neighbors(h)
+    PopulationFrenetPath.compute_neighbors(h, adaptive=adaptive_h)
     gam_res = gam.copy()
 
     if N_samples==1:
@@ -221,6 +237,9 @@ def compute_raw_curvatures_alignement(PopulationFrenetPath, h, PopulationSmoothF
         Tau = np.squeeze(np.asarray(Tau)[:,ind_nozero])
         S = S[0][ind_nozero]
 
+        # plot_array_2D(S, Kappa, ' ')
+        # plot_array_2D(S, Tau, ' ')
+
         if gam["flag"]==False:
             theta = np.stack((np.transpose(Kappa), np.abs(np.transpose(Tau))))
             theta[np.isnan(theta)] = 0.0
@@ -247,15 +266,18 @@ def compute_raw_curvatures_alignement(PopulationFrenetPath, h, PopulationSmoothF
             weighted_mean_tau = np.transpose(weighted_mean_tau)
             ind_conv = True
 
+        # plot_2D(S, weighted_mean_kappa)
+        # plot_2D(S, weighted_mean_tau)
+
         return weighted_mean_kappa, weighted_mean_tau, S, sum_omega, gam_res, ind_conv
 
 
 
-def compute_raw_curvatures(PopFrenetPath, h, SmoothPopFrenetPath, alignment=False, lam=0.0, gam={"flag" : False, "value" : None}):
+def compute_raw_curvatures(PopFrenetPath, h, SmoothPopFrenetPath, alignment=False, lam=0.0, gam={"flag" : False, "value" : None}, adaptive_h=False):
     if alignment==True:
-        weighted_mean_kappa, weighted_mean_tau, S, sum_omega, gam_res, ind_conv = compute_raw_curvatures_alignement(PopFrenetPath, h, SmoothPopFrenetPath, lam,  gam)
+        weighted_mean_kappa, weighted_mean_tau, S, sum_omega, gam_res, ind_conv = compute_raw_curvatures_alignement(PopFrenetPath, h, SmoothPopFrenetPath, lam,  gam, adaptive_h)
     else:
-        weighted_mean_kappa, weighted_mean_tau, S, sum_omega = compute_raw_curvatures_without_alignement(PopFrenetPath, h, SmoothPopFrenetPath)
+        weighted_mean_kappa, weighted_mean_tau, S, sum_omega = compute_raw_curvatures_without_alignement(PopFrenetPath, h, SmoothPopFrenetPath, adaptive_h)
 
         # plt.figure()
         # plt.plot(S, weighted_mean_kappa)
@@ -273,17 +295,22 @@ def compute_raw_curvatures(PopFrenetPath, h, SmoothPopFrenetPath, alignment=Fals
 
 
 
-def estimation(PopFrenetPath, Model, x, smoothing={"flag":False, "method":"karcher_mean"}, alignment=False, lam=0.0, gam={"flag" : False, "value" : None}):
+def estimation(PopFrenetPath, Model, x, adaptive_h, smoothing={"flag":False, "method":"karcher_mean"}, alignment=False, lam=0.0, gam={"flag" : False, "value" : None}):
 
     N_samples = PopFrenetPath.nb_samples
-    PopFrenetPath.compute_neighbors(x[0])
+    PopFrenetPath.compute_neighbors(x[0], adaptive=adaptive_h)
 
     if smoothing["flag"]==True:
         SmoothPopFrenetPath0 = frenet_path_smoother(PopFrenetPath, Model, x, smoothing["method"])
     else:
         SmoothPopFrenetPath0 = PopFrenetPath
 
-    mKappa, mTau, mS, mOmega, gam, ind_conv = compute_raw_curvatures(PopFrenetPath, x[0], SmoothPopFrenetPath0, alignment, lam, gam)
+    mKappa, mTau, mS, mOmega, gam, ind_conv = compute_raw_curvatures(PopFrenetPath, x[0], SmoothPopFrenetPath0, alignment, lam, gam, adaptive_h)
+
+    # print(ind_conv)
+    # plot_2D(mS, mKappa)
+    # plot_2D(mS, mTau)
+
     # mean_kappa = np.mean(mKappa)
     # print(mean_kappa)
     # Model_theta.curv.function = lambda s: s*0 + mean_kappa
@@ -301,8 +328,10 @@ def estimation(PopFrenetPath, Model, x, smoothing={"flag":False, "method":"karch
     # plt.figure()
     # plt.plot(mS, Model.tors.function(mS))
     # plt.show()
-    # plot_2D(mS, Model.curv.function(mS))
-    # plot_2D(mS, Model.tors.function(mS))
+    # print('_________________________ind conv______________', ind_conv)
+    # if N_samples>1:
+    #     plot_2D(mS, Model.curv.function(mS))
+    #     plot_2D(mS, Model.tors.function(mS))
 
     if smoothing["flag"]==True:
         epsilon = 10e-3
@@ -315,7 +344,7 @@ def estimation(PopFrenetPath, Model, x, smoothing={"flag":False, "method":"karch
 
             SmoothPopFrenetPath = frenet_path_smoother(PopFrenetPath, Model, x, smoothing["method"])
 
-            mKappa, mTau, mS, mOmega, gam, ind_conv = compute_raw_curvatures(PopFrenetPath, x[0], SmoothPopFrenetPath, alignment, lam, gam)
+            mKappa, mTau, mS, mOmega, gam, ind_conv = compute_raw_curvatures(PopFrenetPath, x[0], SmoothPopFrenetPath, alignment, lam, gam, adaptive_h)
 
             try:
                 theta_curv = Model.curv.smoothing(mS, mKappa, mOmega, x[1])
@@ -342,7 +371,7 @@ def estimation(PopFrenetPath, Model, x, smoothing={"flag":False, "method":"karch
     return SmoothPopFrenetPath, Model, ind_conv
 
 
-def global_estimation(PopFrenetPath, param_model, smoothing={"flag":False, "method":"karcher_mean"}, hyperparam=None, opt=False, param_bayopt=None, alignment=False, lam=0.0, parallel=False):
+def global_estimation(PopFrenetPath, param_model, smoothing={"flag":False, "method":"karcher_mean"}, hyperparam=None, opt=False, param_bayopt=None, alignment=False, lam=0.0, parallel=False, adaptive_h=False):
 
     N_samples = PopFrenetPath.nb_samples
     curv_smoother = BasisSmoother(domain_range=param_model["domain_range"], nb_basis=param_model["nb_basis"])
@@ -354,7 +383,7 @@ def global_estimation(PopFrenetPath, param_model, smoothing={"flag":False, "meth
     # tors_smoother = BasisSmoother(domain_range=param_model["domain_range"])
 
     if opt==True:
-        Opt_fun = lambda x: objective_function(param_bayopt["n_splits"], PopFrenetPath, curv_smoother, tors_smoother, x, smoothing, alignment, lam, parallel)
+        Opt_fun = lambda x: objective_function(param_bayopt["n_splits"], PopFrenetPath, curv_smoother, tors_smoother, x, smoothing, alignment, lam, parallel, adaptive_h)
         if smoothing["flag"]==True and smoothing["method"]=="tracking":
             hyperparam_bounds = [param_bayopt["bounds_h"], param_bayopt["bounds_lcurv"], param_bayopt["bounds_ltors"], param_bayopt["bounds_ltrack"]]
         else:
@@ -366,7 +395,7 @@ def global_estimation(PopFrenetPath, param_model, smoothing={"flag":False, "meth
         x = hyperparam
 
     Model_theta = Model(curv_smoother, tors_smoother)
-    SmoothPopFrenetPath_fin, Model_fin, ind_conv = estimation(PopFrenetPath, Model_theta, x, smoothing, alignment, lam)
+    SmoothPopFrenetPath_fin, Model_fin, ind_conv = estimation(PopFrenetPath, Model_theta, x, adaptive_h, smoothing, alignment, lam)
 
     return SmoothPopFrenetPath_fin, Model_fin, [x, ind_conv]
 
@@ -463,7 +492,7 @@ def global_estimation(PopFrenetPath, param_model, smoothing={"flag":False, "meth
 """ Functions for the optimization of hyperparameters """
 
 
-def step_cross_val(curv_smoother, tors_smoother, test_index, train_index, PopFrenetPath, hyperparam, smoothing={"flag":False, "method":"karcher_mean"}, alignment=False, lam=0.0, gam={"flag" : False, "value" : None}):
+def step_cross_val(curv_smoother, tors_smoother, test_index, train_index, PopFrenetPath, hyperparam, smoothing={"flag":False, "method":"karcher_mean"}, alignment=False, lam=0.0, gam={"flag" : False, "value" : None}, adaptive_h=False):
     """
     Step of cross validation. The error is computed on Q.
     ...
@@ -492,7 +521,7 @@ def step_cross_val(curv_smoother, tors_smoother, test_index, train_index, PopFre
     tors_smoother.reinitialize()
 
     Model_test = Model(curv_smoother, tors_smoother)
-    pred_PopFP, pred_Model, ind_conv = estimation(train_PopFP, Model_test, hyperparam, smoothing, alignment, lam, gam)
+    pred_PopFP, pred_Model, ind_conv = estimation(train_PopFP, Model_test, hyperparam, smoothing, alignment, lam, gam, adaptive_h)
 
 
     if ind_conv==True:
@@ -523,7 +552,7 @@ def step_cross_val(curv_smoother, tors_smoother, test_index, train_index, PopFre
         return 100
 
 
-def objective_function(n_splits, PopFrenetPath, curv_smoother, tors_smoother, hyperparam, smoothing, alignment, lam, parallel):
+def objective_function(n_splits, PopFrenetPath, curv_smoother, tors_smoother, hyperparam, smoothing, alignment, lam, parallel, adaptive_h):
     """
     Objective function that do the cross validation.
     ...
@@ -541,7 +570,7 @@ def objective_function(n_splits, PopFrenetPath, curv_smoother, tors_smoother, hy
     # start = timer()
     if alignment==True:
         Model_theta = Model(curv_smoother, tors_smoother)
-        pred_PopFP, pred_Model, ind_conv = estimation(PopFrenetPath, Model_theta, hyperparam, {"flag":False}, alignment, lam)
+        pred_PopFP, pred_Model, ind_conv = estimation(PopFrenetPath, Model_theta, hyperparam, {"flag":False}, alignment, lam, adaptive_h)
         gam = {"flag" : True, "value" : pred_Model.gam}
         if ind_conv==False:
             return 100
@@ -558,7 +587,7 @@ def objective_function(n_splits, PopFrenetPath, curv_smoother, tors_smoother, hy
         grid_split = PopFrenetPath.frenet_paths[0].grid_obs
 
     if parallel==True:
-        err = Parallel(n_jobs=10)(delayed(step_cross_val)(curv_smoother, tors_smoother, test_index, train_index, PopFrenetPath, hyperparam, smoothing, alignment, lam, gam)
+        err = Parallel(n_jobs=10)(delayed(step_cross_val)(curv_smoother, tors_smoother, test_index, train_index, PopFrenetPath, hyperparam, smoothing, alignment, lam, gam, adaptive_h)
                 for train_index, test_index in kf.split(grid_split))
         for i in range(len(err)):
             if np.isnan(err[i]):
@@ -574,7 +603,7 @@ def objective_function(n_splits, PopFrenetPath, curv_smoother, tors_smoother, hy
             test_index = test_index+1
             train_index = np.concatenate((np.array([0]), train_index, np.array([len(grid_split)+1])))
 
-            dist = step_cross_val(curv_smoother, tors_smoother, test_index, train_index, PopFrenetPath, hyperparam, smoothing, alignment, lam, gam)
+            dist = step_cross_val(curv_smoother, tors_smoother, test_index, train_index, PopFrenetPath, hyperparam, smoothing, alignment, lam, gam, adaptive_h)
 
             if np.isnan(dist):
                 print('Error NaN value in cross validation')

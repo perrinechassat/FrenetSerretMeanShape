@@ -3,6 +3,7 @@ import numpy as np
 import plotly.graph_objs as go
 import plotly.express as px
 import plotly.colors as pc
+from maths_utils import *
 
 layout = go.Layout(
     # paper_bgcolor='rgba(0,0,0,0)',
@@ -35,7 +36,7 @@ def plot_2array_2D(x, array_y, legend={"index":False}):
     fig = go.Figure(layout=layout)
     N = array_y.shape[0]
     for i in range(N):
-        fig.add_trace(go.Scatter(x=x[i], y=array_y[i,:], mode='lines', line=dict(width=1, color=color_list[(i-9)%9])))
+        fig.add_trace(go.Scatter(x=x[i], y=array_y[i], mode='lines', line=dict(width=1, color=color_list[(i-9)%9])))
     if legend['index']==True:
         fig.update_layout(
         title=legend["title"],
@@ -650,3 +651,50 @@ def plot_3D_res_simu(features_FS, features_SRVF, features_Arithm, X_mean):
     plot_3D_res_simu_method(features_FS, X_mean, "Results of estimation with Frenet Serret Method", dict_color["FS Mean"])
     plot_3D_res_simu_method(features_SRVF, X_mean, "Results of estimation with SRVF Method", dict_color["SRVF Mean"])
     plot_3D_res_simu_method(features_Arithm, X_mean, "Results of estimation with Arithmetic Method", dict_color["Arithmetic Mean"])
+
+
+def plot_clusters(clust_data, name):
+
+    fig = go.Figure(layout=layout)
+    N = len(clust_data)
+
+    for i in range(N):
+        ni = len(clust_data[i])
+        clust_data_bis_i = centering_set(clust_data[i])
+        ci = color_list[i%9]
+        for j in range(ni):
+            feat = np.array(clust_data_bis_i[j])
+            fig.add_trace(
+                go.Scatter3d(
+                    x=feat[:,0],
+                    y=feat[:,1],
+                    z=feat[:,2],
+                    mode='lines',
+                    # name=name+str(i),
+                    line=dict(width=3, color=ci),
+                    showlegend=False,
+                )
+            )
+
+    fig.update_layout(legend=dict(orientation="h",yanchor="top",y=1.2,xanchor="right", x=1),
+                    scene = dict(
+                    xaxis = dict(
+                         backgroundcolor="rgb(0, 0, 0)",
+                         gridcolor="grey",
+                         gridwidth=0.8,
+                         zeroline=False,
+                         showbackground=False,),
+                    yaxis = dict(
+                         backgroundcolor="rgb(0, 0, 0)",
+                         gridcolor="grey",
+                         gridwidth=0.8,
+                         zeroline=False,
+                         showbackground=False,),
+                    zaxis = dict(
+                         backgroundcolor="rgb(0, 0, 0)",
+                         gridcolor="grey",
+                         gridwidth=0.8,
+                         zeroline=False,
+                         showbackground=False,),),
+                  )
+    fig.show()
