@@ -133,25 +133,43 @@ models = np.empty((N), dtype=object)
 for i in range(N):
     ni = rep_data.nb_rep[i]
     models[i] = np.empty((ni), dtype=object)
+
+    # for j in range(ni):
+    #     _, models[i][j], _ = global_estimation(frenet_paths[i][j], param_model={"nb_basis" : None,
+    #             "domain_range": (np.round(frenet_paths[i][j].grid_obs[0], decimals=8), np.round(frenet_paths[i][j].grid_obs[-1], decimals=8))}, opt=True, hyperparam=hyperparam, param_bayopt=param_bayopt,
+    #             adaptive_h=True)
+
+
+    out = Parallel(n_jobs=-1)(delayed(global_estimation)(frenet_paths[i][j], param_model={"nb_basis" : None,
+            "domain_range": (np.round(frenet_paths[i][j].grid_obs[0], decimals=8), np.round(frenet_paths[i][j].grid_obs[-1], decimals=8))}, opt=True, hyperparam=hyperparam, param_bayopt=param_bayopt,
+            adaptive_h=True) for j in range(ni))
+
     for j in range(ni):
-        _, models[i][j], _ = global_estimation(frenet_paths[i][j], param_model={"nb_basis" : None,
-                "domain_range": (np.round(frenet_paths[i][j].grid_obs[0], decimals=8), np.round(frenet_paths[i][j].grid_obs[-1], decimals=8))}, opt=True, hyperparam=hyperparam, param_bayopt=param_bayopt,
-                adaptive_h=True)
+        models[i][j] = out[j][1]
 
 
 # estimation of mean curvatures and torsions
 print("estimation of mean curvatures and torsions... \n")
 
 models_mean = np.empty((N), dtype=object)
+
+# for i in range(N):
+#     _, models_mean[i], res_opt = global_estimation(PopulationFrenetPath(frenet_paths[i]), param_model={"nb_basis" : None,
+#                 "domain_range": (np.round(frenet_paths[i][j].grid_obs[0], decimals=8), np.round(frenet_paths[i][j].grid_obs[-1], decimals=8))}, opt=True, hyperparam=hyperparam, param_bayopt=param_bayopt,
+#                 alignment=True, lam=100.0, adaptive_h=True)
+
+out = Parallel(n_jobs=-1)(delayed(global_estimation)(PopulationFrenetPath(frenet_paths[i]), param_model={"nb_basis" : None,
+            "domain_range": (np.round(frenet_paths[i][j].grid_obs[0], decimals=8), np.round(frenet_paths[i][j].grid_obs[-1], decimals=8))}, opt=True, hyperparam=hyperparam, param_bayopt=param_bayopt,
+            alignment=True, lam=100.0, adaptive_h=True) for i in range(N))
+
 for i in range(N):
-    popFP_i = PopulationFrenetPath(frenet_paths[i])
-    _, models_mean[i], res_opt = global_estimation(popFP_i, param_model={"nb_basis" : None,
-                "domain_range": (np.round(frenet_paths[i][j].grid_obs[0], decimals=8), np.round(frenet_paths[i][j].grid_obs[-1], decimals=8))}, opt=True, hyperparam=hyperparam, param_bayopt=param_bayopt,
-                alignment=True, lam=100.0, adaptive_h=True)
+    models_mean[i] = out[i][1]
 
 
 
 # estimation of gamma and omega warping functions
+print("estimation of gamma and omega warping functions... \n")
+
 warp_gamma_func = np.empty((N), dtype=object)
 warp_omega_func = np.empty((N), dtype=object)
 for i in range(N):
@@ -163,6 +181,8 @@ for i in range(N):
 
 
 # estimation of mean s and the time warping functions h_i
+print("estimation of mean s and the time warping functions h_i... \n")
+
 warp_h_func = np.empty((N), dtype=object)
 s_mean = np.zeros((N, len(t_new)))
 for i in range(N):
@@ -180,8 +200,9 @@ for i in range(N):
 
 
 
-
 # estimation of the mean sdot
+print("estimation of the mean sdot... \n")
+
 sdot_mean = np.zeros((N, len(t_new)))
 for i in range(N):
     sdot_mean[i,:] = interpolate.UnivariateSpline(t_new, s_mean[i,:], s=0.0001)(t_new, 1)
