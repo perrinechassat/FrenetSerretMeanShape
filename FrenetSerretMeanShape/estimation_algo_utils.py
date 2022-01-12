@@ -583,8 +583,8 @@ def objective_function(n_splits, PopFrenetPath, curv_smoother, tors_smoother, hy
         grid_split = PopFrenetPath.grid_obs[1:-1]
         # grid_split = PopFrenetPath.grid_obs
     else:
-        # grid_split = PopFrenetPath.frenet_paths[0].grid_obs[1:-1]
-        grid_split = PopFrenetPath.frenet_paths[0].grid_obs
+        grid_split = PopFrenetPath.frenet_paths[0].grid_obs[1:-1]
+        # grid_split = PopFrenetPath.frenet_paths[0].grid_obs
 
     if parallel==True:
         err = Parallel(n_jobs=10)(delayed(step_cross_val)(curv_smoother, tors_smoother, test_index, train_index, PopFrenetPath, hyperparam, smoothing, alignment, lam, gam, adaptive_h)
