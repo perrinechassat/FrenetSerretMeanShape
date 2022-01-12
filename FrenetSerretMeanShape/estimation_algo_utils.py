@@ -521,7 +521,7 @@ def step_cross_val(curv_smoother, tors_smoother, test_index, train_index, PopFre
     tors_smoother.reinitialize()
 
     Model_test = Model(curv_smoother, tors_smoother)
-    pred_PopFP, pred_Model, ind_conv = estimation(train_PopFP, Model_test, hyperparam, smoothing, alignment, lam, gam, adaptive_h)
+    pred_PopFP, pred_Model, ind_conv = estimation(train_PopFP, Model_test, hyperparam, adaptive_h, smoothing, alignment, lam, gam)
 
 
     if ind_conv==True:
@@ -570,14 +570,14 @@ def objective_function(n_splits, PopFrenetPath, curv_smoother, tors_smoother, hy
     # start = timer()
     if alignment==True:
         Model_theta = Model(curv_smoother, tors_smoother)
-        pred_PopFP, pred_Model, ind_conv = estimation(PopFrenetPath, Model_theta, hyperparam, {"flag":False}, alignment, lam, adaptive_h)
+        pred_PopFP, pred_Model, ind_conv = estimation(PopFrenetPath, Model_theta, hyperparam, adaptive_h, {"flag":False}, alignment, lam)
         gam = {"flag" : True, "value" : pred_Model.gam}
         if ind_conv==False:
             return 100
     else:
         gam = {"flag" : False, "value" : None}
         Model_theta = Model(curv_smoother, tors_smoother)
-        pred_PopFP, pred_Model, ind_conv = estimation(PopFrenetPath, Model_theta, hyperparam)
+        pred_PopFP, pred_Model, ind_conv = estimation(PopFrenetPath, Model_theta, hyperparam, adaptive_h)
 
     if N_samples==1:
         grid_split = PopFrenetPath.grid_obs[1:-1]
