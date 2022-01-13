@@ -25,39 +25,54 @@ def preprocess_X(data, h_min, h_max, nb_h, t_new):
 
 """___________________________________________________________________________ importation of the data ___________________________________________________________________________"""
 
-# # import data "Washington is a mess" to add to the previous gloses
-# path_dir = r"/home/pchassat/Documents/frenet-serret-smoothing/data/Repetitions_LSF/"
-# files = ['SMI2_X0077_0.csv', 'SMI2_X0077_1.csv', 'SMI2_X0077_2.csv'] #, 'SMI2_X0077_3.csv'] the last one is "Washington DC is a mess"
-# data_WDC = []
-# for i in range(3):
-#     data_WDC.append(load_Mocap_data_hand(path_dir+files[i], plot=False, hand='Right'))
-# data_WDC = np.array(data_WDC)
-
+# # # import data "Washington is a mess" to add to the previous gloses
+# # path_dir = r"/home/pchassat/Documents/frenet-serret-smoothing/data/Repetitions_LSF/"
+# # files = ['SMI2_X0077_0.csv', 'SMI2_X0077_1.csv', 'SMI2_X0077_2.csv'] #, 'SMI2_X0077_3.csv'] the last one is "Washington DC is a mess"
+# # data_WDC = []
+# # for i in range(3):
+# #     data_WDC.append(load_Mocap_data_hand(path_dir+files[i], plot=False, hand='Right'))
+# # data_WDC = np.array(data_WDC)
+#
 # import cut repeated glose from annotation
-filename = "Repeated_glose_LSFtraj_data_to_be_preprocessed"
+# filename = "Repeated_glose_LSFtraj_data_to_be_preprocessed"
+# fil = open(filename,"rb")
+# dic = pickle.load(fil)
+# fil.close()
+# rep_data_collections = collections.namedtuple('rep_data', ['data', 'glose', 'nb_rep'])
+#
+# # we sort the repetition in decreasing order of number of rep, we select only the glose repeated at least 3 times, we remove "dactylologie" and "??"
+# ind1 = np.argsort(-dic["nb_rep"])
+# ind2 = ind1[np.where(dic["nb_rep"][ind1]>2)]
+# ind3 = ind2[np.where(ind2!=np.where(dic["glose"]=='??')[0])]
+# index_to_keep = [2, 4, 5, 6, 8, 11, 12, 16, 17, 18, 21, 23, 29, 31]
+# index_to_pop = [[16, 15, 13, 8, 7, 5, 4, 3], [16, 11, 6, 3], [13, 12, 10, 9, 1], [14, 11, 7, 5, 3, 2], [9], [6, 3], [4, 2, 1], [2], [3, 1], [], [], [], [3], []]
+#
+# glose = dic["glose"][ind3][1:][index_to_keep]
+# nb_rep = []
+# data = dic["rep_data"][ind3][1:][index_to_keep]
+# for i in range(len(data)):
+#     data[i] = np.delete(data[i], index_to_pop[i])
+#     nb_rep.append(len(data[i]))
+# ind4 = np.argsort(-np.array(nb_rep))
+#
+# # put all together
+# # rep_data = rep_data_collections(dic["rep_data"][ind3][1:], dic["glose"][ind3][1:], [int(dic["nb_rep"][ind3][1:][j]) for j in range(len(dic["nb_rep"][ind3][1:]))], dic["ind_init_curve"][ind3][1:])
+# rep_data = rep_data_collections(data[ind4], np.array(glose)[ind4], np.array(nb_rep)[ind4])
+# N = len(rep_data.data)
+# print(f"We have {N} gloses repeated at least 4 times:")
+# print(' ')
+# for i in range(N):
+#     print(f"'{rep_data.glose[i]}': repeated {rep_data.nb_rep[i]} times")
+# print(' ')
+
+
+# filename = "Obs_Power_Law/rep_14_gloses_corrected_segmentation"
+filename = "rep_14_gloses_corrected_segmentation"
 fil = open(filename,"rb")
 dic = pickle.load(fil)
 fil.close()
 rep_data_collections = collections.namedtuple('rep_data', ['data', 'glose', 'nb_rep'])
-
-# we sort the repetition in decreasing order of number of rep, we select only the glose repeated at least 3 times, we remove "dactylologie" and "??"
-ind1 = np.argsort(-dic["nb_rep"])
-ind2 = ind1[np.where(dic["nb_rep"][ind1]>2)]
-ind3 = ind2[np.where(ind2!=np.where(dic["glose"]=='??')[0])]
-index_to_keep = [2, 4, 5, 6, 8, 11, 12, 16, 17, 18, 21, 23, 29, 31]
-index_to_pop = [[16, 15, 13, 8, 7, 5, 4, 3], [16, 11, 6, 3], [13, 12, 10, 9, 1], [14, 11, 7, 5, 3, 2], [9], [6, 3], [4, 2, 1], [2], [3, 1], [], [], [], [3], []]
-
-glose = dic["glose"][ind3][1:][index_to_keep]
-nb_rep = []
-data = dic["rep_data"][ind3][1:][index_to_keep]
-for i in range(len(data)):
-    data[i] = np.delete(data[i], index_to_pop[i])
-    nb_rep.append(len(data[i]))
-ind4 = np.argsort(-np.array(nb_rep))
-
-# put all together
-# rep_data = rep_data_collections(dic["rep_data"][ind3][1:], dic["glose"][ind3][1:], [int(dic["nb_rep"][ind3][1:][j]) for j in range(len(dic["nb_rep"][ind3][1:]))], dic["ind_init_curve"][ind3][1:])
-rep_data = rep_data_collections(data[ind4], np.array(glose)[ind4], np.array(nb_rep)[ind4])
+rep_data = rep_data_collections(dic["data"], dic["glose"], dic["nb_rep"])
 N = len(rep_data.data)
 print(f"We have {N} gloses repeated at least 4 times:")
 print(' ')
@@ -74,7 +89,7 @@ print("estimation of s_dot, kappa, tau and determinant function for each sample.
 h_min, h_max, nb_h = 0.1, 0.2, 20
 t_new = np.linspace(0, 1, 200)
 hyperparam = [11, 1e-07, 1e-07]
-param_bayopt = {"n_splits":  10, "n_calls" : 50, "bounds_h" : (7, 13), "bounds_lcurv" : (1e-09, 1e-06), "bounds_ltors" :  (1e-09, 1e-06)}
+param_bayopt = {"n_splits":  10, "n_calls" : 50, "bounds_h" : (7, 13), "bounds_lcurv" : (1e-08, 1e-06), "bounds_ltors" :  (1e-08, 1e-06)}
 
 
 # estimation of trajectories
@@ -136,7 +151,7 @@ for i in range(N):
 
     # for j in range(ni):
     #     _, models[i][j], _ = global_estimation(frenet_paths[i][j], param_model={"nb_basis" : None,
-    #             "domain_range": (np.round(frenet_paths[i][j].grid_obs[0], decimals=8), np.round(frenet_paths[i][j].grid_obs[-1], decimals=8))}, opt=True, hyperparam=hyperparam, param_bayopt=param_bayopt,
+    #             "domain_range": (np.round(frenet_paths[i][j].grid_obs[0], decimals=8), np.round(frenet_paths[i][j].grid_obs[-1], decimals=8))}, opt=False, hyperparam=hyperparam, param_bayopt=param_bayopt,
     #             adaptive_h=True)
 
 
@@ -152,7 +167,7 @@ for i in range(N):
 # save first part of the data
 print("first saving of the data...")
 
-filename = "rep_observations_estimates_part1"
+filename = "rep_observations_correct_seg_estimates_part1"
 dic = {"trajs" : trajs, "frenet_paths" : frenet_paths, "models" : models}
 
 if os.path.isfile(filename):
@@ -170,7 +185,7 @@ models_mean = np.empty((N), dtype=object)
 
 # for i in range(N):
 #     _, models_mean[i], res_opt = global_estimation(PopulationFrenetPath(frenet_paths[i]), param_model={"nb_basis" : None,
-#                 "domain_range": (np.round(frenet_paths[i][j].grid_obs[0], decimals=8), np.round(frenet_paths[i][j].grid_obs[-1], decimals=8))}, opt=True, hyperparam=hyperparam, param_bayopt=param_bayopt,
+#                 "domain_range": (np.round(frenet_paths[i][j].grid_obs[0], decimals=8), np.round(frenet_paths[i][j].grid_obs[-1], decimals=8))}, opt=False, hyperparam=hyperparam, param_bayopt=param_bayopt,
 #                 alignment=True, lam=100.0, adaptive_h=True)
 
 out = Parallel(n_jobs=-1)(delayed(global_estimation)(PopulationFrenetPath(frenet_paths[i]), param_model={"nb_basis" : None,
@@ -258,7 +273,8 @@ for i in range(N):
 """___________________________________________________________________________ save estimates ___________________________________________________________________________"""
 
 
-filename = "rep_observations_estimates_part2"
+filename = "rep_observations_correct_seg_estimates_part2"
+# filename = "Obs_Power_Law/rep_observations_estimates_correct_seg_without_opti"
 dic = {"sdot_arr" : sdot_arr, "curv_arr" : curv_arr, "tors_arr" : tors_arr, "det_arr" : det_arr, "sdot_mean_arr" : sdot_mean_arr, "curv_mean_arr" : curv_mean_arr, "tors_mean_arr" : tors_mean_arr,
 "det_mean_arr" : det_mean_arr, "s_mean" : s_mean, "trajs" : trajs, "frenet_paths" : frenet_paths, "warp_h_func" : warp_h_func, "models" : models, "models_mean" : models_mean,
 "warp_gamma_func" : warp_gamma_func, "warp_omega_func" : warp_omega_func}
