@@ -59,6 +59,24 @@ def plot_2D(x, y,  legend={"index":False}):
     fig.show()
 
 
+def plot_mean_2D(arr_x, arr_y, x_mean, y_mean, legend={"index":False}):
+    fig = go.Figure(layout=layout)
+    N = len(arr_y)
+    for i in range(N):
+        fig.add_trace(go.Scatter(x=arr_x[i], y=arr_y[i], mode='lines', line=dict(width=1, color=color_list[(i-9)%9])))
+    fig.add_trace(go.Scatter(x=x_mean, y=y_mean, mode='lines', name='mean', line=dict(width=2, color=px.colors.qualitative.Dark24[5])))
+    if legend['index']==True:
+        fig.update_layout(
+        title=legend["title"],
+        xaxis_title=legend["x axis"],
+        yaxis_title=legend["y axis"])
+    fig.update_xaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
+    fig.update_yaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
+    fig.show()
+
+
+
+
 def plot_3D_means_grey(features1, features2, names1, names2):
     fig = go.Figure(layout=layout)
 

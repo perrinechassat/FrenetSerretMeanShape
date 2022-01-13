@@ -148,6 +148,21 @@ for i in range(N):
         models[i][j] = out[j][1]
 
 
+
+# save first part of the data
+print("first saving of the data...")
+
+filename = "rep_observations_estimates_part1"
+dic = {"trajs" : trajs, "frenet_paths" : frenet_paths, "models" : models}
+
+if os.path.isfile(filename):
+    print("Le fichier ", filename, " existe déjà.")
+fil = open(filename,"xb")
+pickle.dump(dic,fil)
+fil.close()
+
+
+
 # estimation of mean curvatures and torsions
 print("estimation of mean curvatures and torsions... \n")
 
@@ -243,7 +258,7 @@ for i in range(N):
 """___________________________________________________________________________ save estimates ___________________________________________________________________________"""
 
 
-filename = "rep_observations_estimates_without_opti_2"
+filename = "rep_observations_estimates_part2"
 dic = {"sdot_arr" : sdot_arr, "curv_arr" : curv_arr, "tors_arr" : tors_arr, "det_arr" : det_arr, "sdot_mean_arr" : sdot_mean_arr, "curv_mean_arr" : curv_mean_arr, "tors_mean_arr" : tors_mean_arr,
 "det_mean_arr" : det_mean_arr, "s_mean" : s_mean, "trajs" : trajs, "frenet_paths" : frenet_paths, "warp_h_func" : warp_h_func, "models" : models, "models_mean" : models_mean,
 "warp_gamma_func" : warp_gamma_func, "warp_omega_func" : warp_omega_func}

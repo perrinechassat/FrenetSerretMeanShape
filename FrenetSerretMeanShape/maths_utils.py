@@ -299,4 +299,8 @@ def mean_Q0(PopFrenetPath):
         array_Q0[i,:,:] = PopFrenetPath.data[i][:,:,0]
     mean = FrechetMean(metric=SO3.metric, point_type='matrix')
     mean.fit(array_Q0)
-    return SO3.projection(mean.estimate_)
+    try:
+        Q0_mean = SO3.projection(mean.estimate_)
+    except:
+        Q0_mean = mean.estimate_
+    return Q0_mean
