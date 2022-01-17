@@ -66,8 +66,9 @@ def preprocess_X(data, h_min, h_max, nb_h, t_new):
 # print(' ')
 
 
-# filename = "Obs_Power_Law/rep_14_gloses_corrected_segmentation"
-filename = "rep_14_gloses_corrected_segmentation"
+# filename = "Obs_Power_Law/rep_27_cut_gloses_corrected_segmentation_bis_bis"
+filename = "rep_27_cut_gloses_corrected_segmentation_bis_bis"
+# filename = "rep_14_gloses_corrected_segmentation"
 fil = open(filename,"rb")
 dic = pickle.load(fil)
 fil.close()
@@ -86,7 +87,7 @@ print(' ')
 # estimation of s_dot, kappa, tau and determinant function for each sample
 print("estimation of s_dot, kappa, tau and determinant function for each sample... \n")
 
-h_min, h_max, nb_h = 0.1, 0.2, 20
+h_min, h_max, nb_h = 0.2, 0.3, 20
 t_new = np.linspace(0, 1, 200)
 hyperparam = [11, 1e-07, 1e-07]
 param_bayopt = {"n_splits":  10, "n_calls" : 50, "bounds_h" : (7, 13), "bounds_lcurv" : (1e-08, 1e-06), "bounds_ltors" :  (1e-08, 1e-06)}
@@ -134,7 +135,8 @@ for i in range(N):
     frenet_paths[i] = np.empty((ni), dtype=object)
     for j in range(ni):
         s_init = trajs[i][j].S(trajs[i][j].t)
-        s_init[-1] = np.round(s_init[-1], decimals=8)
+        s_init = s_init/s_init[-1]
+        # s_init[-1] = np.round(s_init[-1], decimals=8)
         inv_s_fct = interpolate.interp1d(s_init, trajs[i][j].t)
         frenet_paths[i][j] = trajs[i][j].TNB_GramSchmidt(inv_s_fct(new_s))
         frenet_paths[i][j].grid_obs = new_s
@@ -167,7 +169,7 @@ for i in range(N):
 # save first part of the data
 print("first saving of the data...")
 
-filename = "rep_observations_correct_seg_estimates_part1"
+filename = "rep_observations_correct_seg_bis_estimates_part1"
 dic = {"trajs" : trajs, "frenet_paths" : frenet_paths, "models" : models}
 
 if os.path.isfile(filename):
@@ -220,8 +222,7 @@ for i in range(N):
     w_s_i = np.zeros((ni, len(t_new)))
     for j in range(ni):
         s_ij = trajs[i][j].S(t_new)
-        s_ij[-1] = np.round(s_ij[-1], decimals=0)
-        s_ij[-2] = np.round(s_ij[-2], decimals=3)
+        s_ij = s_ij/s_ij[-1]
         w_s_i[j,:] = warp_omega_func[i][j](s_ij)
     obj = fs.fdawarp(w_s_i.T,t_new)
     obj.srsf_align(parallel=True, lam=0)
@@ -273,8 +274,8 @@ for i in range(N):
 """___________________________________________________________________________ save estimates ___________________________________________________________________________"""
 
 
-filename = "rep_observations_correct_seg_estimates_part2"
-# filename = "Obs_Power_Law/rep_observations_estimates_correct_seg_without_opti"
+filename = "rep_observations_correct_seg_bis_estimates_part2"
+# filename = "Obs_Power_Law/rep_observations_27_estimates_correct_seg_without_opti_bis_bis"
 dic = {"sdot_arr" : sdot_arr, "curv_arr" : curv_arr, "tors_arr" : tors_arr, "det_arr" : det_arr, "sdot_mean_arr" : sdot_mean_arr, "curv_mean_arr" : curv_mean_arr, "tors_mean_arr" : tors_mean_arr,
 "det_mean_arr" : det_mean_arr, "s_mean" : s_mean, "trajs" : trajs, "frenet_paths" : frenet_paths, "warp_h_func" : warp_h_func, "models" : models, "models_mean" : models_mean,
 "warp_gamma_func" : warp_gamma_func, "warp_omega_func" : warp_omega_func}
