@@ -135,7 +135,7 @@ for i in range(N):
         else:
             print('Find opt param to partially align curve ', i, 'to curve ', j, '...')
             cost_func = cost_gridsearch(func_curve[j], func_curve[i], [0,L[j]], [0,L[i]], 0.01)
-            param_list = make_grid(np.linspace(0,L[j],60), np.linspace(0,L[i],60), dist=2)
+            param_list = make_grid(np.linspace(0,L[j],20), np.linspace(0,L[i],20), dist=2)
             print(param_list.shape[0])
             res[i][j] = gridsearch_optimisation(cost_func, param_list)
             print(res[i][j])
