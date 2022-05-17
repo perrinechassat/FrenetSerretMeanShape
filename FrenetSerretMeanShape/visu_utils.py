@@ -18,11 +18,11 @@ color_list = px.colors.qualitative.Plotly
 dict_color = {"True Mean" : color_list_mean[0], "Arithmetic Mean" : color_list_mean[3], "SRVF Mean" : color_list_mean[2], "FS Mean" : color_list_mean[1], "Extrinsic Mean" : color_list_mean[4], "Individual Mean" : color_list_mean[5], "Ref Param" : color_list_mean[0], "Mean Param" : color_list_mean[5]}
 
 
-def plot_array_2D(x, array_y, name_ind, legend={"index":False}):
+def plot_array_2D(x, array_y, name_ind, legend={"index":False}, mode='lines'):
     fig = go.Figure(layout=layout)
     N = len(array_y)
     for i in range(N):
-        fig.add_trace(go.Scatter(x=x, y=array_y[i], mode='lines', name=name_ind+str(i), line=dict(width=1, color=color_list[(i-9)%9])))
+        fig.add_trace(go.Scatter(x=x, y=array_y[i], mode=mode, name=name_ind+str(i), line=dict(width=1, color=color_list[(i-9)%9])))
     if legend['index']==True:
         fig.update_layout(
         title=legend["title"],
@@ -32,11 +32,11 @@ def plot_array_2D(x, array_y, name_ind, legend={"index":False}):
     fig.update_yaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
     fig.show()
 
-def plot_2array_2D(x, array_y, legend={"index":False}):
+def plot_2array_2D(x, array_y, legend={"index":False}, mode='lines'):
     fig = go.Figure(layout=layout)
     N = len(array_y)
     for i in range(N):
-        fig.add_trace(go.Scatter(x=x[i], y=array_y[i], mode='lines', line=dict(width=1, color=color_list[(i-9)%9])))
+        fig.add_trace(go.Scatter(x=x[i], y=array_y[i], mode=mode, line=dict(width=1, color=color_list[(i-9)%9])))
     if legend['index']==True:
         fig.update_layout(
         title=legend["title"],
@@ -46,9 +46,9 @@ def plot_2array_2D(x, array_y, legend={"index":False}):
     fig.update_yaxes(showline=True, showgrid=False, linewidth=1, linecolor='black')
     fig.show()
 
-def plot_2D(x, y,  legend={"index":False}):
+def plot_2D(x, y,  legend={"index":False}, mode='lines'):
     fig = go.Figure(layout=layout)
-    fig.add_trace(go.Scatter(x=x, y=y, mode='lines', line=dict(width=2, color=color_list[0])))
+    fig.add_trace(go.Scatter(x=x, y=y, mode=mode, line=dict(width=2, color=color_list[0])))
     if legend['index']==True:
         fig.update_layout(
         title=legend["title"],
@@ -218,6 +218,27 @@ def plot_3D(features, names):
                 line=dict(width=3,color=color_list[i])
             )
         )
+    fig.update_layout(legend=dict(orientation="h",yanchor="top",y=1.2,xanchor="right", x=1),
+                    scene = dict(
+                    xaxis = dict(
+                         backgroundcolor="rgb(0, 0, 0)",
+                         gridcolor="grey",
+                         gridwidth=0.8,
+                         zeroline=False,
+                         showbackground=False,),
+                    yaxis = dict(
+                         backgroundcolor="rgb(0, 0, 0)",
+                         gridcolor="grey",
+                         gridwidth=0.8,
+                         zeroline=False,
+                         showbackground=False,),
+                    zaxis = dict(
+                         backgroundcolor="rgb(0, 0, 0)",
+                         gridcolor="grey",
+                         gridwidth=0.8,
+                         zeroline=False,
+                         showbackground=False,),),
+                  )
     fig.show()
 
 

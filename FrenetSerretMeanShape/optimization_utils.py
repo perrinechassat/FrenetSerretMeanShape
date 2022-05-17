@@ -63,7 +63,8 @@ def bayesian_optimisation(func, n_call, hyperparam_bounds, plot=True):
 
 def gridsearch_optimisation(func, hyperparam_list):
 
-    grid = create_hyperparam_grid(hyperparam_list)
+    # grid = create_hyperparam_grid(hyperparam_list)
+    grid = hyperparam_list
     n_grid = grid.shape[0]
 
     print('Begin grid search optimisation with', n_grid, 'combinations of parameters...')
@@ -71,12 +72,12 @@ def gridsearch_optimisation(func, hyperparam_list):
     # out = []
     # for i in range(n_grid):
     #     print('Iteration :', i, 'with parameters ', grid[i])
-    #     out.append(func(grid[i]))
-    #     print('Cross validation score :', out[i])
+    #     out.append(func(*grid[i]))
+    #     print('Score :', out[i])
 
     def parallel_func(f, param, i):
         print('Iteration :', i, 'with parameters ', param)
-        cv = f(param)
+        cv = f(*param)
         print('Cross validation score :', cv)
         return cv
 

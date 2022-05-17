@@ -502,6 +502,14 @@ def h_prime(s,a):
         return 1 + s*0
     else:
         return (2*np.pi*np.cos(2*np.pi*s) + 1/a)*a
+
+
+def alpha(s,a):
+    return np.power(s,2*a)
+
+def beta(s,a):
+    return np.power(s,1/(2*a))
+
 #
 # def gamma_5(s,a):
 #     if np.abs(a)<1e-15:

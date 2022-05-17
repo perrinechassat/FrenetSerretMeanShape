@@ -5,6 +5,7 @@ from sklearn.gaussian_process.kernels import Matern
 import fdasrsf as fs
 from scipy.integrate import trapz, cumtrapz
 from scipy.interpolate import interp1d, UnivariateSpline
+from scipy.optimize import minimize
 from numpy.linalg import norm
 from joblib import Parallel, delayed
 import matplotlib.pyplot as plt
@@ -304,3 +305,57 @@ def mean_Q0(PopFrenetPath):
     except:
         Q0_mean = mean.estimate_
     return Q0_mean
+
+
+
+def guess(x, y, k, s):
+    """Do an ordinary spline fit to provide knots"""
+    spl = UnivariateSpline(x, y, s=s, k=k)
+    return spl._eval_args[0], spl._eval_args[1], spl._eval_args[2]
+
+def err(c, x, y, t, k):
+    """The error function to minimize"""
+    diff = y - UnivariateSpline._from_tck((t, c, k))(x)
+    diff = np.einsum('...i,...i', diff, diff)
+    return np.abs(diff)
+
+def spline_dirichlet(x, y, k=3, s=0):
+    t, c0, k = guess(x, y, k, s)
+    xm, xM = x[0], x[-1]
+    ym, yM = y[0], y[-1]
+    con = [{'type': 'eq','fun': lambda c: UnivariateSpline._from_tck((t, c, k))(xm) - ym,},
+            {'type': 'eq','fun': lambda c: UnivariateSpline._from_tck((t, c, k))(xM) - yM,}]
+    opt = minimize(err, c0, (x, y, t, k), constraints=con)
+    copt = opt.x
+    return UnivariateSpline._from_tck((t, copt, k))
+
+
+def spline_approx(time, f, smooth=True):
+
+    M = f.shape[0]
+
+    if f.ndim > 1:
+        N = f.shape[1]
+        f0 = np.zeros((M, N))
+        g = np.zeros((M, N))
+        g2 = np.zeros((M, N))
+        for k in range(0, N):
+            if smooth:
+                spar = time.shape[0] * (.025 * np.fabs(f[:, k]).max()) ** 2
+            else:
+                spar = 0
+            tmp_spline = spline_dirichlet(time, f[:, k], s=spar)
+            f0[:, k] = tmp_spline(time)
+            g[:, k] = tmp_spline(time, 1)
+            g2[:, k] = tmp_spline(time, 2)
+    else:
+        if smooth:
+            spar = time.shape[0] * (.025 * np.fabs(f).max()) ** 2
+        else:
+            spar = 0
+        tmp_spline = spline_dirichlet(time, f, s=spar)
+        f0 = tmp_spline(time)
+        g = tmp_spline(time, 1)
+        g2 = tmp_spline(time, 2)
+
+    return f0, g, g2

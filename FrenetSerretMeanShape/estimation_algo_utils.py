@@ -322,6 +322,8 @@ def estimation(PopFrenetPath, Model, x, adaptive_h, smoothing={"flag":False, "me
         Model.tors.reinitialize()
         ind_conv = False
 
+    # plot_array_2D(mS, [mKappa, Model.curv.function(mS)], '')
+    # plot_array_2D(mS, [mTau, Model.tors.function(mS)], '')
     # plt.figure()
     # plt.plot(mS, Model.curv.function(mS))
     # plt.show()
