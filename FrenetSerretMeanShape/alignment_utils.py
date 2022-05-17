@@ -23,6 +23,12 @@ from sympy import integrate, symbols
 
 """ Set of functions for the alignment of curvature and torsion """
 
+def optimum_reparam_1d(theta1, time, theta2, lam=0.0, grid_dim=7):
+
+    gam = orN2_C.coptimum_reparam(np.ascontiguousarray(theta1), time, np.ascontiguousarray(theta2), lam, grid_dim)
+
+    return gam
+
 
 def optimum_reparam_curvatures(theta1, time, theta2, lam=0.0, grid_dim=7):
     """
@@ -721,113 +727,6 @@ def partial_align_1d_fromInt(X1, X2, init_ind2, sub_int1, sub_int2, lbda=0.0):
     out = partial_align_1d(X1, X2, init_ind2, a, D, alpha, beta, lbda)
     return out
 
-# def partial_align_1d(X1, X2, init_ind2, a, D, alpha, beta):
-#     # step 1:
-#     b = a+D
-#     f, f_inv = compute_f(alpha, beta)
-#     X2tilde = lambda s: alpha*X2(f(s))
-#     t = np.linspace(0,1,200)
-#     A, B = f_inv(init_ind2[0]), f_inv(init_ind2[1])
-#     t_AB = np.linspace(A, B, 200)
-#     plot_2array_2D([t, t_AB], [X1(t),  np.array([X2tilde(x) for x in t_AB])])
-#     # step 2:
-#     print(X2tilde(a))
-#     n, n_inv = compute_n(a, D)
-#
-#     x1 = np.array([D*X1(n(t_)) for t_ in t])
-#     x2 = np.array([D*X2tilde(n(t_)) for t_ in t])
-#     # step 3:
-#     q1 = np.sqrt(x1)
-#     q2 = np.sqrt(x2)
-#     gam = fs.utility_functions.optimum_reparam(q1, t, q2)
-#     gam = (gam - gam[0]) / (gam[-1] - gam[0])
-#     gam_inv = fs.utility_functions.invertGamma(gam)
-#     gamma = interp1d(t, gam, fill_value=([gam[0]], [gam[-1]]), bounds_error=False)
-#     gamma_inv = interp1d(t, gam_inv, fill_value=([gam_inv[0]], [gam_inv[-1]]), bounds_error=False)
-#     gam_dev = np.gradient(gam, 1/np.double(200 - 1))
-#     gamma_prime = interp1d(t, gam_dev, fill_value=([gam_dev[0]], [gam_dev[-1]]), bounds_error=False)
-#     # step 4:
-#     gamma_tilde = lambda s : n(gamma(n_inv(s)))
-#     gamma_tilde_inv = lambda s : n(gamma_inv(n_inv(s)))
-#     gamma_tilde_interp = UnivariateSpline(np.linspace(0,1,200), np.array([gamma(j) for j in np.linspace(0,1,200)]), k=3)
-#     gamma_tilde_prime = gamma_tilde_interp.derivative()
-#     # step 5:
-#
-#     def extend_gam(s):
-#         if a<=s<=b:
-#             return gamma_tilde(s)
-#         elif s<a:
-#             # return ((A-gamma_tilde(a))/(A-a))*(s-A) + A
-#             return gamma_tilde_prime(a)*(s-a) + gamma_tilde(a)
-#         elif s>b:
-#             # return ((B-gamma_tilde(b))/(B-b))*(s-B) + B
-#             return gamma_tilde_prime(b)*(s-b) + gamma_tilde(b)
-#
-#     def extend_gam_prime(s):
-#         if a<=s<=b:
-#             return gamma_tilde_prime(s)
-#         elif s<a:
-#             # return ((A-gamma_tilde(a))/(A-a))
-#             return gamma_tilde_prime(a)
-#         elif s>b:
-#             # return ((B-gamma_tilde(b))/(B-b))
-#             return gamma_tilde_prime(b)
-#
-#     def X2new_bis(s):
-#         return X2tilde(extend_gam(s))*extend_gam_prime(s)
-#
-#
-#     def g(s):
-#         if a<=s<=b:
-#             return f(gamma_tilde(s))
-#         else:
-#             return f(s)
-#
-#     g_tilde = UnivariateSpline(np.linspace(A,B,400), np.array([g(j) for j in np.linspace(A,B,400)]), k=3)
-#     g_tilde_prime = g_tilde.derivative()
-#     g_dev = np.gradient(np.array([g(j) for j in np.linspace(A,B,400)]), 1 / np.double(400 - 1))
-#     g_tilde_prime_bis = interp1d(np.linspace(A,B,400), g_dev, fill_value=([g_dev[0]], [g_dev[-1]]), bounds_error=False)
-#
-#     g1 = np.array([(alpha*gamma_prime(n_inv(t)))*(a<=t<=b) + alpha*(t<a) + alpha*(t>b) for t in np.linspace(A,B,400)])
-#     g2 = np.array([alpha*gamma_tilde_prime(n_inv(t))*(a<=t<=b) + alpha*(t<a) + alpha*(t>b) for t in np.linspace(A,B,400)])
-#     g3 = g_tilde_prime_bis(np.linspace(A,B,400))
-#     g4 = g_tilde_prime(np.linspace(A,B,400))
-#     g5 = np.array([extend_gam_prime(t) for t in np.linspace(A,B,400)])
-#
-#     plot_array_2D(np.linspace(A,B,400), [g1, g2, g3, g4, g5], '')
-#
-#     def g_prime(s):
-#         # if a<=s<=b:
-#         #     return alpha*gamma_tilde_prime(n_inv(s))
-#         #     # return alpha*gamma_prime(n_inv(s))
-#         #
-#         # else:
-#         #     return alpha
-#         # return g_tilde_prime(s)
-#         return g_tilde_prime_bis(s)
-#
-#
-#
-#
-#
-#     def g_inv(s):
-#         if f(a)<=s<=f(b):
-#             return gamma_tilde_inv(f_inv(s))
-#         else:
-#             return f_inv(s)
-#     # step 6:
-#
-#     def X2new(s):
-#         return X2(g(s))*g_prime(s)
-#
-#     # int_AB = np.linspace(A, B, 200)
-#     # g_dscte = np.array([np.round(g(s), decimals=8) for s in int_AB])
-#     # g_prime_dscte = np.array([g_prime(s) for s in int_AB])
-#     # X2new_dscte = X2(g_dscte)*g_prime_dscte
-#
-#     partial_align_results = collections.namedtuple('partial_align', ['X2new', 'A', 'B', 'g', 'g_prime', 'g_inv', 'gamma', 'gamma_inv', 'gamma_prime', 'gam'])
-#     out = partial_align_results(X2new_bis, A, B, g, g_prime, g_inv, gamma, gamma_inv, gamma_prime, gam)
-#     return out
 
 def partial_align_1d(X1, X2, init_ind2, a, D, alpha, beta, lbda=0):
     # step 1:
@@ -840,9 +739,10 @@ def partial_align_1d(X1, X2, init_ind2, a, D, alpha, beta, lbda=0):
     x1 = np.array([D*X1(n(t_)) for t_ in t])
     x2 = np.array([D*X2tilde(n(t_)) for t_ in t])
     # step 3:
-    q1 = np.sqrt(x1)
-    q2 = np.sqrt(x2)
-    gam = fs.utility_functions.optimum_reparam(q1, t, q2, lam=lbda)
+    # q1 = np.sqrt(x1)
+    # q2 = np.sqrt(x2)
+    # gam = fs.utility_functions.optimum_reparam(q1, t, q2, lam=lbda)
+    gam = optimum_reparam_1d(x1, t, x2, lam=lbda)
     gam = (gam - gam[0]) / (gam[-1] - gam[0])
     gam_inv = fs.utility_functions.invertGamma(gam)
     gamma = interp1d(t, gam, fill_value=([gam[0]], [gam[-1]]), bounds_error=False)
@@ -899,36 +799,34 @@ def extend_X(X, int):
             return 0
     return X_tilde
 
-def E(a, D, X1, X2new, int1, int2new, ratio):
+def H(a, D, X1, X2new, int1, int2new, ratio):
     min_int = np.min([int1[0],int2new[0]])
     max_int = np.max([int1[1],int2new[1]])
     x1_tilde = extend_X(X1, int1)
     x2_tilde = extend_X(X2new, int2new)
-    grid1 = np.round(np.linspace(min_int, a, int(abs(min_int-a)/ratio)+1), decimals=6)
+    grid1 = np.round(np.linspace(min_int, a, int(abs(min_int-a)/ratio)+1)) #, decimals=6)
     grid2 = np.linspace(a, a+D, int(abs(D)/ratio)+1)
-    grid3 = np.round(np.linspace(a+D, max_int, int(abs(max_int-a-D)/ratio)+1), decimals=6)
-    # for i in range(len(grid2)):
-    #     print('x:', grid2[i])
-    #     print('y:', (x1_tilde(grid2[i])-x2_tilde(grid2[i])))
-    # print(grid2)
-    # print('grid2', grid2[0], grid2[-1])
-    # print('ev in a', x1_tilde(grid2[0])-x2_tilde(grid2[0]))
-    # print('ev in b', x1_tilde(grid2[-1])-x2_tilde(grid2[-1]))
+    grid3 = np.round(np.linspace(a+D, max_int, int(abs(max_int-a-D)/ratio)+1)) #, decimals=6)
+
     dist = np.array([x1_tilde(grid2[i])-x2_tilde(grid2[i]) for i in range(len(grid2))])
-    dist_shape = np.linalg.norm(dist, ord=1)
-    pen = (np.linalg.norm((np.array([x1_tilde(t)-x2_tilde(t) for t in grid1])), ord=1) + np.linalg.norm((np.array([x1_tilde(t)-x2_tilde(t) for t in grid3])), ord=1))
-    # return dist_shape + pen, dist_shape, pen
+    dist_shape = np.trapz(dist**2, grid2)
+
+    p1 = np.array([x1_tilde(t)-x2_tilde(t) for t in grid1])
+    p2 = np.array([x1_tilde(t)-x2_tilde(t) for t in grid3])
+    pen = np.trapz(p1**2,grid1)+ np.trapz(p2**2,grid3)
+
+    # print('dist_shape 1', dist_shape, 'dist_shape 2', np.trapz(dist**2, grid2), 'pen 1', pen, 'pen 2', np.trapz(p1**2,grid1)+ np.trapz(p2**2,grid3) )
+    # print('L1', dist_shape+pen, 'L2', np.trapz(dist**2, grid2)+np.trapz(p1**2,grid1)+ np.trapz(p2**2,grid3))
     return dist_shape + pen
+
 
 def cost_gridsearch(X1, X2, init_ind1, init_ind2, lbda):
     def func(a,b,c,d):
         alpha, beta, D = ((d-c)/(b-a)), c-((d-c)/(b-a))*a, b-a
         out = partial_align_1d(X1, X2, init_ind2, a, D, alpha, beta, lbda)
-        # cost, dist_shape, pen = E(a, D, X1, out.X2new, init_ind1, [out.A, out.B], lbda, 1/1000)
-        cost = E(a, D, X1, out.X2new, init_ind1, [out.A, out.B], 1/1000)
+        cost = H(a, D, X1, out.X2new, init_ind1, [out.A, out.B], 1/1000)
         return cost
     return func
-
 
 def make_grid(list1, list2, dist=0):
     c1 = np.concatenate(np.stack(np.meshgrid(list1,list1), axis=-1))
