@@ -140,4 +140,12 @@ for i in range(N):
             res[i][j] = gridsearch_optimisation(cost_func, param_list)
             print(res[i][j])
 
-np.save('res_simu_partial_align.npy', res)
+
+filename = "results_1simu_partial_align"
+dic_error_indiv = {"res_grid_search" : res, "func_curve" : func_curve, "grid_final_array" : final_grid, "f_final_array" : final_f_array, "coef_h": coef_h, "int_AB_array" : int_AB_array,
+"int_ab_array" : int_ab_array, "f_init_array" : f_eval_array, "grid_init_array" : grid_array}
+if os.path.isfile(filename):
+    print("Le fichier ", filename, " existe déjà.")
+fil = open(filename,"xb")
+pickle.dump(dic_error_indiv,fil)
+fil.close()
