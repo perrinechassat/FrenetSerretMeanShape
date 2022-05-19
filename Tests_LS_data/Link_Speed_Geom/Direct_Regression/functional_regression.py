@@ -45,9 +45,9 @@ for i in range(N):
 
 """ -------------------- without log -------------------- """
 
-param_lam = np.array([0.0, 0.01, 0.1, 1])
-param_K = np.array([int(5), int(15), int(30), int(60), int(100)])
-hyperparam_list = np.array([param_K, param_K, param_K, param_K, param_lam])
+lam_param = np.array([0.0, 0.01, 0.1, 1])
+K_param = np.array([int(5), int(15), int(30), int(60), int(100)])
+hyperparam_list = [lam_param, K_param, 4]
 
 X = np.empty((nb_samples), dtype=object)
 y = np.empty((nb_samples), dtype=object)
@@ -69,9 +69,9 @@ reg_model = apply_lin_reg(X, y, t, coef, lam, save=False, filename='lin_reg_with
 
 """ -------------------- with log on sdot -------------------- """
 
-param_lam = np.array([0.0, 0.01, 0.1, 1])
-param_K = np.array([int(5), int(15), int(30), int(60), int(100)])
-hyperparam_list = np.array([param_K, param_K, param_K, param_K, param_lam])
+lam_param = np.array([0.0, 0.01, 0.1, 1])
+K_param = np.array([int(5), int(15), int(30), int(60), int(100)])
+hyperparam_list = [lam_param, K_param, 4]
 
 X = np.empty((nb_samples), dtype=object)
 y = np.empty((nb_samples), dtype=object)
@@ -92,9 +92,9 @@ reg_model = apply_lin_reg(X, y, t, coef, lam, save=False, filename='lin_reg_with
 
 """ -------------------- with log -------------------- """
 
-param_lam = np.array([0.0, 0.01, 0.1, 1])
-param_K = np.array([int(5), int(15), int(30), int(60), int(100)])
-hyperparam_list = np.array([param_K, param_K, param_K, param_K, param_lam])
+lam_param = np.array([0.0, 0.01, 0.1, 1])
+K_param = np.array([int(5), int(15), int(30), int(60), int(100)])
+hyperparam_list = [lam_param, K_param, 4]
 
 X = np.empty((nb_samples), dtype=object)
 y = np.empty((nb_samples), dtype=object)
@@ -115,9 +115,9 @@ reg_model = apply_lin_reg(X, y, t, coef, lam, save=False, filename='lin_reg_with
 
 """ -------------------- with log L -------------------- """
 
-param_lam = np.array([0.0, 0.01, 0.1, 1])
-param_K = np.array([int(5), int(15), int(30), int(60), int(100)])
-hyperparam_list = np.array([param_K, param_K, param_K, param_K, param_lam])
+lam_param = np.array([0.0, 0.01, 0.1, 1])
+K_param = np.array([int(5), int(15), int(30), int(60), int(100)])
+hyperparam_list = [lam_param, K_param, 4]
 
 X = np.empty((nb_samples), dtype=object)
 y = np.empty((nb_samples), dtype=object)
@@ -148,9 +148,9 @@ reg_model = apply_lin_reg(X, y, t, coef, lam, save=False, filename='lin_reg_with
 
 """ -------------------- without log on sdot -------------------- """
 
-hyperparam_s = np.array([0.1, 1, 10])
-hyperparam_k = np.array([int(15), int(30), int(60), int(100)])
-hyperparam_list = np.array([hyperparam_k, hyperparam_k, hyperparam_k, hyperparam_s])
+lam_param = np.array([0.1, 1, 10])
+K_param = np.array([int(15), int(30), int(60), int(100)])
+hyperparam_list = [lam_param, K_param, 3]
 
 X = np.empty((nb_samples), dtype=object)
 Z = np.empty((nb_samples), dtype=object)
@@ -174,9 +174,9 @@ res_model = apply_add_reg(X, Z, y, t, coef, lam, save=True, filename='gam_reg_wi
 
 """ ---------------- without log on sdot L -------------------- """
 
-hyperparam_s = np.array([0.1, 1, 10])
-hyperparam_k = np.array([int(15), int(30), int(60), int(100)])
-hyperparam_list = np.array([hyperparam_k, hyperparam_k, hyperparam_k, hyperparam_s])
+lam_param = np.array([0.1, 1, 10])
+K_param = np.array([int(15), int(30), int(60), int(100)])
+hyperparam_list = [lam_param, K_param, 3]
 
 X = np.empty((nb_samples), dtype=object)
 Z = np.empty((nb_samples), dtype=object)
@@ -200,9 +200,9 @@ res_model = apply_add_reg(X, Z, y, t, coef, lam, save=True, filename='gam_reg_wi
 
 """ -------------------- with log on sdot -------------------- """
 
-hyperparam_s = np.array([0.1, 1, 10])
-hyperparam_k = np.array([int(15), int(30), int(60), int(100)])
-hyperparam_list = np.array([hyperparam_k, hyperparam_k, hyperparam_k, hyperparam_s])
+lam_param = np.array([0.1, 1, 10])
+K_param = np.array([int(15), int(30), int(60), int(100)])
+hyperparam_list = [lam_param, K_param, 3]
 
 X = np.empty((nb_samples), dtype=object)
 Z = np.empty((nb_samples), dtype=object)
@@ -227,9 +227,9 @@ res_model = apply_add_reg(X, Z, y, t, coef, lam, save=True, filename='gam_reg_wi
 
 """ ---------------- with log on sdot L -------------------- """
 
-hyperparam_s = np.array([0.1, 1, 10])
-hyperparam_k = np.array([int(15), int(30), int(60), int(100)])
-hyperparam_list = np.array([hyperparam_k, hyperparam_k, hyperparam_k, hyperparam_s])
+lam_param = np.array([0.1, 1, 10])
+K_param = np.array([int(15), int(30), int(60), int(100)])
+hyperparam_list = [lam_param, K_param, 3]
 
 X = np.empty((nb_samples), dtype=object)
 Z = np.empty((nb_samples), dtype=object)

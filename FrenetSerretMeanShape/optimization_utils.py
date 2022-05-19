@@ -69,19 +69,19 @@ def gridsearch_optimisation(func, hyperparam_list):
 
     print('Begin grid search optimisation with', n_grid, 'combinations of parameters...')
 
-    out = []
-    for i in range(n_grid):
-        print('Iteration :', i, 'with parameters ', grid[i])
-        out.append(func(grid[i]))
-        print('Score :', out[i])
+    # out = []
+    # for i in range(n_grid):
+    #     print('Iteration :', i, 'with parameters ', grid[i])
+    #     out.append(func(grid[i]))
+    #     print('Score :', out[i])
 
-    # def parallel_func(f, param, i):
-    #     print('Iteration :', i, 'with parameters ', param)
-    #     cv = f(*param)
-    #     print('Cross validation score :', cv)
-    #     return cv
-    #
-    # out = Parallel(n_jobs=-1)(delayed(parallel_func)(func, grid[i], i) for i in range(n_grid))
+    def parallel_func(f, param, i):
+        print('Iteration :', i, 'with parameters ', param)
+        cv = f(param)
+        print('Cross validation score :', cv)
+        return cv
+
+    out = Parallel(n_jobs=-1)(delayed(parallel_func)(func, grid[i], i) for i in range(n_grid))
 
     ind = np.where([out[i]==np.min(out, axis=0) for i in range(n_grid)])[0]
     if len(ind)!=1:

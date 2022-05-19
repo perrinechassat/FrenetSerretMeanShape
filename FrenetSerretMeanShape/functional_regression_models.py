@@ -81,28 +81,28 @@ def cross_validation_score_MFR(Model, n_splits, X, y, K_coef, coef_basis, Z=None
     for train_index, test_index in kf.split(np.ones(N)):
     # print('------- step ', k, ' cross validation --------')
 
-        # try:
-        if Model==MultivariateLinearRegression:
-            _ = linear.fit(X[train_index].squeeze(), y[train_index].squeeze(), function_to_apply=function_to_apply)
-            CV = 0
-            for i in test_index:
-                # CV += np.mean((y[i].data_matrix.squeeze() - linear.predict(X[i], y[i].grid_points[0]))**2)
-                CV += np.sqrt(trapz((y[i].data_matrix.squeeze() - linear.predict(X[i], y[i].grid_points[0]))**2, y[i].grid_points[0]))
-            err.append(CV/len(test_index))
-        elif Model==MultivariateAdditiveRegression:
-            _ = linear.fit(X[train_index].squeeze(), Z[train_index].squeeze(), y[train_index].squeeze(), function_to_apply=function_to_apply)
-            CV = 0
-            for i in test_index:
-                # CV += np.mean((y[i].data_matrix.squeeze() - linear.predict(X[i], Z[i], y[i].grid_points[0]))**2)
-                CV += np.sqrt(trapz((y[i].data_matrix.squeeze() - linear.predict(X[i], Z[i], y[i].grid_points[0]))**2, y[i].grid_points[0]))
-            err.append(CV/len(test_index))
-        else:
-            raise ValueError(
-                        "Invalid model type",
-                    )
-        # except:
-        #     # err.append(np.inf)
-        #     pass
+        try:
+            if Model==MultivariateLinearRegression:
+                _ = linear.fit(X[train_index].squeeze(), y[train_index].squeeze(), function_to_apply=function_to_apply)
+                CV = 0
+                for i in test_index:
+                    # CV += np.mean((y[i].data_matrix.squeeze() - linear.predict(X[i], y[i].grid_points[0]))**2)
+                    CV += np.sqrt(trapz((y[i].data_matrix.squeeze() - linear.predict(X[i], y[i].grid_points[0]))**2, y[i].grid_points[0]))
+                err.append(CV/len(test_index))
+            elif Model==MultivariateAdditiveRegression:
+                _ = linear.fit(X[train_index].squeeze(), Z[train_index].squeeze(), y[train_index].squeeze(), function_to_apply=function_to_apply)
+                CV = 0
+                for i in test_index:
+                    # CV += np.mean((y[i].data_matrix.squeeze() - linear.predict(X[i], Z[i], y[i].grid_points[0]))**2)
+                    CV += np.sqrt(trapz((y[i].data_matrix.squeeze() - linear.predict(X[i], Z[i], y[i].grid_points[0]))**2, y[i].grid_points[0]))
+                err.append(CV/len(test_index))
+            else:
+                raise ValueError(
+                            "Invalid model type",
+                        )
+        except:
+            # err.append(np.inf)
+            pass
 
     print(err)
     # if (err==np.inf).all():
@@ -166,7 +166,7 @@ def opti_smoothing_parameters_MFR(Model, n_splits, X, y, hyperparam_list, coef_b
             k = params
         return cross_validation_score_MFR(Model, n_splits, X, y, k, coef_basis, Z=Z, fit_intercept=fit_intercept, regularization=regularization, smoothing_parameter=s, function_to_apply=function_to_apply)
 
-    x = gridsearch_optimisation(Opt_fun, create_hyperparam_grid(hyperparam_list))
+    x = gridsearch_optimisation(Opt_fun, create_hyperparam_grid_bis(hyperparam_list[0], hyperparam_list[1], hyperparam_list[2]))
 
     lam = x[-1]
     K_coef = x[:-1]
@@ -185,6 +185,19 @@ def create_hyperparam_grid(hyperparam_list):
 
     n_param = len(hyperparam_list)
     grid = np.array(np.meshgrid(*hyperparam_list)).T.reshape(-1,n_param)
+
+    return grid
+
+def create_hyperparam_grid_bis(lam_param, K_param, n_K):
+
+    n_plam = len(lam_param)
+    n_pK = len(K_param)
+    grid = np.array((n_pK*n_plam, n_K+1))
+    ind = 0
+    for i in range(n_plam):
+        for j in range(n_pK):
+            grid[ind,:] = np.concatenate((np.repeat(K_param[j], n_K), np.array([lam_param[i]])))
+            ind += 1
 
     return grid
 
