@@ -192,11 +192,11 @@ def create_hyperparam_grid_bis(lam_param, K_param, n_K):
 
     n_plam = len(lam_param)
     n_pK = len(K_param)
-    grid = np.array((n_pK*n_plam, n_K+1))
+    grid = np.zeros((n_pK*n_plam, n_K+1))
     ind = 0
     for i in range(n_plam):
         for j in range(n_pK):
-            grid[ind,:] = np.concatenate((np.repeat(K_param[j], n_K), np.array([lam_param[i]])))
+            grid[ind] = np.concatenate((np.repeat(K_param[j], n_K), np.array([lam_param[i]])))
             ind += 1
 
     return grid
