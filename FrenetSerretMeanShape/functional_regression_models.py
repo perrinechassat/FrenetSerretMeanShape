@@ -79,10 +79,34 @@ def cross_validation_score_MFR(Model, n_splits, X, y, K_coef, coef_basis, Z=None
 
     linear = Model(coef_basis=new_coef_basis, fit_intercept=fit_intercept, smoothing_parameter=smoothing_parameter, regularization=regularization)
 
-    err = []
-    for train_index, test_index in kf.split(np.ones(N)):
-    # print('------- step ', k, ' cross validation --------')
+    # err = []
+    # for train_index, test_index in kf.split(np.ones(N)):
+    # # print('------- step ', k, ' cross validation --------')
+    #
+    #     try:
+    #         if Model==MultivariateLinearRegression:
+    #             _ = linear.fit(X[train_index].squeeze(), y[train_index].squeeze(), function_to_apply=function_to_apply)
+    #             CV = 0
+    #             for i in test_index:
+    #                 # CV += np.mean((y[i].data_matrix.squeeze() - linear.predict(X[i], y[i].grid_points[0]))**2)
+    #                 CV += np.sqrt(trapz((y[i].data_matrix.squeeze() - linear.predict(X[i], y[i].grid_points[0]))**2, y[i].grid_points[0]))
+    #             err.append(CV/len(test_index))
+    #         elif Model==MultivariateAdditiveRegression:
+    #             _ = linear.fit(X[train_index].squeeze(), Z[train_index].squeeze(), y[train_index].squeeze(), function_to_apply=function_to_apply)
+    #             CV = 0
+    #             for i in test_index:
+    #                 # CV += np.mean((y[i].data_matrix.squeeze() - linear.predict(X[i], Z[i], y[i].grid_points[0]))**2)
+    #                 CV += np.sqrt(trapz((y[i].data_matrix.squeeze() - linear.predict(X[i], Z[i], y[i].grid_points[0]))**2, y[i].grid_points[0]))
+    #             err.append(CV/len(test_index))
+    #         else:
+    #             raise ValueError(
+    #                         "Invalid model type",
+    #                     )
+    #     except:
+    #         # err.append(np.inf)
+    #         pass
 
+    def func_CV(train_index, test_index):
         try:
             if Model==MultivariateLinearRegression:
                 _ = linear.fit(X[train_index].squeeze(), y[train_index].squeeze(), function_to_apply=function_to_apply)
@@ -90,14 +114,16 @@ def cross_validation_score_MFR(Model, n_splits, X, y, K_coef, coef_basis, Z=None
                 for i in test_index:
                     # CV += np.mean((y[i].data_matrix.squeeze() - linear.predict(X[i], y[i].grid_points[0]))**2)
                     CV += np.sqrt(trapz((y[i].data_matrix.squeeze() - linear.predict(X[i], y[i].grid_points[0]))**2, y[i].grid_points[0]))
-                err.append(CV/len(test_index))
+                e = CV/len(test_index)
+                return e
             elif Model==MultivariateAdditiveRegression:
                 _ = linear.fit(X[train_index].squeeze(), Z[train_index].squeeze(), y[train_index].squeeze(), function_to_apply=function_to_apply)
                 CV = 0
                 for i in test_index:
                     # CV += np.mean((y[i].data_matrix.squeeze() - linear.predict(X[i], Z[i], y[i].grid_points[0]))**2)
                     CV += np.sqrt(trapz((y[i].data_matrix.squeeze() - linear.predict(X[i], Z[i], y[i].grid_points[0]))**2, y[i].grid_points[0]))
-                err.append(CV/len(test_index))
+                e = CV/len(test_index)
+                return e
             else:
                 raise ValueError(
                             "Invalid model type",
@@ -106,15 +132,17 @@ def cross_validation_score_MFR(Model, n_splits, X, y, K_coef, coef_basis, Z=None
             # err.append(np.inf)
             pass
 
+    err = Parallel(n_jobs=-1)(delayed(func_CV)(train_index, test_index) for train_index, test_index in kf.split(np.ones(N)))
+
     print(err)
-    # if (err==np.inf).all():
-    #     return np.inf
-    # else:
-    #     return np.mean(err[err!=np.inf])
-    if len(err)==0:
+    if np.array(err).all()==None:
         return np.inf
     else:
-        return np.mean(err)
+        return np.mean(np.array(err)[np.where([err[i]!=None for i in range(len(err))])])
+    # if len(err)==0:
+    #     return np.inf
+    # else:
+    #     return np.mean(err)
 
 
 def opti_smoothing_parameters_MFR(Model, n_splits, X, y, hyperparam_list, coef_basis, Z=None, fit_intercept=False, regularization=None, function_to_apply=lambda x:x):
