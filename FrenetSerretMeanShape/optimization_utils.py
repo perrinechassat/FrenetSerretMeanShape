@@ -87,7 +87,7 @@ def gridsearch_optimisation(func, hyperparam_list):
     if len(ind)!=1:
         ind = ind[0]
 
-    res = grid[ind].squeeze()
+    res = grid[ind]
     print('End of grid search optimisation. The optimal parameters are :', res)
 
     return res
