@@ -759,78 +759,72 @@ def partial_align_1d(X1, X2, init_ind2, a, D, alpha, beta, lbda=0):
 
     x1 = np.array([D*X1(n(t_)) for t_ in t])
     x2 = np.array([D*X2tilde(n(t_)) for t_ in t])
-    # step 3:
-    q1 = np.sqrt(x1)
-    q2 = np.sqrt(x2)
-    gam = fs.utility_functions.optimum_reparam(q1, t, q2, lam=lbda)
-    # gam = optimum_reparam_1d(x1, t, x2, lam=lbda)
+    gam = optimum_reparam_1d(x1, t, x2, lam=lbda)
     gam = (gam - gam[0]) / (gam[-1] - gam[0])
     gam_inv = fs.utility_functions.invertGamma(gam)
     gamma = interp1d(t, gam, fill_value=([gam[0]], [gam[-1]]), bounds_error=False)
     gamma_inv = interp1d(t, gam_inv, fill_value=([gam_inv[0]], [gam_inv[-1]]), bounds_error=False)
+    gamma_tilde = UnivariateSpline(np.linspace(a,b,200), np.array([n(gamma(n_inv(j))) for j in np.linspace(a,b,200)]), k=5)
+    gamma_tilde_prime = gamma_tilde.derivative()
+    gamma_tilde_inv = interp1d(np.linspace(a,b,200), np.array([n(gamma_inv(n_inv(t_))) for t_ in np.linspace(a,b,200)]), fill_value=([a], [b]), bounds_error=False)
+
+    # step 3:
+    # q1 = np.sqrt(x1)
+    # q2 = np.sqrt(x2)
+    # gam = fs.utility_functions.optimum_reparam(q1, t, q2, lam=lbda)
+    # gam = optimum_reparam_1d(x1, t, x2, lam=lbda)
+    # gam = (gam - gam[0]) / (gam[-1] - gam[0])
+    # gam_inv = fs.utility_functions.invertGamma(gam)
+    # gamma = interp1d(t, gam, fill_value=([gam[0]], [gam[-1]]), bounds_error=False)
+    # gamma_inv = interp1d(t, gam_inv, fill_value=([gam_inv[0]], [gam_inv[-1]]), bounds_error=False)
     # gam_dev = np.gradient(gam, 1/np.double(200 - 1))
     # gamma_prime = interp1d(t, gam_dev, fill_value=([gam_dev[0]], [gam_dev[-1]]), bounds_error=False)
     # step 4:
     # gamma_tilde = lambda s : n(gamma(n_inv(s)))
     # gamma_tilde_inv = lambda s : n(gamma_inv(n_inv(s)))
-    gamma_tilde_interp = UnivariateSpline(np.linspace(0,1,200), np.array([gamma(j) for j in np.linspace(0,1,200)]), k=5)
-    gamma_tilde_prime = gamma_tilde_interp.derivative()
-    gamma_tilde = lambda s : n(gamma_tilde_interp(n_inv(s)))
-    gamma_tilde_inv = lambda s : n(gamma_inv(n_inv(s)))
+    # gamma_tilde_interp = UnivariateSpline(np.linspace(0,1,200), np.array([gamma(j) for j in np.linspace(0,1,200)]), k=5)
+    # gamma_tilde_prime = gamma_tilde_interp.derivative()
+    # gamma_tilde = lambda s : n(gamma_tilde_interp(n_inv(s)))
+    # gamma_tilde_inv = lambda s : n(gamma_inv(n_inv(s)))
+    # gamma_tilde = UnivariateSpline(np.linspace(a,b,200), np.array([n(gamma(n_inv(j))) for j in np.linspace(a,b,200)]), k=5)
+    # gamma_tilde_prime = gamma_tilde_interp.derivative()
+    # gamma_tilde_inv = interp1d(gamma_tilde(np.linspace(a,b,200)), np.linspace(a,b,200), fill_value=([a], [b]), bounds_error=False)
+
     # step 5:
 
     def g(s):
         if a<=s<=b:
             return gamma_tilde(s)
         elif s<a:
-            return gamma_tilde_prime(n_inv(a))*(s-a) + gamma_tilde(a)
+            return gamma_tilde_prime(a)*(s-a) + gamma_tilde(a)
         elif s>b:
-            return gamma_tilde_prime(n_inv(b))*(s-b) + gamma_tilde(b)
+            return gamma_tilde_prime(b)*(s-b) + gamma_tilde(b)
 
     def g_prime(s):
         if a<=s<=b:
-            return gamma_tilde_prime(n_inv(s))
+            return gamma_tilde_prime(s)
         elif s<a:
-            return gamma_tilde_prime(n_inv(a))
+            return gamma_tilde_prime(a)
         elif s>b:
-            return gamma_tilde_prime(n_inv(b))
+            return gamma_tilde_prime(b)
 
     def g_inv(s):
         if a<=s<=b:
             return gamma_tilde_inv(s)
         elif s<a:
-            return (1/gamma_tilde_prime(n_inv(a)))*(s-gamma_tilde(a)) + a
+            return (1/gamma_tilde_prime(a))*(s-gamma_tilde(a)) + a
         elif s>b:
-            return (1/gamma_tilde_prime(n_inv(b)))*(s-gamma_tilde(b)) + b
-
-
-    gamma_tilde_interp = UnivariateSpline(np.linspace(a,b,200), np.array([n(gamma(n_inv(j))) for j in np.linspace(a,b,200)]), k=5)
-
-    def g(s):
-        if a<=s<=b:
-            return gamma_tilde_interp(s)
-        elif s<a:
-            return poly(2, gamma_tilde_interp, a)[0](s)
-        elif s>b:
-            return poly(2, gamma_tilde_interp, b)[0](s)
-
-    def g_prime(s):
-        if a<=s<=b:
-            return gamma_tilde_interp.derivative()(s)
-        elif s<a:
-            return poly(2, gamma_tilde_interp, a)[1](s)
-        elif s>b:
-            return poly(2, gamma_tilde_interp, b)[1](s)
-
-    g_inv = interp1d()
-
-    def X2new(s):
-        return X2tilde(g(s))*g_prime(s)
+            return (1/gamma_tilde_prime(b))*(s-gamma_tilde(b)) + b
 
     A, B = g_inv(f_inv(init_ind2[0])), g_inv(f_inv(init_ind2[1]))
+    g_tilde = UnivariateSpline(np.linspace(A,B,400), np.array([g(j) for j in np.linspace(A,B,400)]), k=4, s=0.001)
+    g_tilde_prime = g_tilde.derivative()
 
-    partial_align_results = collections.namedtuple('partial_align', ['X2new', 'A', 'B', 'g', 'g_prime', 'gamma', 'gamma_inv', 'gamma_prime', 'gam'])
-    out = partial_align_results(X2new, A, B, g, g_prime, gamma_tilde_interp, gamma_inv, gamma_tilde_prime, gam)
+    def X2new(s):
+        return X2tilde(g_tilde(s))*g_tilde_prime(s)
+
+    partial_align_results = collections.namedtuple('partial_align', ['X2new', 'A', 'B', 'g', 'g_prime', 'g_inv', 'gamma', 'gamma_inv', 'gamma_prime', 'gam'])
+    out = partial_align_results(X2new, A, B, g_tilde, g_tilde_prime, g_inv, gamma_tilde, gamma_tilde_inv, gamma_tilde_prime, gam)
     return out
 
 
@@ -839,8 +833,10 @@ def extend_X(X, int):
     def X_tilde(s):
         if A<=s<=B:
             return X(s)
+        elif s<A:
+            return X(A)
         else:
-            return 0
+            return X(B)
     return X_tilde
 
 def H(a, D, X1, X2new, int1, int2new, ratio):
@@ -848,24 +844,29 @@ def H(a, D, X1, X2new, int1, int2new, ratio):
     max_int = np.max([int1[1],int2new[1]])
     x1_tilde = extend_X(X1, int1)
     x2_tilde = extend_X(X2new, int2new)
-    grid1 = np.round(np.linspace(min_int, a, int(abs(min_int-a)/ratio)+1)) #, decimals=6)
-    grid2 = np.linspace(a, a+D, int(abs(D)/ratio)+1)
-    grid3 = np.round(np.linspace(a+D, max_int, int(abs(max_int-a-D)/ratio)+1)) #, decimals=6)
 
-    dist = np.array([x1_tilde(grid2[i])-x2_tilde(grid2[i]) for i in range(len(grid2))])
-    dist_shape = np.trapz(dist**2, grid2)
-
-    p1 = np.array([x1_tilde(t)-x2_tilde(t) for t in grid1])
-    p2 = np.array([x1_tilde(t)-x2_tilde(t) for t in grid3])
-    pen = np.trapz(p1**2,grid1)+ np.trapz(p2**2,grid3)
-
-    # print('dist_shape 1', dist_shape, 'dist_shape 2', np.trapz(dist**2, grid2), 'pen 1', pen, 'pen 2', np.trapz(p1**2,grid1)+ np.trapz(p2**2,grid3) )
-    # print('L1', dist_shape+pen, 'L2', np.trapz(dist**2, grid2)+np.trapz(p1**2,grid1)+ np.trapz(p2**2,grid3))
-    return dist_shape + pen
+    # grid1 = np.linspace(min_int, a, int(abs(min_int-a)/ratio)+1) #, decimals=6)
+    # grid2 = np.linspace(a, a+D, int(abs(D)/ratio)+1)
+    # grid3 = np.linspace(a+D, max_int, int(abs(max_int-a-D)/ratio)+1) #, decimals=6)
+    # dist = np.array([x1_tilde(grid2[i])-x2_tilde(grid2[i]) for i in range(len(grid2))])
+    # dist_shape = np.trapz(dist**2, grid2)
+    # # dist_shape = np.trapz(abs(dist), grid2)
+    # p1 = np.array([x1_tilde(t)-x2_tilde(t) for t in grid1])
+    # p2 = np.array([x1_tilde(t)-x2_tilde(t) for t in grid3])
+    # pen = np.trapz(p1**2,grid1)+ np.trapz(p2**2,grid3)
+    # # pen = np.trapz(abs(p1),grid1)+ np.trapz(abs(p2),grid3)
+    # print('dist_shape 2', dist_shape, 'dist_shape 1', np.trapz(abs(dist), grid2), 'pen 2', pen, 'pen 1', np.trapz(abs(p1),grid1)+ np.trapz(abs(p2),grid3) )
+    # # print('L1', dist_shape+pen, 'L2', np.trapz(dist**2, grid2)+np.trapz(p1**2,grid1)+ np.trapz(p2**2,grid3))
+    #
+    grid = np.linspace(min_int, max_int, int(abs(max_int-min_int)/ratio)+1)
+    tot_dist = np.trapz(np.array([x1_tilde(grid[i])-x2_tilde(grid[i]) for i in range(len(grid))])**2, grid)
+    # print('tot_dist', tot_dist)
+    return tot_dist
 
 
 def cost_gridsearch(X1, X2, init_ind1, init_ind2, lbda):
-    def func(a,b,c,d):
+    def func(x):
+        a, b, c, d = x[0], x[1], x[2], x[3]
         alpha, beta, D = ((d-c)/(b-a)), c-((d-c)/(b-a))*a, b-a
         out = partial_align_1d(X1, X2, init_ind2, a, D, alpha, beta, lbda)
         cost = H(a, D, X1, out.X2new, init_ind1, [out.A, out.B], 1/1000)
