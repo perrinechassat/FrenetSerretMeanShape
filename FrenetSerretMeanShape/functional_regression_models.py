@@ -7,9 +7,11 @@ from skfda.misc.regularization import TikhonovRegularization
 from skfda.misc.operators import LinearDifferentialOperator
 from optimization_utils import *
 from sklearn.model_selection import KFold
+from sklearn.model_selection import train_test_split
 import warnings
 warnings.filterwarnings("ignore")
-
+from pickle import *
+import dill as pickle
 
 # def cross_validation_score_MFR(Model, n_splits, X, y, K_coef_basis, type_coef_basis, domain_range, Z=None, fit_intercept=False, regularization=None, smoothing_parameter=None, function_to_apply = lambda x: x):
 #
@@ -207,7 +209,7 @@ def compute_error(true, pred, t):
     dist = []
     residuals = true - pred
     for i in range(n):
-        dist.append(np.sqrt(trapz((pred[i] - true[i]) ** 2, t)))
+        dist.append(np.sqrt(np.trapz((pred[i] - true[i]) ** 2, t)))
     return residuals, dist, np.mean(dist), np.std(dist)
 
 
