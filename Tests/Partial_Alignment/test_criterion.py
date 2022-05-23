@@ -33,11 +33,13 @@ res = np.zeros((N,N,4))
 for i in range(N):
     for j in range(N):
         if i==j:
-            res[i][j] = [0,L[i],0,L[i]]
+            res[i][j] = [0,grid_final_array[i][-1],0,grid_final_array[i][-1]]
         else:
             print('Find opt param to partially align curve ', i, 'to curve ', j, '...')
-            cost_func = cost_gridsearch(func_curve[j], func_curve[i], [0,L[j]], [0,L[i]], 0.01)
-            param_list = make_grid(np.linspace(0,L[j]/2,30), np.linspace(0,L[i]/2,30), dist=6)
+            L_i = grid_final_array[i][-1]
+            L_j = grid_final_array[j][-1]
+            cost_func = cost_gridsearch(func_curve[j], func_curve[i], [0,L_j], [0,L_i], 0.01)
+            param_list = make_grid(np.linspace(0,L_j/2,30), np.linspace(0,L_i/2,30), dist=6)
             print(param_list.shape[0])
             res[i][j] = gridsearch_optimisation(cost_func, param_list)
             print(res[i][j])
