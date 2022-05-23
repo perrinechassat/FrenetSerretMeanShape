@@ -26,8 +26,9 @@ dic = pickle.load(fil)
 fil.close()
 res_grid_search, func_curve, grid_final_array, f_final_array, coef_h = dic["res_grid_search"], dic["func_curve"], dic["grid_final_array"], dic["f_final_array"], dic["coef_h"]
 int_AB_array, int_ab_array, f_init_array, grid_init_array = dic["int_AB_array"], dic["int_ab_array"], dic["f_init_array"], dic["grid_init_array"]
+N = len(func_curve)
 
-res = np.empty((N,N), dtype=object)
+res = np.zeros((N,N,4))
 # res i,j is the parameters to align curve i to curve j
 for i in range(N):
     for j in range(N):
@@ -43,9 +44,9 @@ for i in range(N):
 
 
 filename = "results_test_criterion"
-dic_error_indiv = {"res_grid_search" : res}
+dic = {"res_grid_search" : res}
 if os.path.isfile(filename):
     print("Le fichier ", filename, " existe déjà.")
 fil = open(filename,"xb")
-pickle.dump(dic_error_indiv,fil)
+pickle.dump(dic,fil)
 fil.close()
