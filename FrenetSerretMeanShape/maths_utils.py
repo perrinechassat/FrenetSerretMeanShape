@@ -359,3 +359,17 @@ def spline_approx(time, f, smooth=True):
         g2 = tmp_spline(time, 2)
 
     return f0, g, g2
+
+
+def mean_partial_samples(X, bounds, grid):
+    n = len(X)
+    nT = len(grid)
+    mean = np.zeros(nT)
+    sum_O = np.zeros(nT)
+    for j in range(nT):
+        for i in range(n):
+            if bounds[i][0] <= grid[j] <= bounds[i][1]:
+                sum_O[j] += 1
+                mean[j] += X[i](grid[j])
+    mean_partial = mean/sum_O
+    return mean_partial

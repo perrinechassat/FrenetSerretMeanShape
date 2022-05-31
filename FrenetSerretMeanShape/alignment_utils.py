@@ -108,6 +108,9 @@ def align_vect_curvatures_fPCA(f, time, weights, num_comp=3, cores=-1, smoothdat
         convergence: True if nb_itr < MaxItr, False otherwise
 
     """
+    if len(f.shape)==2:
+        f = f[np.newaxis, :, :]
+
     n = f.shape[0]
     M = f.shape[1]
     N = f.shape[2]
@@ -127,8 +130,6 @@ def align_vect_curvatures_fPCA(f, time, weights, num_comp=3, cores=-1, smoothdat
     # f = f_smooth
 
     f0 = f
-    kappa0 = f[0,:,:]
-    tau0 = f[1,:,:]
 
     mf0 = weighted_mean_vect(f, weights)
     a = mf0.repeat(N)
@@ -330,6 +331,7 @@ def align_vect_curvatures_fPCA(f, time, weights, num_comp=3, cores=-1, smoothdat
     return out
 
 
+
 def compose(f, g, time):
     """
     Compose functions f by functions g on the grid time.
@@ -453,7 +455,7 @@ def align_and_center(gam, mf, f, itr, time):
     ...
 
     """
-    n = 2
+    n = f.shape[0]
     N = gam.shape[1]
     M = gam.shape[0]
     gamf = gam[:, :, 0]
@@ -870,6 +872,49 @@ def cost_gridsearch(X1, X2, init_ind1, init_ind2, lbda):
         alpha, beta, D = ((d-c)/(b-a)), c-((d-c)/(b-a))*a, b-a
         out = partial_align_1d(X1, X2, init_ind2, a, D, alpha, beta, lbda)
         cost = H(a, D, X1, out.X2new, init_ind1, [out.A, out.B], 1/1000)
+        return cost
+    return func
+
+
+def partial_align_1d_bis(X1, X2, init_ind2, a, D, alpha, beta, lbda=0):
+    # step 1:
+    b = a+D
+    f, f_inv = compute_f(alpha, beta)
+    X2tilde = lambda s: alpha*X2(f(s))
+    # X2tilde = lambda s: X2(f(s))
+
+    t = np.linspace(0,1,200)
+    n, n_inv = compute_n(a, D)
+
+    x1 = np.array([D*X1(n(t_)) for t_ in t])
+    x2 = np.array([D*X2tilde(n(t_)) for t_ in t])
+    gam = optimum_reparam_1d(x1, t, x2, lam=lbda)
+    gam = (gam - gam[0]) / (gam[-1] - gam[0])
+    # gam_inv = fs.utility_functions.invertGamma(gam)
+    n_gam = np.array([n(g_) for g_ in gam])
+    gamma = interp1d(np.array([n(t_) for t_ in t]), n_gam, fill_value=([n_gam[0]], [n_gam[-1]]), bounds_error=False)
+    # gamma_inv = interp1d(t, gam_inv, fill_value=([gam_inv[0]], [gam_inv[-1]]), bounds_error=False)
+    gamma_tilde = UnivariateSpline(np.linspace(a,b,200), np.array([gamma(j) for j in np.linspace(a,b,200)]), k=5)
+    gamma_tilde_prime = gamma_tilde.derivative()
+    #
+    def X2new(s):
+        return X2tilde(gamma_tilde(s))*gamma_tilde_prime(s)
+
+    partial_align_results = collections.namedtuple('partial_align', ['X2new', 'gamma', 'gamma_smooth', 'gamma_prime', 'gam', 'a', 'b'])
+    out = partial_align_results(X2new, gamma, gamma_tilde, gamma_tilde_prime, gam, a, b)
+    # partial_align_results = collections.namedtuple('partial_align', ['gamma', 'gam'])
+    # out = partial_align_results(gamma, gam)
+
+    return out
+
+def cost_bis(X1, X2, init_ind1, init_ind2, lbda):
+    def func(x):
+        a, b, c, d = x[0], x[1], x[2], x[3]
+        alpha, beta, D = ((d-c)/(b-a)), c-((d-c)/(b-a))*a, b-a
+        out = partial_align_1d_bis(X1, X2, init_ind2, a, D, alpha, beta, lbda)
+        grid = np.linspace(a,b,200)
+        cost = (init_ind1[1]/(b-a))*(init_ind2[1]/(d-c))*np.trapz((X1(grid)-out.X2new(grid))**2, grid) + lbda*np.trapz((np.ones(200,)-out.gamma_prime(grid))**2, grid)
+        # print('shape dist:', np.trapz((X1(grid)-out.X2new(grid))**2, grid), 'weighted shape dist:', (init_ind1[1]/(b-a))*(init_ind2[1]/(d-c))*np.trapz((X1(grid)-out.X2new(grid))**2, grid), 'pen:', lbda*np.trapz((np.ones(200,)-out.gamma_prime(grid))**2, grid))
         return cost
     return func
 

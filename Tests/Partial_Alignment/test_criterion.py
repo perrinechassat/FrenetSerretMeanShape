@@ -38,14 +38,14 @@ for i in range(N):
             print('Find opt param to partially align curve ', i, 'to curve ', j, '...')
             L_i = grid_final_array[i][-1]
             L_j = grid_final_array[j][-1]
-            cost_func = cost_gridsearch(func_curve[j], func_curve[i], [0,L_j], [0,L_i], 0.01)
+            cost_func = cost_bis(func_curve[j], func_curve[i], [0,L_j], [0,L_i], 0.01)
             param_list = make_grid(np.linspace(0,L_j/2,30), np.linspace(0,L_i/2,30), dist=6)
             res_grid_search = gridsearch_optimisation(cost_func, param_list)
             res[i][j] = res_grid_search[0]
             print(res[i][j])
 
 
-filename = "results_test_criterion"
+filename = "results_test_criterion_v2"
 dic = {"res_grid_search" : res}
 if os.path.isfile(filename):
     print("Le fichier ", filename, " existe déjà.")
