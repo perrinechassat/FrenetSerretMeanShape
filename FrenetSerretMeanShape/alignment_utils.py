@@ -913,7 +913,7 @@ def cost_bis(X1, X2, init_ind1, init_ind2, lbda):
         alpha, beta, D = ((d-c)/(b-a)), c-((d-c)/(b-a))*a, b-a
         out = partial_align_1d_bis(X1, X2, init_ind2, a, D, alpha, beta, lbda)
         grid = np.linspace(a,b,200)
-        cost = (init_ind1[1]/(b-a))*(init_ind2[1]/(d-c))*np.trapz((X1(grid)-out.X2new(grid))**2, grid) + lbda*np.trapz((np.ones(200,)-out.gamma_prime(grid))**2, grid)
+        cost = np.power(init_ind1[1]/(b-a), 3)*np.power(init_ind2[1]/(d-c), 3)*np.trapz((X1(grid)-out.X2new(grid))**2, grid) + lbda*np.trapz((np.ones(200,)-out.gamma_prime(grid))**2, grid)
         # print('shape dist:', np.trapz((X1(grid)-out.X2new(grid))**2, grid), 'weighted shape dist:', (init_ind1[1]/(b-a))*(init_ind2[1]/(d-c))*np.trapz((X1(grid)-out.X2new(grid))**2, grid), 'pen:', lbda*np.trapz((np.ones(200,)-out.gamma_prime(grid))**2, grid))
         return cost
     return func

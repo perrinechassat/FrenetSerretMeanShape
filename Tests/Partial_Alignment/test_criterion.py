@@ -45,7 +45,7 @@ for i in range(N):
             print(res[i][j])
 
 
-filename = "results_test_criterion_v2"
+filename = "results_test_criterion_v3"
 dic = {"res_grid_search" : res}
 if os.path.isfile(filename):
     print("Le fichier ", filename, " existe déjà.")
