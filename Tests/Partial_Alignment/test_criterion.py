@@ -58,7 +58,7 @@ for i in range(N):
             L_i = grid_final_array[i][-1]
             L_j = grid_final_array[j][-1]
             cost_func = cost_bis(func_curve[j], func_curve[i], [0,L_j], [0,L_i], 0.01)
-            param_list = make_grid(np.linspace(0,L_j,int(L_j/0.05)), np.linspace(0,L_i,int(L_i/0.05)), dist=0.6)
+            param_list = make_grid(np.linspace(0,L_j,int(L_j/0.06)), np.linspace(0,L_i,int(L_i/0.06)), dist=0.6)
             res_grid_search = gridsearch_optimisation(cost_func, param_list)
             res[i][j] = res_grid_search[0]
             print(res[i][j])
