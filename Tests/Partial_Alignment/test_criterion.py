@@ -45,6 +45,7 @@ c1 = interp1d(np.linspace(0,2,200), curv(t2)*3/2)
 c2 = interp1d(np.linspace(0,1.5,200), curv_warp_3(t3)/1.5)
 grid_final_array = np.array([np.linspace(0,3,200), np.linspace(0,2,200), np.linspace(0,1.5,200)])
 func_curve = np.array([c0, c1, c2])
+N = 3
 
 res = np.zeros((N,N,4))
 # res i,j is the parameters to align curve i to curve j
