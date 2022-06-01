@@ -898,7 +898,7 @@ def partial_align_1d_bis(X1, X2, init_ind2, a, D, alpha, beta, lbda=0):
     gamma_tilde_prime = gamma_tilde.derivative()
     #
     def X2new(s):
-        return X2tilde(gamma_tilde(s))*gamma_tilde_prime(s)
+        return X2tilde(gamma(s))*gamma_tilde_prime(s)
 
     partial_align_results = collections.namedtuple('partial_align', ['X2new', 'gamma', 'gamma_smooth', 'gamma_prime', 'gam', 'a', 'b'])
     out = partial_align_results(X2new, gamma, gamma_tilde, gamma_tilde_prime, gam, a, b)
@@ -947,7 +947,7 @@ def cost_bis(X1, X2, init_ind1, init_ind2, lbda):
         out = partial_align_1d_bis(X1, X2, init_ind2, a, D, alpha, beta, lbda)
         grid = np.linspace(a,b,200)
         cost = np.power(init_ind1[1]/(b-a), 3)*np.power(init_ind2[1]/(d-c), 3)*np.trapz((X1(grid)-out.X2new(grid))**2, grid) + lbda*np.trapz((np.ones(200,)-out.gamma_prime(grid))**2, grid)
-        print('shape dist:', np.trapz((X1(grid)-out.X2new(grid))**2, grid), 'weighted shape dist:', np.power(init_ind1[1]/(b-a), 3)*np.power(init_ind2[1]/(d-c), 3)*np.trapz((X1(grid)-out.X2new(grid))**2, grid), 'pen:', lbda*np.trapz((np.ones(200,)-out.gamma_prime(grid))**2, grid))
+        # print('shape dist:', np.trapz((X1(grid)-out.X2new(grid))**2, grid), 'weighted shape dist:', np.power(init_ind1[1]/(b-a), 3)*np.power(init_ind2[1]/(d-c), 3)*np.trapz((X1(grid)-out.X2new(grid))**2, grid), 'pen:', lbda*np.trapz((np.ones(200,)-out.gamma_prime(grid))**2, grid))
         return cost
     return func
 
