@@ -40,9 +40,9 @@ curv_warp_3 = interp1d(t3, warp_area_gamma(t, curv(t3)[np.newaxis,:], gam_3)[0],
 curv_warp_1 = interp1d(t1, warp_area_gamma(t, curv(t1)[np.newaxis,:], gam_1)[0], fill_value=([warp_area_gamma(t, curv(t1)[np.newaxis,:], gam_1)[0][0]], [warp_area_gamma(t, curv(t1)[np.newaxis,:], gam_1)[0][-1]]), bounds_error=False)
 
 new_length = [3,2, 1.5]
-c0 = interp1d(np.linspace(0,3,200), curv_warp_1(t1)*2/3)
-c1 = interp1d(np.linspace(0,2,200), curv(t2)*3/2)
-c2 = interp1d(np.linspace(0,1.5,200), curv_warp_3(t3)/1.5)
+c0 = interp1d(np.linspace(0,3,200), curv_warp_1(t1)*2/3, fill_value=([(curv_warp_1(t1)*2/3)[0]], [(curv_warp_1(t1)*2/3)[-1]]), bounds_error=False)
+c1 = interp1d(np.linspace(0,2,200), curv(t2)*3/2, fill_value=([(curv(t2)*3/2)[0]], [( curv(t2)*3/2)[-1]]), bounds_error=False)
+c2 = interp1d(np.linspace(0,1.5,200), curv_warp_3(t3)/1.5, fill_value=([(curv_warp_3(t3)/1.5)[0]], [(curv_warp_3(t3)/1.5)[-1]]), bounds_error=False)
 grid_final_array = np.array([np.linspace(0,3,200), np.linspace(0,2,200), np.linspace(0,1.5,200)])
 func_curve = np.array([c0, c1, c2])
 N = 3
@@ -52,11 +52,11 @@ res = np.zeros((N,N,4))
 for i in range(N):
     for j in range(N):
         if i==j:
-            res[i][j] = [0,grid_final_array[i][-1],0,grid_final_array[i][-1]]
+            res[i][j] = [0,new_length[i],0,new_length[i]]
         else:
             print('Find opt param to partially align curve ', i, 'to curve ', j, '...')
-            L_i = grid_final_array[i][-1]
-            L_j = grid_final_array[j][-1]
+            L_i = new_length[i]
+            L_j = new_length[j]
             cost_func = cost_bis(func_curve[j], func_curve[i], [0,L_j], [0,L_i], 0.01)
             param_list = make_grid(np.linspace(0,L_j,int(L_j/0.06)), np.linspace(0,L_i,int(L_i/0.06)), dist=0.6)
             res_grid_search = gridsearch_optimisation(cost_func, param_list)
