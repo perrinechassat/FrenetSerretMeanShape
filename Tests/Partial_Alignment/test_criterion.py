@@ -36,8 +36,8 @@ t3 = np.linspace(0,1,200)
 curv = lambda s: 2*np.abs(np.sin(s*np.pi)) + 1
 gam_3 = gamma(t, 0.5)
 gam_1 = gamma(t, -0.8)
-curv_warp_3 = interp1d(t3, warp_area_gamma(t, curv(t3)[np.newaxis,:], gam_3)[0])
-curv_warp_1 = interp1d(t1, warp_area_gamma(t, curv(t1)[np.newaxis,:], gam_1)[0])
+curv_warp_3 = interp1d(t3, warp_area_gamma(t, curv(t3)[np.newaxis,:], gam_3)[0], fill_value=([warp_area_gamma(t, curv(t3)[np.newaxis,:], gam_3)[0][0]], [warp_area_gamma(t, curv(t3)[np.newaxis,:], gam_3)[0][-1]]), bounds_error=False)
+curv_warp_1 = interp1d(t1, warp_area_gamma(t, curv(t1)[np.newaxis,:], gam_1)[0], fill_value=([warp_area_gamma(t, curv(t1)[np.newaxis,:], gam_1)[0][0]], [warp_area_gamma(t, curv(t1)[np.newaxis,:], gam_1)[0][-1]]), bounds_error=False)
 
 new_length = [3,2, 1.5]
 c0 = interp1d(np.linspace(0,3,200), curv_warp_1(t1)*2/3)
