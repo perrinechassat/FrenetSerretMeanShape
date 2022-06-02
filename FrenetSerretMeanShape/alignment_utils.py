@@ -717,9 +717,9 @@ def compute_n(a, D):
 def compute_f(alpha, beta):
     # f = lambda s: np.round(alpha*s + beta, decimals=8)
     # f_inv = lambda s: np.round((s-beta)/alpha, decimals=8)
-    # f = lambda s: (alpha*s + beta)*(beta<=(alpha*s + beta)<=alpha+beta) + (alpha+beta)*((alpha*s + beta)>alpha+beta) + alpha*((alpha*s + beta)<alpha)
+    f = lambda s: (alpha*s + beta)*(beta<=(alpha*s + beta)<=alpha+beta) + (alpha+beta)*((alpha*s + beta)>alpha+beta) + alpha*((alpha*s + beta)<alpha)
     # f_inv = lambda s: ((s-beta)/alpha)*(0<=((s-beta)/alpha)<=1) + 1*(((s-beta)/alpha)>1) + 0*(((s-beta)/alpha)<0)
-    f = lambda s: (alpha*s + beta)
+    # f = lambda s: (alpha*s + beta)
     f_inv = lambda s: ((s-beta)/alpha)
     return f, f_inv
 
@@ -904,7 +904,6 @@ def partial_align_1d_bis(X1, X2, init_ind2, a, D, alpha, beta, lbda=0):
     out = partial_align_results(X2new, gamma, gamma_tilde, gamma_tilde_prime, gam, a, b)
     # partial_align_results = collections.namedtuple('partial_align', ['gamma', 'gam'])
     # out = partial_align_results(gamma, gam)
-
     return out
 
 
@@ -946,7 +945,7 @@ def cost_bis(X1, X2, init_ind1, init_ind2, lbda):
         alpha, beta, D = ((d-c)/(b-a)), c-((d-c)/(b-a))*a, b-a
         out = partial_align_1d_bis(X1, X2, init_ind2, a, D, alpha, beta, lbda)
         grid = np.linspace(a,b,200)
-        cost = np.power(init_ind1[1]/(b-a), 3)*np.power(init_ind2[1]/(d-c), 3)*np.trapz((X1(grid)-out.X2new(grid))**2, grid) + lbda*np.trapz((np.ones(200,)-out.gamma_prime(grid))**2, grid)
+        cost = np.power(init_ind1[1]/(b-a), 3)*np.power(init_ind2[1]/(d-c), 3)*np.trapz((X1(grid)-np.array([out.X2new(t) for t in grid]))**2, grid) + lbda*np.trapz((np.ones(200,)-out.gamma_prime(grid))**2, grid)
         # print('shape dist:', np.trapz((X1(grid)-out.X2new(grid))**2, grid), 'weighted shape dist:', np.power(init_ind1[1]/(b-a), 3)*np.power(init_ind2[1]/(d-c), 3)*np.trapz((X1(grid)-out.X2new(grid))**2, grid), 'pen:', lbda*np.trapz((np.ones(200,)-out.gamma_prime(grid))**2, grid))
         return cost
     return func
