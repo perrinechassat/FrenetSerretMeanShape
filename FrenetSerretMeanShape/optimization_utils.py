@@ -8,10 +8,9 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import KFold
 from skopt import gp_minimize
 from skopt.plots import plot_convergence
-from skfda.representation.grid import FDataGrid
-from skfda.misc import metrics
 from joblib import Parallel, delayed
 from timeit import default_timer as timer
+from tqdm import tqdm
 
 
 def opti_loc_poly_traj(data_traj, t, minh, maxh, nb_h, n_splits=10):
@@ -76,12 +75,12 @@ def gridsearch_optimisation(func, hyperparam_list):
     #     print('Score :', out[i])
 
     def parallel_func(f, param, i):
-        print('Iteration :', i, 'with parameters ', param)
+        # print('Iteration :', i, 'with parameters ', param)
         cv = f(param)
-        print('Cross validation score :', cv)
+        # print('Cross validation score :', cv)
         return cv
 
-    out = Parallel(n_jobs=-1)(delayed(parallel_func)(func, grid[i], i) for i in range(n_grid))
+    out = Parallel(n_jobs=-1)(delayed(parallel_func)(func, grid[i], i) for i in tqdm(range(n_grid)))
 
     ind = np.where([out[i]==np.min(out, axis=0) for i in range(n_grid)])[0]
     if len(ind)!=1:

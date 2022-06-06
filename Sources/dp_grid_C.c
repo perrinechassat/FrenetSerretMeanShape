@@ -77,7 +77,8 @@ double dp_edge_weight(
   t2 = c;
 
   slope = (d-c)/(b-a);
-  rslope = sqrt( slope );
+  /*rslope = sqrt( slope );*/
+  rslope = slope;
 
   while( t1 < b && t2 < d )
   {
