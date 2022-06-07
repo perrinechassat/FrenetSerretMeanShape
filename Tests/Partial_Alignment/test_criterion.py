@@ -12,7 +12,7 @@ from partial_alignment import *
 from simu_utils import *
 from pickle import *
 import dill as pickle
-
+from tqdm import tqdm
 
 # filename = "results_1simu_partial_align"
 # fil = open(filename,"rb")

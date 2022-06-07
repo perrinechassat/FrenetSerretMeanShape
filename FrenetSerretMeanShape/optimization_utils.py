@@ -82,9 +82,10 @@ def gridsearch_optimisation(func, hyperparam_list):
 
     out = Parallel(n_jobs=-1)(delayed(parallel_func)(func, grid[i], i) for i in tqdm(range(n_grid)))
 
-    ind = np.where([out[i]==np.min(out, axis=0) for i in range(n_grid)])[0]
-    if len(ind)!=1:
-        ind = ind[0]
+    # ind = np.where([out[i]==np.min(out, axis=0) for i in range(n_grid)])[0]
+    ind = np.argmin(out, axis=0)
+    # if len(ind)!=1:
+    #     ind = ind[0]
 
     res = grid[ind]
     print('End of grid search optimisation. The optimal parameters are :', res)
